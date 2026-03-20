@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn( jetbrainsMono.variable, "font-sans", geist.variable)}>
+    <html lang="en" className={cn( geist.variable, "font-mono", jetbrainsMono.variable)}>
       <body className={inter.className}>
         {children}
         <Toaster richColors />
