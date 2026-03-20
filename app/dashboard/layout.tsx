@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,8 @@ export default async function DashboardLayout({
   }
 
   return (
+      <TooltipProvider
+      >
     <SidebarProvider>
       <AppSidebar
         user={{
@@ -32,5 +35,6 @@ export default async function DashboardLayout({
         {children}
       </SidebarInset>
     </SidebarProvider>
+      </TooltipProvider>
   );
 }
