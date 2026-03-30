@@ -1,4 +1,5 @@
 name: CI
+
 on:
   pull_request:
     branches: [main]
@@ -6,12 +7,23 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '20' # Current LTS
+          node-version: '20'
           cache: 'npm'
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install dependencies
         run: npm ci
@@ -22,7 +34,7 @@ jobs:
           npx tsc --noEmit
 
       - name: Run Tests
-        run: npm test
+        run: npm test -- --coverage
 
       - name: Production Build Check
         run: npm run build
