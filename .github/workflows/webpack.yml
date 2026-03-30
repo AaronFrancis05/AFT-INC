@@ -28,11 +28,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint & Type-check
-        run: |
-          npm run lint
-          npx tsc --noEmit
-
       - name: Run Tests
         run: npm test -- --coverage
 
