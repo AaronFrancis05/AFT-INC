@@ -20,6 +20,7 @@ import { authClient } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Eye, EyeOff } from 'lucide-react'
+import Image from "next/image";
 
 export function SignIn() {
   const router = useRouter()
@@ -76,9 +77,11 @@ export function SignIn() {
       <div className="bg-card m-auto h-fit w-full max-w-md rounded-lg border p-0.5 shadow-md">
         <div className="p-8 pb-6">
           <Link href="/" aria-label="go home">
-            <AppLogoIcon className="h-10 fill-current text-black sm:h-12" />
+            <Image className={"rounded-lg   object-fit"} src={"/assets/hero/robot.jpg"} alt={"Logo"} width={30} height={30} />
           </Link>
-          <h1 className="mb-1 mt-4 text-xl font-semibold">Sign in to Tailark</h1>
+          <h1 className="mb-1 flex items-center gap-2 mt-4 text-xl font-semibold">Sign in to<> <div className={"flex gap-2 cursor-pointer items-center"}>
+            <h4 className={"font-bold font-sans text-lg"}>AFT INC</h4>
+          </div> </></h1>
           <p className="text-sm text-muted-foreground">Welcome back! Sign in to continue</p>
 
           <div className="mt-6 grid grid-cols-2 gap-3">
