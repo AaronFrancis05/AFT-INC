@@ -12,9 +12,8 @@ This file holds the project's working memory, so any session or teammate can pic
 
 - **Stage**: PLAN.md Step 1 (planning artifacts, no app code yet)
 - **Done**: `/audit` gap-fill of `AGENTS.md`; `/scope` wrote [docs/scope/index.md](docs/scope/index.md) plus 8 epic files (132 features, plus 3 pre-existing items A to C)
-- **Spec 0001** ([CI repair and test harness](docs/specs/0001-ci-repair-test-harness.md)) accepted 2026-10-19; scope feature 1 is `in-progress` with its build checklist
-- **Next command**: `/develop ci repair and test harness` (feature 1), then `/develop auth defect fixes` (feature 2), then `/architect platform architecture` (feature 3, which becomes spec 0002; spec numbers follow creation order, so the standards spec from feature 7 will be 0003 or later)
-- **Needs the engineer before feature 1 can finish**: install the GitHub CLI (`winget install GitHub.cli`) and run `gh auth login` once (build task 9, branch protection)
+- **Spec 0001** ([CI repair and test harness](docs/specs/0001-ci-repair-test-harness.md)) `In Progress`; every build task (1 to 9, plus 7b) is done. Draft PR #2 is green on all six required checks, and `main` is protected (squash merges only)
+- **Next command**: `/check verify ci repair and test harness` (includes the AC-12 direct push rejection check), then `/test`, `/check review`, and `/document` (feature 1 is GA). Then squash merge PR #2, then `/develop auth defect fixes` (feature 2), then `/architect platform architecture` (feature 3)
 - **Owed to `/sync`**: copy the build approach (Tracer Bullet) from the scope header into `AGENTS.md` `## Build approach` (still a placeholder)
 - **Blockers**: none
 
@@ -88,3 +87,7 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Resume at build task 6 (lint gate, after the upgrade).
 - Draft PR #2 opened for feature 1: https://github.com/AaronFrancis05/AFT-INC/pull/2. First CI run green (`test`, `typecheck`). GitHub actions bumped to v5 (Node 24 runtime). The repo also has a CodeRabbit review app installed.
 - A leftover Vercel project `aft-inc` (team `taremwa-aaron-francis-projects`) was auto-deploying the repo and served a live copy of the old app with a real `DATABASE_URL`, Resend, and OAuth secrets. Hosting is AWS per the plan, so the engineer deleted the project on 2026-10-19 (confirmed 404). The old database had no users. Cleanup owed by the engineer: delete that old database at its provider, and rotate the Google and GitHub OAuth secrets and the Resend key (they were stored readable on Vercel) before features 2 and 14.
+- Build tasks 6 to 9 done. Task 6: lint gate, all findings fixed. Task 7: `prisma` job. Task 7b (spec Update 1): better-auth 1.7 refuses to run without `account.idToken` (`SCHEMA_MISMATCH`), so my earlier "no migration needed" note was wrong; the engineer chose to keep 1.7.11 and add the nullable column (migration `20261019200000_add_account_id_token`, applied when the first database exists). Task 8: `build-smoke` job (empty Postgres 17 service, build, Playwright Chromium, 4 smoke tests with console error checks). CI run 39317428115: all six jobs green.
+- Task 9: `main` protection applied with the spec's `gh api` command (six required checks, strict, admins included, linear history, no force pushes or deletions, 0 approvals); repo set to squash merges only.
+- The engineer deleted the old database and rotated the Google, GitHub, and Resend secrets (cleanup above is done).
+- Findings routed to later features: form labels are not linked to their inputs (accessibility, features 27 and 121); a broken Unsplash image on the homepage (edge case C5); the `aws-mcp` server times out on first connect.

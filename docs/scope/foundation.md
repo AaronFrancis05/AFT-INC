@@ -10,12 +10,12 @@ Everything every later feature stands on: a green pipeline, the monorepo, shared
 Fix the broken CI and add a real test runner, so every later feature lands on a green pipeline.
 **Done when:** every pull request runs lint, typecheck, unit tests, and build, and all pass on `main`; pull requests from forks get no secrets (I6).
 - [x] Design it (spec): `/architect ci repair and test harness`
-- [ ] Build it: `/develop ci repair and test harness`
-   - [ ] Toolchain pinned (Node, npm, install scripts, LF line endings) (AC-5, AC-11)
-   - [ ] Vitest harness, starter tests, and the thin CI thread with typecheck (AC-1, AC-2, AC-3, AC-9, AC-10, AC-13)
-   - [ ] Dependencies patched and audit gate live, then lint fixed and gated (AC-4, AC-8)
-   - [ ] Prisma gate and the build plus Playwright smoke gate (AC-5, AC-6, AC-7)
-   - [ ] `main` protected through the GitHub CLI (AC-12)
+- [x] Build it: `/develop ci repair and test harness`
+   - [x] Toolchain pinned (Node, npm, install scripts, LF line endings) (AC-5, AC-11)
+   - [x] Vitest harness, starter tests, and the thin CI thread with typecheck (AC-1, AC-2, AC-3, AC-9, AC-10, AC-13)
+   - [x] Dependencies patched and audit gate live, then lint fixed and gated (AC-4, AC-8)
+   - [x] Prisma gate and the build plus Playwright smoke gate (AC-5, AC-6, AC-7)
+   - [x] `main` protected through the GitHub CLI (AC-12)
 - [ ] Verify it: `/check verify ci repair and test harness`
 - [ ] Test it: `/test ci repair and test harness`
 - [ ] Review it (fresh model): `/check review ci repair and test harness`
