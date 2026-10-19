@@ -1,5 +1,5 @@
 import React from 'react'
-import { ChevronLeft, Github, Loader2, LucideCrop as LucideProps } from 'lucide-react'
+import { ChevronLeft, Loader2 } from 'lucide-react'
 
 export const Icons = {
   chevronLeft: ChevronLeft,

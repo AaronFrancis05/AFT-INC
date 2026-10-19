@@ -11,7 +11,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
-    async sendResetPassword(data, request) {
+    async sendResetPassword(data) {
       try {
         await sendResetPasswordEmail(data.user.email, data.url);
       } catch (error) {
@@ -31,7 +31,7 @@ export const auth = betterAuth({
   },
   plugins: [
     emailOTP({
-      async sendVerificationOTP({ email, otp, type }) {
+      async sendVerificationOTP({ email, otp }) {
         try {
           await sendVerificationEmail(email, otp);
         } catch (e) {

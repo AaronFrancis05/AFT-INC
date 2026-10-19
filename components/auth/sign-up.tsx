@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Icons, AppLogoIcon } from '@/components/icons'
+import { Icons } from '@/components/icons'
 import { authClient } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -57,7 +57,7 @@ export function SignUp() {
                     sessionStorage.setItem("verify_email", data.email)
                     router.push("/auth/verify-email")
                 },
-                onError: (ctx) => {
+                onError: () => {
                     toast.error("Account created but failed to send verification email. Please try resending.")
                     sessionStorage.setItem("verify_email", data.email)
                     router.push("/auth/verify-email")

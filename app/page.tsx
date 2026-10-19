@@ -7,10 +7,7 @@ import {
     Layout, 
     ShoppingCart, 
     Server, 
-    ShieldCheck, 
-    Zap,
     Code,
-    Settings,
     HeadphonesIcon
 } from "lucide-react";
 
