@@ -52,6 +52,30 @@ jobs:
       - name: Lint
         run: npm run lint
 
+  prisma:
+    name: prisma
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # prisma.config.ts reads it; validate and generate never connect.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Validate schema
+        run: npx prisma validate
+      - name: Regenerate client
+        run: npx prisma generate
+      - name: Committed client matches the schema
+        run: |
+          drift="$(git status --porcelain lib/generated/prisma)"
+          if [ -n "$drift" ]; then
+            echo "The committed Prisma client is stale. Run npx prisma generate and commit lib/generated/prisma."
+            echo "$drift"
+            git diff --stat lib/generated/prisma
+            exit 1
+          fi
+
   audit:
     name: audit
     runs-on: ubuntu-latest
