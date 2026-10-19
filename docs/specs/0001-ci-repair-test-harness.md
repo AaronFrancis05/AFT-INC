@@ -39,6 +39,7 @@ The engineer chose (staged conversation): Vitest with Testing Library as the pla
 - **AC-10**: CI runs on every pull request to `main`, every push to `main`, and on manual dispatch; a newer push to the same pull request cancels the older run; the workflow token is read only; the workflow uses the `pull_request` trigger and no secrets, so a pull request from a fork never sees a secret (I6).
 - **AC-11**: Node is pinned to 24 in `.nvmrc` and in `package.json` `engines`, and CI reads the version from `.nvmrc`. npm is pinned to 11.19.1 in `package.json` `packageManager`; every CI job installs that version before `npm ci` and fails if `npm -v` differs. CI honors the same approved install scripts as local, and fails if `npm install-scripts ls` reports any package not yet approved or denied.
 - **AC-12**: `main` is protected on GitHub: changes arrive only through a pull request (zero approvals required), all six CI jobs are required checks and must be up to date with `main`, history is linear (squash merges), direct pushes, force pushes, and branch deletion are blocked, and the rules apply to admins too. The protection is applied by a repeatable `gh api` command recorded in the spec.
+- **AC-14** (added 2026-10-19, see Update 1): The `account` table has a nullable `idToken` text column, added by an additive migration, so `better-auth` 1.7 passes its startup schema check and Google sign in can store its ID token. No existing row or column changes.
 - **AC-13**: The old `webpack.yml` workflow is gone. Each new job's ID equals its display name, so the check names GitHub shows are stable and exactly the six names branch protection requires, and the workflow has no path filters (a skipped required check would leave a pull request stuck).
 
 ## Options considered
@@ -129,9 +130,13 @@ Recommendations made without a separate question (each the engineer can override
 - **An empty Postgres service in the smoke job** (engineer's choice over "no database at all"). Whether a cookieless session lookup queries the database no longer matters: it connects to an empty database and finds nothing, so the redirect check is deterministic.
 - **Vitest without globals** (runner up: `globals: true`). Each test imports `describe`, `it`, `expect` from `vitest`, so `tsc` typechecks test files with no extra global types.
 
+## Update 1 (2026-10-19): one additive schema change
+
+Found during build task 8: `better-auth` 1.7 checks the Prisma schema at startup and refuses to run when a column it needs is missing (`SCHEMA_MISMATCH`, `account.idToken`). The column was always missing (a latent Google sign in bug), but 1.7 makes it fatal for every auth request. Every `better-auth` advisory is also fixed by 1.6.22, so pinning 1.6.33 was the alternative; the engineer chose to keep 1.7.11 and add the column here, because it also fixes Google sign in and avoids a second auth upgrade later. Scope feature 2 no longer owns this column.
+
 ## Feature design
 
-**Data model sketch**: none. This feature touches no schema.
+**Data model sketch**: one additive change (Update 1). `Account.idToken String?` (nullable text), created by the migration `prisma/migrations/20261019200000_add_account_id_token/migration.sql` containing `ALTER TABLE "account" ADD COLUMN "idToken" TEXT;`. Nothing else in the schema changes.
 
 **API surface**: no application endpoints. The interface is the npm scripts and CI jobs:
 
@@ -224,6 +229,7 @@ Tracer Bullet: first stand up one real job end to end (install, test, green chec
    - The 16 warnings, all `@typescript-eslint/no-unused-vars`: `app/dashboard/page.tsx` (lines 7, 8, 9), `app/page.tsx` (10, 11, 13), `components/auth/sign-in.tsx` (18), `components/auth/sign-up.tsx` (18, 60), `components/auth/verify-email.tsx` (16), `components/dashboard/app-sidebar.tsx` (16), `components/icons.tsx` (2, twice), `components/ui/form.tsx` (7), and `lib/auth.ts` (14, 34).
    - Fix the `set-state-in-effect` errors by deriving the state rather than setting it inside the effect (for example, compute "can resend" from the countdown value). The visible behavior of the resend timer must not change.
 7. Prisma gate: add the `prisma` job (validate, generate, `git status --porcelain` check). Satisfies **AC-5**.
+7b. Schema fix (Update 1): add `idToken String?` to `Account` in `prisma/schema.prisma`, add the hand written migration above (no local database exists yet, so it is applied when the first database is created, features 8 and 12), and regenerate the committed client. Satisfies **AC-14**, **AC-5**.
 8. Build and smoke: add `playwright.config.ts`, `e2e/smoke.spec.ts`, and the `test:e2e` script; add the `build-smoke` job with the empty Postgres service, job level placeholder env, the cached Chromium install (`npx playwright install --with-deps chromium`, cache keyed on the installed Playwright version), and the report upload on failure. Satisfies **AC-6**, **AC-7**.
 9. Protect `main`: install the GitHub CLI (`winget install GitHub.cli`), then you run `gh auth login` once. After all six jobs have run green at least once (GitHub only offers checks it has seen), apply protection with the command below. Squash merge the pull request, set the repository to allow squash merges only, and confirm a direct push to `main` is rejected. Satisfies **AC-12**.
 
