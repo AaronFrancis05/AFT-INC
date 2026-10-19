@@ -41,3 +41,13 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Typecheck
         run: npm run typecheck
+
+  audit:
+    name: audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Audit runtime dependencies
+        run: npx audit-ci --config audit-ci.jsonc
