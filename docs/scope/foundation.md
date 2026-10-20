@@ -16,7 +16,7 @@ Fix the broken CI and add a real test runner, so every later feature lands on a 
    - [x] Dependencies patched and audit gate live, then lint fixed and gated (AC-4, AC-8)
    - [x] Prisma gate and the build plus Playwright smoke gate (AC-5, AC-6, AC-7)
    - [x] `main` protected through the GitHub CLI (AC-12)
-- [ ] Verify it: `/check verify ci repair and test harness`
+- [x] Verify it: `/check verify ci repair and test harness`
 - [ ] Test it: `/test ci repair and test harness`
 - [ ] Review it (fresh model): `/check review ci repair and test harness`
 - [ ] Document it: `/document ci repair and test harness`

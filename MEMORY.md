@@ -12,8 +12,9 @@ This file holds the project's working memory, so any session or teammate can pic
 
 - **Stage**: PLAN.md Step 1 (planning artifacts, no app code yet)
 - **Done**: `/audit` gap-fill of `AGENTS.md`; `/scope` wrote [docs/scope/index.md](docs/scope/index.md) plus 8 epic files (132 features, plus 3 pre-existing items A to C)
-- **Spec 0001** ([CI repair and test harness](docs/specs/0001-ci-repair-test-harness.md)) `In Progress`; every build task (1 to 9, plus 7b) is done. Draft PR #2 is green on all six required checks, and `main` is protected (squash merges only)
-- **Next command**: `/check verify ci repair and test harness` (includes the AC-12 direct push rejection check), then `/test`, `/check review`, and `/document` (feature 1 is GA). Then squash merge PR #2, then `/develop auth defect fixes` (feature 2), then `/architect platform architecture` (feature 3)
+- **Spec 0001** ([CI repair and test harness](docs/specs/0001-ci-repair-test-harness.md)) `In Progress`; every build task (1 to 9, plus 7b) is done, and `/check verify` passed on 2026-10-20 (commit c0dacf9, CI run 39400720181 green on all six checks). `main` is protected (squash merges only)
+- **Dev database**: AWS Aurora PostgreSQL 17 Serverless v2 cluster `aft-dev` in eu-west-1 (see Decisions log, 2026-10-20); both migrations applied; local `.env` points at it
+- **Next command**: `/test ci repair and test harness`, then `/check review` (different model) and `/document` (feature 1 is GA). Then squash merge PR #2, then `/develop auth defect fixes` (feature 2), then `/architect platform architecture` (feature 3)
 - **Owed to `/sync`**: copy the build approach (Tracer Bullet) from the scope header into `AGENTS.md` `## Build approach` (still a placeholder)
 - **Blockers**: none
 
@@ -50,6 +51,7 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 | 2026-10-18 | Solo engineer with AI agents, no fixed deadline, one feature at a time | docs/scope/index.md |
 | 2026-10-18 | Go to market in scope: SEO, analytics, WCAG 2.2 AA, legal, multiple languages and currencies | docs/scope/launch.md |
 | 2026-10-18 | Legal pages (feature 124) must ship before billing and generation flags turn on in production | docs/scope/launch.md |
+| 2026-10-20 | Local development uses an AWS dev database from the start: Aurora PostgreSQL 17 Serverless v2 (auto pause), eu-west-1, public endpoint locked to the engineer's IP, TLS required. CI keeps its empty Postgres service and no secrets (I6). Production data design stays with `/architect platform architecture` | MEMORY.md |
 
 ## Known defects (fix inside the named scope feature, not ad hoc)
 
@@ -91,3 +93,10 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Task 9: `main` protection applied with the spec's `gh api` command (six required checks, strict, admins included, linear history, no force pushes or deletions, 0 approvals); repo set to squash merges only.
 - The engineer deleted the old database and rotated the Google, GitHub, and Resend secrets (cleanup above is done).
 - Findings routed to later features: form labels are not linked to their inputs (accessibility, features 27 and 121); a broken Unsplash image on the homepage (edge case C5); the `aws-mcp` server times out on first connect.
+
+### 2026-10-20
+- `/check verify ci repair and test harness` first came back FAIL: `build-smoke` was red on the docs commit d4554ee. `/debug` found the cause: an Unsplash photo on the homepage now returns 404, `next/image` proxies it through `localhost:3000/_next/image`, so the smoke filter counted an external failure as an app error, and lazy loading made it timing dependent. Fixed in c0dacf9 (filter sees through the proxy, homepage test scrolls and waits for network idle, dead photo id replaced). This also closes the broken image noted under edge case C5. CI run 39400720181 green on all six checks.
+- Verify evidence: all local gates pass; the test, lint, and prisma gates each turn red on a throwaway breakage; a direct push to `main` is rejected (GH006); live branch protection matches the spec.
+- Engineer chose an AWS dev database from the start. The account was on the AWS free plan, which only allows Aurora "express configuration" (IAM tokens only, no VPC, no IP lock), so at the engineer's request the account was upgraded to the paid plan ($100 credits carried over) and a $10 a month budget `aft-monthly-10usd` emails the engineer. Created: security group `sg-08cc53cdb07aaff8a` (5432 from the engineer's IP only), subnet group `aft-dev`, cluster `aft-dev` (Aurora PostgreSQL 17.11, Serverless v2 0 to 2 ACU, auto pause after 10 minutes, password in Secrets Manager, encrypted, deletion protection on) and instance `aft-dev-1`. TLS verifies the server with the RDS eu-west-1 CA bundle (path in `.env` `sslrootcert`). `prisma migrate deploy` applied both migrations; `account.idToken` confirmed live (AC-14).
+- The manual auth check on better-auth 1.7 passed: the engineer signed in with Google (stored an `idToken`) after adding `http://localhost:3000/api/auth/callback/google` to the Google OAuth client; a browser script ran email sign up, OTP verify, sign in, dashboard, and sign out (session deleted, `/dashboard` redirects). Test users exist in the dev database (one Google, one `delivered+aft-verify-…@resend.dev`).
+- The earlier note "No AWS resources exist yet" is out of date; the production data design is still owed to `/architect platform architecture`.
