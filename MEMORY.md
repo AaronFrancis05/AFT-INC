@@ -10,11 +10,11 @@ This file holds the project's working memory, so any session or teammate can pic
 
 ## Current position
 
-- **Stage**: Scope feature 1 (CI repair and test harness), testing complete; review next
+- **Stage**: Scope feature 1 (CI repair and test harness): verify, test, review, and document done; only Ship it remains (squash merge PR #2)
 - **Done**: `/audit` gap-fill of `AGENTS.md`; `/scope` wrote [docs/scope/index.md](docs/scope/index.md) plus 8 epic files (132 features, plus 3 pre-existing items A to C)
-- **Spec 0001** ([CI repair and test harness](docs/specs/0001-ci-repair-test-harness.md)) `In Progress`; every build task (1 to 9, plus 7b) is done, and `/check verify` passed on 2026-10-20 (commit c0dacf9, CI run 39400720181 green on all six checks). `main` is protected (squash merges only). `/test` completed on 2026-10-20: 57 tests green, typecheck and lint clean
+- **Spec 0001** ([CI repair and test harness](docs/specs/0001-ci-repair-test-harness.md)) `In Progress`; every build task (1 to 9, plus 7b) is done, and `/check verify` passed on 2026-10-20 (commit c0dacf9, CI run 39400720181 green on all six checks). `main` is protected (squash merges only). `/test`, `/check review` (sonnet, Approve with nits), and `/document` (PR body) all completed on 2026-10-20
 - **Dev database**: AWS Aurora PostgreSQL 17 Serverless v2 cluster `aft-dev` in eu-west-1 (see Decisions log, 2026-10-20); both migrations applied; local `.env` points at it
-- **Next command**: `/check review ci repair and test harness` (different model) and `/document` (feature 1 is GA). Then squash merge PR #2, then `/develop auth defect fixes` (feature 2), then `/architect platform architecture` (feature 3)
+- **Next command**: squash merge PR #2 (all six checks green), set feature 1 `done` and spec 0001 `Accepted`, run `/sync`, then `/clear`. Then `/develop auth defect fixes` (feature 2), then `/architect platform architecture` (feature 3)
 - **Owed to `/sync`**: copy the build approach (Tracer Bullet) from the scope header into `AGENTS.md` `## Build approach` (still a placeholder)
 - **Blockers**: none
 
@@ -105,7 +105,7 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Next command: `/check review ci repair and test harness`.
 
 ### 2026-10-20 (review follow-up)
-- Applied the requested review fixes: all six CI checkouts disable persisted credentials; form labels, controls (including nested password inputs), and messages share stable IDs and conditional accessible descriptions; homepage smoke readiness uses its heading and application-error checks; CI Playwright output includes the list reporter.
-- Synchronized `AGENTS.md` with Node 24, Next.js 16.4, Better Auth 1.7, and the coverage test command. Updated the current position above to reflect completed testing and removed the resolved missing-test-script defect.
-- Requested `PLAN.md` clarifications: labeled the initial repo/defect snapshot as historical, distinguished current npm/CI files from planned pnpm/release/preview files, and labeled the global CI gates as target state; the listed gates and architecture decisions are preserved.
-- Validation in this sandbox: 59 unit/component/CI contract tests with coverage and 4 Chromium smoke tests passed; lint, typecheck, production build, runtime dependency audit, and Prisma validation/client drift checks passed. Stopped after review fixes and validation. Next command: `/check review ci repair and test harness`.
+- `/check review` on sonnet: Approve with nits (0 blockers, 0 majors, 4 minors), findings in `docs/reviews/2026-10-20-feat-ci-repair-test-harness.md`. `/document` rewrote the PR #2 title and body. Scope `Review it` and `Document it` ticked.
+- CodeRabbit reviewed PR #2 (9 comments plus the A3 OTP log, which stays with feature 2) and the engineer ran its autofix (commit 0020439). Kept: `persist-credentials: false` on all six checkouts (now pinned in `ci.test.ts`), the `list` reporter in CI, the homepage smoke without the scroll and `networkidle` wait, and the corrected `AGENTS.md` stack, test command, and CI gotcha. Reverted at the engineer's choice: the `form.tsx` label and error linking (stays with features 27 and 121, which should pick shadcn's standard Slot and `useFormField` pattern through a spec) and the `PLAN.md` relabels (the approved plan changes only through `/architect` or `/scope`).
+- Spec 0001 still names `actions/*@v4` while CI uses `@v5` (deliberate, Node 24 runtime); owed a short spec note through `/architect`. A `prisma migrate diff` CI check is a follow up for feature 8 or 12.
+- Next command: squash merge PR #2, then close out feature 1 (`done`, spec `Accepted`), `/sync`, `/clear`, and `/develop auth defect fixes`.

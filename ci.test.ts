@@ -53,6 +53,12 @@ describe("CI workflow", () => {
     }
   });
 
+  it("covers AC-10 (I6): no checkout leaves the token in .git/config for pull request code", () => {
+    const checkouts = ci.match(/uses: actions\/checkout@\S+\n {8}with:\n {10}persist-credentials: false$/gm) ?? [];
+    expect(checkouts).toHaveLength((ci.match(/uses: actions\/checkout@/g) ?? []).length);
+    expect(checkouts).toHaveLength(REQUIRED_CHECKS.length);
+  });
+
   it("covers AC-11: every job installs through the shared setup action", () => {
     const setupUses = ci.match(/uses: \.\/\.github\/actions\/setup$/gm) ?? [];
     expect(setupUses).toHaveLength(REQUIRED_CHECKS.length);

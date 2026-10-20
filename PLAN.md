@@ -19,14 +19,14 @@ AFT Inc is an AI platform with three parts:
 
 CI/CD pipelines both ship the platform and spin up customer deployments. MCP lets anything integrate with AFT and the subscribed projects.
 
-**Historical pre-change repo snapshot (2026-10-18)** (`AFT-INC/`, brownfield, git remote `AaronFrancis05/AFT-INC`, branch `main`):
+**Today's repo** (`AFT-INC/`, brownfield, git remote `AaronFrancis05/AFT-INC`, branch `main`):
 - **Stack**: Next.js 16.2 App Router, React 19.2, TS strict, Tailwind v4, shadcn (`radix-lyra`, phosphor/lucide icons), Prisma 7 + `@prisma/adapter-pg` (client generated to `lib/generated/prisma`), Better Auth 1.5 (email+password, email OTP, Google/GitHub), Resend + react-email, zod 4, react-hook-form.
 - **Working**: auth pages ([components/auth/](components/auth/), [lib/auth.ts](lib/auth.ts)), a session-guarded dashboard layout ([app/dashboard/layout.tsx](app/dashboard/layout.tsx)), and the homepage with a hardcoded `PROJECTS` array ([app/page.tsx](app/page.tsx)).
 - **Stubs or mocks**:
   - `/projects`, `/services` and `/pricing` are placeholder divs.
   - The dashboard shows mock CRM data ([app/dashboard/page.tsx](app/dashboard/page.tsx)).
   - Branding still says "Better Auth" and "My App".
-- **Initial defects (historical pre-change snapshot)**:
+- **Defects to fix first**:
   - CI ([.github/workflows/webpack.yml](.github/workflows/webpack.yml)) runs `npm test`, but no test script exists, so every PR fails. It also runs on Node 20.
   - [lib/auth-client.ts](lib/auth-client.ts) reads a non-`NEXT_PUBLIC_` env var in client code.
   - Social providers are registered with empty-string secrets.
@@ -378,8 +378,8 @@ Every tenant table carries `organizationId`, and migrations are additive (expand
 
 ## Critical files touched early
 
-- [.github/workflows/ci.yml](.github/workflows/ci.yml): currently replaces `webpack.yml`; `release.yml` and `preview.yml` are planned.
-- [package.json](package.json): currently the npm root with test scripts; a pnpm workspace root with test scripts is planned.
+- [.github/workflows/webpack.yml](.github/workflows/webpack.yml): replaced by `ci.yml`, `release.yml` and `preview.yml`.
+- [package.json](package.json): becomes the workspace root and gains test scripts.
 - [lib/auth.ts](lib/auth.ts), [lib/auth-client.ts](lib/auth-client.ts): move to `packages/auth` and gain the organization, api-key, 2FA and OIDC-provider plugins (reusing Better Auth plugins, not custom code).
 - [lib/prisma.ts](lib/prisma.ts), [prisma/schema.prisma](prisma/schema.prisma), [prisma.config.ts](prisma.config.ts): move to `packages/db`. The existing migration `20260320181902_init` is preserved.
 - [lib/email.tsx](lib/email.tsx), [components/emails/](components/emails/): move to `packages/email`.
@@ -395,7 +395,7 @@ Every tenant table carries `organizationId`, and migrations are additive (expand
   - `/check verify` drives the real app (dev server or a staging URL) against every acceptance criterion.
   - `/test` adds unit and integration tests, plus Playwright e2e for UI.
   - GA features also get `/check review` on a different model.
-- **Target-state global gates in CI on every PR**: `pnpm turbo lint typecheck test build`, Prisma migration diff, image scan and a Playwright smoke test against the PR preview namespace.
+- **Global gates in CI on every PR**: `pnpm turbo lint typecheck test build`, Prisma migration diff, image scan and a Playwright smoke test against the PR preview namespace.
 - **Infra**: `terraform plan` in CI and `apply` only via approved workflow. Argo CD must report healthy and in sync on staging before a prod promote.
 - **Provisioning and payments**: Stripe test mode, plus an end-to-end test that subscribes, provisions a dedicated instance, checks the health gate, cancels, and confirms teardown.
 - **AI**: the eval harness runs on fixed prompts, and the per-job cost is checked against the credit ledger.
