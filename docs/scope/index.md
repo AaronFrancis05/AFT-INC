@@ -32,7 +32,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | A | [Email and password auth](identity.md) | Existing | existing |
 | B | [Marketing homepage](commerce.md) | Existing | in-progress |
 | C | [Dashboard shell](commerce.md) | Existing | in-progress |
-| 1 | [CI repair and test harness](foundation.md) | Foundation | in-progress |
+| 1 | [CI repair and test harness](foundation.md) | Foundation | done |
 | 2 | [Auth defect fixes](foundation.md) | Foundation | planned |
 | 3 | [Platform architecture](foundation.md) | Foundation | planned |
 | 4 | [Monorepo migration](foundation.md) | Foundation | planned |
