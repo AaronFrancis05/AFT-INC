@@ -2,6 +2,16 @@ import { expect, test, type Page } from "@playwright/test";
 
 const APP_ORIGIN = "http://localhost:3000";
 
+// True when a failed load came from an external host, either directly or through
+// the next/image proxy (/_next/image?url=https://images.unsplash.com/...).
+function isExternalLoad(url: string) {
+  if (!url.startsWith(APP_ORIGIN)) return true;
+  const { pathname, searchParams } = new URL(url);
+  if (pathname !== "/_next/image") return false;
+  const source = searchParams.get("url") ?? "";
+  return /^https?:\/\//.test(source) && !source.startsWith(APP_ORIGIN);
+}
+
 // Collects console errors and uncaught page errors from the app's own origin.
 // Failed loads from external hosts (for example images.unsplash.com) are ignored.
 function trackErrors(page: Page) {
@@ -9,7 +19,7 @@ function trackErrors(page: Page) {
   page.on("console", (message) => {
     if (message.type() !== "error") return;
     const url = message.location().url;
-    if (url && !url.startsWith(APP_ORIGIN)) return;
+    if (url && isExternalLoad(url)) return;
     errors.push(`console: ${message.text()}`);
   });
   page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
@@ -20,6 +30,9 @@ test("homepage loads with its main heading", async ({ page }) => {
   const errors = trackErrors(page);
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Modern Web Projects");
+  // Images are lazy loaded; scroll to the end so every one loads before the check.
+  await page.mouse.wheel(0, 20_000);
+  await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });
 

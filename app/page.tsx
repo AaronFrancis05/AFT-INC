@@ -135,7 +135,7 @@ const PROJECTS = [
         title: "SaaSFlow Analytics",
         category: "SaaS",
         description: "A comprehensive analytics dashboard for modern SaaS businesses, featuring real-time data visualization and churn prediction.",
-        image: "https://images.unsplash.com/photo-1551288049-bbda4865cda1?q=80&w=2070&auto=format&fit=crop"
+        image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop"
     },
     {
         id: "nova-cms",
