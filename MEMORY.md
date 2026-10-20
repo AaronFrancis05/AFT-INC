@@ -52,6 +52,7 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 | 2026-10-18 | Go to market in scope: SEO, analytics, WCAG 2.2 AA, legal, multiple languages and currencies | docs/scope/launch.md |
 | 2026-10-18 | Legal pages (feature 124) must ship before billing and generation flags turn on in production | docs/scope/launch.md |
 | 2026-10-20 | Local development uses an AWS dev database from the start: Aurora PostgreSQL 17 Serverless v2 (auto pause), eu-west-1, public endpoint locked to the engineer's IP, TLS required. CI keeps its empty Postgres service and no secrets (I6). Production data design stays with `/architect platform architecture` | MEMORY.md |
+| 2026-10-20 | Domains: `remwa.tech` (name.com) will point to the platform on AWS; `aft.remwa.tech` is verified in Resend (eu-west-1) and sends as `AFT <no-reply@aft.remwa.tech>`. When DNS moves to Route 53, copy the Resend records first. DNS and hosting design stays with `/architect platform architecture` | MEMORY.md |
 
 ## Known defects (fix inside the named scope feature, not ad hoc)
 
