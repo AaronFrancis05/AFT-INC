@@ -10,11 +10,11 @@ This file holds the project's working memory, so any session or teammate can pic
 
 ## Current position
 
-- **Stage**: PLAN.md Step 1 (planning artifacts, no app code yet)
+- **Stage**: Scope feature 1 (CI repair and test harness), testing complete; review next
 - **Done**: `/audit` gap-fill of `AGENTS.md`; `/scope` wrote [docs/scope/index.md](docs/scope/index.md) plus 8 epic files (132 features, plus 3 pre-existing items A to C)
-- **Spec 0001** ([CI repair and test harness](docs/specs/0001-ci-repair-test-harness.md)) `In Progress`; every build task (1 to 9, plus 7b) is done, and `/check verify` passed on 2026-10-20 (commit c0dacf9, CI run 39400720181 green on all six checks). `main` is protected (squash merges only)
+- **Spec 0001** ([CI repair and test harness](docs/specs/0001-ci-repair-test-harness.md)) `In Progress`; every build task (1 to 9, plus 7b) is done, and `/check verify` passed on 2026-10-20 (commit c0dacf9, CI run 39400720181 green on all six checks). `main` is protected (squash merges only). `/test` completed on 2026-10-20: 57 tests green, typecheck and lint clean
 - **Dev database**: AWS Aurora PostgreSQL 17 Serverless v2 cluster `aft-dev` in eu-west-1 (see Decisions log, 2026-10-20); both migrations applied; local `.env` points at it
-- **Next command**: `/test ci repair and test harness`, then `/check review` (different model) and `/document` (feature 1 is GA). Then squash merge PR #2, then `/develop auth defect fixes` (feature 2), then `/architect platform architecture` (feature 3)
+- **Next command**: `/check review ci repair and test harness` (different model) and `/document` (feature 1 is GA). Then squash merge PR #2, then `/develop auth defect fixes` (feature 2), then `/architect platform architecture` (feature 3)
 - **Owed to `/sync`**: copy the build approach (Tracer Bullet) from the scope header into `AGENTS.md` `## Build approach` (still a placeholder)
 - **Blockers**: none
 
@@ -56,7 +56,6 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 
 ## Known defects (fix inside the named scope feature, not ad hoc)
 
-- CI runs `npm test` with no test script (feature 1)
 - `lib/auth-client.ts` reads a server env var in the browser (feature 1)
 - OTP printed to the console in every environment, edge case A3 (feature 1 or 10)
 - Social providers registered with empty secrets, edge case A11 (feature 1)
@@ -104,3 +103,9 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - `/test ci repair and test harness`: scoped to the feature branch (no uncommitted source). Added `test-preferences.json` (Vitest, Testing Library, Playwright, tests beside the code, from spec 0001) and 6 test files, 47 new tests (57 total, all green; typecheck and lint clean): `FormMessage`, `useIsMobile`, `useSessionStorageValue`, verify email (countdown, resend, verify), reset password, sign up, and `ci.test.ts`, a contract test that pins AC-1, AC-8, AC-10, AC-11, AC-13 by reading `ci.yml`, the setup action, `.nvmrc`, and `package.json`. OTP tests stub `ResizeObserver` and `document.elementFromPoint` per file (jsdom lacks them); user-event clicks hang under fake timers, so those tests switch to real timers before clicking. Scope `Test it` ticked.
 - Finding for feature 2 (auth defect fixes): `components/auth/sign-up.tsx` runs `console.log("SIGNUP ERROR CONTEXT:", ctx)` on a failed sign up. The better-fetch context can carry the request, so the password may reach the browser console. Not locked in by a test.
 - Next command: `/check review ci repair and test harness`.
+
+### 2026-10-20 (review follow-up)
+- Applied the requested review fixes: all six CI checkouts disable persisted credentials; form labels, controls (including nested password inputs), and messages share stable IDs and conditional accessible descriptions; homepage smoke readiness uses its heading and application-error checks; CI Playwright output includes the list reporter.
+- Synchronized `AGENTS.md` with Node 24, Next.js 16.4, Better Auth 1.7, and the coverage test command. Updated the current position above to reflect completed testing and removed the resolved missing-test-script defect.
+- Requested `PLAN.md` clarifications: labeled the initial repo/defect snapshot as historical, distinguished current npm/CI files from planned pnpm/release/preview files, and labeled the global CI gates as target state; the listed gates and architecture decisions are preserved.
+- Validation in this sandbox: 59 unit/component/CI contract tests with coverage and 4 Chromium smoke tests passed; lint, typecheck, production build, runtime dependency audit, and Prisma validation/client drift checks passed. Stopped after review fixes and validation. Next command: `/check review ci repair and test harness`.

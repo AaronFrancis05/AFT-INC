@@ -5,7 +5,9 @@ const BASE_URL = "http://localhost:3000";
 export default defineConfig({
   testDir: "e2e",
   retries: process.env.CI ? 2 : 0,
-  reporter: [["html", { open: "never" }]],
+  reporter: process.env.CI
+    ? [["list"], ["html", { open: "never" }]]
+    : [["html", { open: "never" }]],
   use: {
     baseURL: BASE_URL,
     trace: "on-first-retry",

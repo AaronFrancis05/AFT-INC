@@ -21,6 +21,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Run tests with coverage
         run: npm run test:coverage
@@ -38,6 +40,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Typecheck
         run: npm run typecheck
@@ -48,6 +52,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Lint
         run: npm run lint
@@ -61,6 +67,8 @@ jobs:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Validate schema
         run: npx prisma validate
@@ -101,6 +109,8 @@ jobs:
       RESEND_API_KEY: re_ci_placeholder
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Restore Next.js build cache
         uses: actions/cache@v4
@@ -135,6 +145,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Audit runtime dependencies
         run: npx audit-ci --config audit-ci.jsonc

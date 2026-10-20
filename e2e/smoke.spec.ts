@@ -30,9 +30,6 @@ test("homepage loads with its main heading", async ({ page }) => {
   const errors = trackErrors(page);
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Modern Web Projects");
-  // Images are lazy loaded; scroll to the end so every one loads before the check.
-  await page.mouse.wheel(0, 20_000);
-  await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });
 

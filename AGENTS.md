@@ -22,9 +22,9 @@ What you must never do: deviate from PLAN.md without an `/architect` spec update
 
 ## Stack
 
-- **Language / Runtime**: TypeScript (strict), Node 24 LTS locally (CI still pins Node 20)
-- **Framework**: Next.js 16.2 App Router, React 19.2
-- **Key dependencies**: Better Auth 1.5 (email and password, email OTP, Google, GitHub), Prisma 7 with `@prisma/adapter-pg` on PostgreSQL, Resend with react-email, zod 4 with react-hook-form, shadcn (`radix-lyra` style) on Tailwind v4
+- **Language / Runtime**: TypeScript (strict), Node 24 LTS locally and in CI
+- **Framework**: Next.js 16.4 App Router, React 19.2
+- **Key dependencies**: Better Auth 1.7 (email and password, email OTP, Google, GitHub), Prisma 7 with `@prisma/adapter-pg` on PostgreSQL, Resend with react-email, zod 4 with react-hook-form, shadcn (`radix-lyra` style) on Tailwind v4
 - **Package manager**: npm (`package-lock.json`)
 
 ## Build approach
@@ -51,7 +51,7 @@ npm run build
 npm run lint
 
 # Test
-# No test runner yet. CI calls `npm test`, which has no script (fixed by scope feature 1).
+npm run test:coverage
 ```
 
 ## Environment
@@ -85,7 +85,7 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md` (or a `NNNN-title/` 
 - `lib/auth-client.ts` reads `process.env.BETTER_AUTH_URL`, which is undefined in the browser. It works only because the auth client falls back to the current origin.
 - `lib/auth.ts` logs the OTP to the console whenever sending the email fails, in every environment. It must be dev only (edge case A3).
 - Google and GitHub providers are registered even when their env vars are empty (edge case A11).
-- CI (`.github/workflows/webpack.yml`) runs `npm test`, which has no script, so every pull request check fails.
+- CI (`.github/workflows/ci.yml`) runs six required gates: test (`npm run test:coverage`), typecheck, lint, prisma, build-smoke, and audit.
 - Next.js 16 renamed `middleware.ts` to `proxy.ts`. Check the bundled docs before adding route protection.
 - Branding is still placeholder text ("Better Auth" in the sidebar, "My App" in metadata), and the dashboard shows mock data.
 
