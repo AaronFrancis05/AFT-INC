@@ -1,0 +1,10 @@
+{
+  // Fail CI on high or critical advisories in runtime dependencies (spec 0001, AC-8).
+  "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
+  "high": true,
+  "skip-dev": true,
+  "retry-count": 3,
+  // Only advisories with no available fix belong here, each as a GHSA ID
+  // preceded by a comment with the reason and a review date.
+  "allowlist": []
+}

@@ -4,9 +4,6 @@ import { useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
-  DollarSign,
-  CreditCard,
-  Activity,
   Users,
   HelpCircle,
   Search,

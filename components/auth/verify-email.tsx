@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,7 +13,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { AppLogoIcon } from '@/components/icons'
 import {
@@ -24,30 +23,21 @@ import {
 import { authClient } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { useEffect } from 'react'
+import { useSessionStorageValue } from '@/hooks/use-session-storage-value'
 
 export function VerifyEmail() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [resendLoading, setResendLoading] = useState(false)
   const [countdown, setCountdown] = useState(60)
-  const [canResend, setCanResend] = useState(false)
-  const [email, setEmail] = useState('')
+  const canResend = countdown === 0
+  const email = useSessionStorageValue("verify_email") ?? ''
 
   useEffect(() => {
-    const storedEmail = sessionStorage.getItem("verify_email")
-    if (storedEmail) setEmail(storedEmail)
-  }, [])
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout
-    if (countdown > 0 && !canResend) {
-      timer = setTimeout(() => setCountdown(countdown - 1), 1000)
-    } else {
-      setCanResend(true)
-    }
+    if (countdown === 0) return
+    const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
     return () => clearTimeout(timer)
-  }, [countdown, canResend])
+  }, [countdown])
 
   const form = useForm<VerifyEmailInput>({
     resolver: zodResolver(verifyEmailSchema),
@@ -83,7 +73,6 @@ export function VerifyEmail() {
         return
     }
     setResendLoading(true)
-    setCanResend(false)
     setCountdown(60)
 
     await authClient.emailOtp.sendVerificationOtp({
@@ -96,7 +85,6 @@ export function VerifyEmail() {
         },
         onError: (ctx) => {
             toast.error(ctx.error.message)
-            setCanResend(true)
             setCountdown(0)
             setResendLoading(false)
         }

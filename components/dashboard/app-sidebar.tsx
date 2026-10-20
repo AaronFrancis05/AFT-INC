@@ -13,7 +13,6 @@ import {
   Puzzle,
   Settings,
   ChevronLeft,
-  User,
 } from "lucide-react";
 
 import {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,6 +26,7 @@ import { authClient } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Eye, EyeOff } from 'lucide-react'
+import { useSessionStorageValue } from '@/hooks/use-session-storage-value'
 
 const resetPasswordOtpSchema = z.object({
   otp: z.string().min(6, "Please enter the 6-digit code"),
@@ -43,14 +44,7 @@ export function ResetPassword() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [email, setEmail] = useState<string | null>(null)
-
-  useEffect(() => {
-    const storedEmail = sessionStorage.getItem("reset_email")
-    if (storedEmail) {
-      setEmail(storedEmail)
-    }
-  }, [])
+  const email = useSessionStorageValue("reset_email")
 
   const form = useForm<ResetPasswordOtpInput>({
     resolver: zodResolver(resetPasswordOtpSchema),
