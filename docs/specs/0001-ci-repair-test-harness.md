@@ -1,7 +1,7 @@
 # 0001. Repair CI and add a test harness
 
 **Date**: 2026-10-19
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 

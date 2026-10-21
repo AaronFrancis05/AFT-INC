@@ -6,7 +6,7 @@ Everything every later feature stands on: a green pipeline, the monorepo, shared
 
 ## Foundation: repair and decide
 
-### 1. CI repair and test harness · in-progress · GA
+### 1. CI repair and test harness · done · GA
 Fix the broken CI and add a real test runner, so every later feature lands on a green pipeline.
 **Done when:** every pull request runs lint, typecheck, unit tests, and build, and all pass on `main`; pull requests from forks get no secrets (I6).
 - [x] Design it (spec): `/architect ci repair and test harness`
@@ -20,7 +20,7 @@ Fix the broken CI and add a real test runner, so every later feature lands on a 
 - [x] Test it: `/test ci repair and test harness`
 - [x] Review it (fresh model): `/check review ci repair and test harness`
 - [x] Document it: `/document ci repair and test harness`
-- [ ] Ship it: squash merge the pull request with all six checks green (staging does not exist yet)
+- [x] Ship it: squash merge the pull request with all six checks green (staging does not exist yet)
 Spec [0001](../specs/0001-ci-repair-test-harness.md)
 
 ### 2. Auth defect fixes · GA

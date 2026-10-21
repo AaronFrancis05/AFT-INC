@@ -1,7 +1,11 @@
 <!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+## This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
 <!-- END:nextjs-agent-rules -->
 
 # AFT Inc
@@ -29,13 +33,13 @@ What you must never do: deviate from PLAN.md without an `/architect` spec update
 
 ## Build approach
 
-<TBD, set by /scope>
+Tracer Bullet: prove one thin real path through every layer first, then thicken it one strand at a time (from the scope header in `docs/scope/index.md`).
 
 ## Commands
 
 ```bash
-# Install
-npm install
+# Install (Node 24 from .nvmrc, npm 11.19.1 from packageManager)
+npm ci
 
 # Database: regenerate the client (output in lib/generated/prisma), apply migrations
 npx prisma generate
@@ -47,16 +51,22 @@ npm run dev
 # Build
 npm run build
 
-# Lint
+# Lint (zero warnings allowed)
 npm run lint
 
-# Test
-npm run test:coverage
+# Typecheck
+npm run typecheck
+
+# Unit and component tests (Vitest); test:watch for local work, test:coverage is what CI runs
+npm test
+
+# Browser smoke tests (Playwright) against a production build
+npm run build && npm run test:e2e
 ```
 
 ## Environment
 
-Set in `.env` (gitignored): `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`. Client code may only read `NEXT_PUBLIC_*` variables.
+Set in `.env` (gitignored, copy `.env.example`): `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`. Client code may only read `NEXT_PUBLIC_*` variables.
 
 ## Specs
 
@@ -71,6 +81,8 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md` (or a `NNNN-title/` 
 - Forms use a zod schema (in `lib/*-schemas.ts`), react-hook-form with `zodResolver`, and the shadcn `Form` components. User feedback goes through `sonner` toasts.
 - UI primitives come from `components/ui` (add them with the shadcn CLI). Merge classes with `cn()` from `@/lib/utils`.
 - Pages that read the session export `const dynamic = "force-dynamic"`.
+- Tests live beside the code as `*.test.ts(x)` (Vitest, jsdom, Testing Library); Playwright smoke tests live in `e2e/*.spec.ts`. Preferences are in `test-preferences.json`.
+- `ci.test.ts` is a contract test over `.github/workflows/ci.yml`, the setup action, `.nvmrc`, and `package.json`. Change it together with CI, never to silence it.
 
 ## Git
 
@@ -86,8 +98,20 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md` (or a `NNNN-title/` 
 - `lib/auth.ts` logs the OTP to the console whenever sending the email fails, in every environment. It must be dev only (edge case A3).
 - Google and GitHub providers are registered even when their env vars are empty (edge case A11).
 - CI (`.github/workflows/ci.yml`) runs six required gates: test (`npm run test:coverage`), typecheck, lint, prisma, build-smoke, and audit.
+- npm blocks package install scripts until reviewed. Approvals live in `package.json` `allowScripts`; review a new one with `npm install-scripts`, or CI fails.
+- jsdom lacks `ResizeObserver` and `document.elementFromPoint`, which the OTP input needs. Stub both in a test file that renders it. user-event clicks hang under fake timers, so switch to real timers before clicking.
 - Next.js 16 renamed `middleware.ts` to `proxy.ts`. Check the bundled docs before adding route protection.
 - Branding is still placeholder text ("Better Auth" in the sidebar, "My App" in metadata), and the dashboard shows mock data.
+
+## Agent skills
+
+Installed per project in `.claude/skills/` (pinned in `skills-lock.json`; restore with `npx skills experimental_install`). Load one only when the task needs it.
+
+- [vitest](.claude/skills/vitest/): `antfu/skills`, Vitest config, mocking, coverage, filtering, fixtures
+- [react-testing-library](.claude/skills/react-testing-library/): `pproenca/dot-skills`, Testing Library queries, user-event, async patterns
+- [playwright-cli](.claude/skills/playwright-cli/): `microsoft/playwright-cli`, browser automation and running Playwright tests
+- [playwright-best-practices](.claude/skills/playwright-best-practices/): `currents-dev/playwright-best-practices-skill`, E2E patterns, flaky tests, CI, accessibility
+- MCP servers: `playwright` (`@playwright/mcp`, configured in `.mcp.json`; Claude Code asks you to approve it on first use)
 
 ## AWS
 
