@@ -35,7 +35,7 @@ Fix the three known auth defects before anything builds on top of them.
 code in `lib/auth-providers.ts`, `lib/auth-otp.ts`, `lib/auth.ts`, `lib/auth-client.ts`, `components/auth/`, `app/(auth)/auth/`
 - [x] Verify it: `/check verify auth defect fixes`
 - [x] Test it: `/test auth defect fixes`
-- [ ] Review it (fresh model): `/check review auth defect fixes`
+- [x] Review it (fresh model): `/check review auth defect fixes`
 - [ ] Document it: `/document auth defect fixes`
 - [ ] Ship it: squash merge the pull request with all six checks green (staging does not exist yet)
 Spec [0002](../specs/0002-auth-defect-fixes/index.md)
