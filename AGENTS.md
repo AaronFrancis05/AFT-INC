@@ -111,7 +111,7 @@ Installed per project in `.claude/skills/` (pinned in `skills-lock.json`; restor
 - [react-testing-library](.claude/skills/react-testing-library/): `pproenca/dot-skills`, Testing Library queries, user-event, async patterns
 - [playwright-cli](.claude/skills/playwright-cli/): `microsoft/playwright-cli`, browser automation and running Playwright tests
 - [playwright-best-practices](.claude/skills/playwright-best-practices/): `currents-dev/playwright-best-practices-skill`, E2E patterns, flaky tests, CI, accessibility
-- MCP servers: `@playwright/mcp` (recommended, not connected yet)
+- MCP servers: `playwright` (`@playwright/mcp`, configured in `.mcp.json`; Claude Code asks you to approve it on first use)
 
 ## AWS
 
