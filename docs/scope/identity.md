@@ -40,7 +40,7 @@ Move between workspaces and manage each one.
 
 ### 44. Session security · needs a decision · GA
 Sessions and one time codes are safe against reuse and guessing.
-**Done when:** OTPs are single use with an attempt limit and cooldown (A3); a failed email send shows a retry, not a fake success (A4); a password change signs out other sessions and sends a notice (A5); users can see and revoke their sessions.
+**Done when:** OTPs are single use with an attempt limit and cooldown (A3); a failed email send shows a retry, not a fake success (A4); a sign up with an email that already exists has a decided behavior (today it answers "Account created!" to hide existing accounts, and emails that user a fresh OTP; found in `/check verify auth defect fixes`, 2026-10-21) (A4); a password change signs out other sessions and sends a notice (A5); users can see and revoke their sessions.
 - [ ] Design it (spec): `/architect session security`
 
 ### 45. Social sign in linking · needs a decision · GA
