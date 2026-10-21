@@ -23,7 +23,7 @@ Fix the broken CI and add a real test runner, so every later feature lands on a 
 - [x] Ship it: squash merge the pull request with all six checks green (staging does not exist yet)
 Spec [0001](../specs/0001-ci-repair-test-harness.md)
 
-### 2. Auth defect fixes · in-progress · GA
+### 2. Auth defect fixes · done · GA
 Fix the three known auth defects before anything builds on top of them.
 **Done when:** the browser auth client uses a correct public base URL; the OTP is never printed outside development (A3); Google and GitHub sign in appear only when their keys are configured (A11).
 - [x] Design it (spec): `/architect auth defect fixes`
@@ -37,7 +37,7 @@ code in `lib/auth-providers.ts`, `lib/auth-otp.ts`, `lib/auth.ts`, `lib/auth-cli
 - [x] Test it: `/test auth defect fixes`
 - [x] Review it (fresh model): `/check review auth defect fixes`
 - [x] Document it: `/document auth defect fixes`
-- [ ] Ship it: squash merge the pull request with all six checks green (staging does not exist yet)
+- [x] Ship it: squash merge the pull request with all six checks green (staging does not exist yet)
 Spec [0002](../specs/0002-auth-defect-fixes/index.md)
 
 ### 3. Platform architecture · needs a decision · GA

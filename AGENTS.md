@@ -94,9 +94,10 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md` (or a `NNNN-title/` 
 
 ## Gotchas
 
-- `lib/auth-client.ts` reads `process.env.BETTER_AUTH_URL`, which is undefined in the browser. It works only because the auth client falls back to the current origin.
-- `lib/auth.ts` logs the OTP to the console whenever sending the email fails, in every environment. It must be dev only (edge case A3).
-- Google and GitHub providers are registered even when their env vars are empty (edge case A11).
+- `lib/auth-client.ts` passes no `baseURL`: the browser calls `/api/auth` on the page's own origin. Never set `NEXT_PUBLIC_BETTER_AUTH_URL`, Better Auth would honor it first. `BETTER_AUTH_URL` is server only and must be set in every deployed environment (spec 0002).
+- A social provider turns on only when both its ID and secret are set. `resolveSocialProviders()` in `lib/auth-providers.ts` feeds both `lib/auth.ts` and the `force-dynamic` sign in and sign up pages; client files may import it for types only (A11).
+- The OTP fallback line prints only under `next dev` (A3), so testing `next start` locally needs a working `RESEND_API_KEY`.
+- On Windows an empty env var is deleted, so `.env` refills it. To blank an OAuth key for a local run, set it to a single space (the resolver trims it).
 - CI (`.github/workflows/ci.yml`) runs six required gates: test (`npm run test:coverage`), typecheck, lint, prisma, build-smoke, and audit.
 - npm blocks package install scripts until reviewed. Approvals live in `package.json` `allowScripts`; review a new one with `npm install-scripts`, or CI fails.
 - jsdom lacks `ResizeObserver` and `document.elementFromPoint`, which the OTP input needs. Stub both in a test file that renders it. user-event clicks hang under fake timers, so switch to real timers before clicking.
