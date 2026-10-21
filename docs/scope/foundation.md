@@ -34,7 +34,7 @@ Fix the three known auth defects before anything builds on top of them.
    - [x] Same origin auth client, stale test env and `.env.example` comments, full gate run and manual pass (AC-1, AC-5, AC-8) (manual pass done in `/check verify`)
 code in `lib/auth-providers.ts`, `lib/auth-otp.ts`, `lib/auth.ts`, `lib/auth-client.ts`, `components/auth/`, `app/(auth)/auth/`
 - [x] Verify it: `/check verify auth defect fixes`
-- [ ] Test it: `/test auth defect fixes`
+- [x] Test it: `/test auth defect fixes`
 - [ ] Review it (fresh model): `/check review auth defect fixes`
 - [ ] Document it: `/document auth defect fixes`
 - [ ] Ship it: squash merge the pull request with all six checks green (staging does not exist yet)
