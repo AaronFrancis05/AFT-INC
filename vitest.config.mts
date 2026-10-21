@@ -10,10 +10,6 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     include: ["**/*.test.{ts,tsx}"],
     exclude: ["e2e/**", "node_modules/**", "lib/generated/**", ".next/**"],
-    env: {
-      // The auth client reads this at import time.
-      BETTER_AUTH_URL: "http://localhost:3000",
-    },
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "lcov"],

@@ -15,14 +15,15 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Icons } from '@/components/icons'
+import { SocialButtons } from '@/components/auth/social-buttons'
 import { authClient } from '@/lib/auth-client'
+import type { SocialProvider } from '@/lib/auth-providers'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Eye, EyeOff } from 'lucide-react'
 import Image from "next/image";
 
-export function SignUp() {
+export function SignUp({ socialProviders }: { socialProviders: SocialProvider[] }) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -66,7 +67,6 @@ export function SignUp() {
             })
         },
         onError: (ctx) => {
-             console.log("SIGNUP ERROR CONTEXT:", ctx)
              form.setError('root', {
                 message: ctx.error.message || "Signup failed",
              })
@@ -76,7 +76,7 @@ export function SignUp() {
     })
   }
 
-  async function handleSocialSignIn(provider: "google" | "github") {
+  async function handleSocialSignIn(provider: SocialProvider) {
     await authClient.signIn.social({
       provider,
       callbackURL: "/dashboard",
@@ -103,21 +103,18 @@ export function SignUp() {
           <h1 className="mb-1 mt-4 text-xl font-semibold">Create your account</h1>
           <p className="text-sm text-muted-foreground">Welcome! Please fill in your details to get started</p>
 
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <Button type="button" variant="outline" disabled={isLoading} onClick={() => handleSocialSignIn("google")}>
-              <Icons.google className="h-4 w-4" />
-              <span>Google</span>
-            </Button>
-            <Button type="button" variant="outline" disabled={isLoading} onClick={() => handleSocialSignIn("github")}>
-              <Icons.gitHub className="h-4 w-4" />
-              <span>Github</span>
-            </Button>
-          </div>
-
-          <hr className="my-4 border-dashed" />
+          {socialProviders.length > 0 && (
+            <div className="mt-6">
+              <SocialButtons providers={socialProviders} disabled={isLoading} onSelect={handleSocialSignIn} />
+              <hr className="my-4 border-dashed" />
+            </div>
+          )}
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className={socialProviders.length > 0 ? 'space-y-6' : 'mt-6 space-y-6'}
+            >
               <FormField
                 control={form.control}
                 name="name"

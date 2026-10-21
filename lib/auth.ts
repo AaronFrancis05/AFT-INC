@@ -2,7 +2,12 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./prisma";
 import { emailOTP } from "better-auth/plugins";
-import { sendVerificationEmail, sendResetPasswordEmail } from "./email";
+import { sendResetPasswordEmail } from "./email";
+import { sendVerificationOTP } from "./auth-otp";
+import { resolveSocialProviders, warnMissingSocialProviders } from "./auth-providers";
+
+const socialProviders = resolveSocialProviders();
+warnMissingSocialProviders(socialProviders.missing);
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
@@ -19,27 +24,10 @@ export const auth = betterAuth({
       }
     },
   },
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-    },
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID || "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
-    },
-  },
+  socialProviders: socialProviders.config,
   plugins: [
     emailOTP({
-      async sendVerificationOTP({ email, otp }) {
-        try {
-          await sendVerificationEmail(email, otp);
-        } catch (e) {
-          console.error("Error in sendVerificationOTP plugin wrapper:", e);
-          // Fallback logging for development
-          console.log(`[DEV FALLBACK] OTP for ${email}: ${otp}`);
-        }
-      },
+      sendVerificationOTP,
     }),
   ],
 });

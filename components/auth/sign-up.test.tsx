@@ -52,7 +52,7 @@ describe("SignUp", () => {
 
   it("shows validation messages for an empty form and makes no network call", async () => {
     const user = userEvent.setup();
-    render(<SignUp />);
+    render(<SignUp socialProviders={["google", "github"]} />);
 
     await user.click(screen.getByRole("button", { name: "Continue" }));
 
@@ -63,7 +63,7 @@ describe("SignUp", () => {
 
   it("creates the account, sends the code, and goes to verify email", async () => {
     sendVerificationOtp.mockImplementation(async (_body: unknown, cb: Callbacks) => cb.onSuccess?.());
-    render(<SignUp />);
+    render(<SignUp socialProviders={["google", "github"]} />);
 
     await fillAndSubmit();
 
@@ -83,7 +83,7 @@ describe("SignUp", () => {
     sendVerificationOtp.mockImplementation(async (_body: unknown, cb: Callbacks) =>
       cb.onError?.({ error: { message: "Email provider down" } }),
     );
-    render(<SignUp />);
+    render(<SignUp socialProviders={["google", "github"]} />);
 
     await fillAndSubmit();
 
@@ -94,12 +94,12 @@ describe("SignUp", () => {
     expect(push).toHaveBeenCalledWith("/auth/verify-email");
   });
 
-  it("stays on the form when sign up is rejected", async () => {
-    vi.spyOn(console, "log").mockImplementation(() => {});
+  it("stays on the form when sign up is rejected, without logging the request context", async () => {
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
     signUpEmail.mockImplementation(async (_body: unknown, cb: Callbacks) =>
       cb.onError?.({ error: { message: "User already exists" } }),
     );
-    render(<SignUp />);
+    render(<SignUp socialProviders={["google", "github"]} />);
 
     await fillAndSubmit();
 
@@ -107,5 +107,31 @@ describe("SignUp", () => {
     expect(sendVerificationOtp).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Continue" })).toBeEnabled();
+    expect(log).not.toHaveBeenCalled();
+    log.mockRestore();
+  });
+
+  it("A11: shows no social buttons and no divider when no provider is configured", () => {
+    const { container } = render(<SignUp socialProviders={[]} />);
+
+    expect(screen.queryByRole("button", { name: /google/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /github/i })).not.toBeInTheDocument();
+    expect(container.querySelector("hr")).toBeNull();
+  });
+
+  it("A11: shows a single full width button when one provider is configured", () => {
+    render(<SignUp socialProviders={["google"]} />);
+
+    const google = screen.getByRole("button", { name: "Google" });
+    expect(google).toHaveClass("w-full");
+    expect(google.parentElement).toHaveClass("grid-cols-1");
+    expect(screen.queryByRole("button", { name: /github/i })).not.toBeInTheDocument();
+  });
+
+  it("A11: shows both buttons side by side when both providers are configured", () => {
+    render(<SignUp socialProviders={["google", "github"]} />);
+
+    expect(screen.getByRole("button", { name: "Google" }).parentElement).toHaveClass("grid-cols-2");
+    expect(screen.getByRole("button", { name: "Github" })).toBeInTheDocument();
   });
 });
