@@ -21,7 +21,7 @@ All AWS commands use `--profile aft-admin` (run `aws sso login --profile aft-adm
 - [ ] `nslookup -type=NS remwa.tech ns01.trs-dns.net` → the 4 `awsdns` servers → AC-7 [passed about 2 minutes after the switch]
 - [ ] 1 hour: `compare.ps1 -ZoneId Z09833751SWG47A0ZTLQL -Against 8.8.8.8,1.1.1.1` → all match the baseline; Resend `GET /domains` shows `aft.remwa.tech` `verified`; a test email to `delivered@resend.dev` reaches `last_event: delivered` → AC-7 [passed; do not call `POST /domains/{id}/verify`, it sets the domain to pending for a few minutes]
 - [ ] 48 hours (around 2026-10-23): `Resolve-DnsName remwa.tech -Type NS -Server 8.8.8.8` and `1.1.1.1` → only `awsdns` servers; `compare.ps1 -Against 8.8.8.8,1.1.1.1` → all match; Resend still `verified` → AC-7 [owed]
-- [ ] `aws cloudtrail lookup-events` (eu-west-1 and us-east-1, writes since 2026-10-21 15:00 UTC) → only this build's actions; `aws budgets describe-budget --budget-name aft-monthly-10usd` → 10 USD monthly → AC-9 [passed; plus the Identity Center KMS key `mrk-4967c969…` and its us-west-2 replica, kept by the engineer, about $2 a month]
+- [ ] `aws cloudtrail lookup-events` (eu-west-1 and us-east-1, writes since 2026-10-21 15:00 UTC) → only this build's actions; `aws budgets describe-budget --budget-name aft-monthly-10usd` → 10 USD monthly → AC-9 [passed; the Identity Center us-west-2 replica was removed, Identity Center uses an AWS owned key, and key `mrk-4967c969…` is pending deletion (replica 2026-11-20, then the primary)]
 
 ## Value sourcing coverage
 - Records to copy: the CSV row check

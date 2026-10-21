@@ -143,7 +143,7 @@ Public entry: `remwa.tech` DNS on Route 53, then HTTPS from Caddy on the server 
    - [ ] Admin identity: Organizations and Identity Center with MFA, `aft-admin` profile (AC-1, AC-2, AC-3) (built; owed: the Organizations verification email, a second root MFA device, billing and alternate contacts)
    - [x] Records file from the name.com export, zone created and tagged, records applied and compared (AC-4, AC-5, AC-6)
    - [ ] Nameserver switch at name.com, confirmed at 1 hour and 48 hours, 7 day rollback window (AC-7, AC-8) (switched and the 1 hour check passed on 2026-10-21; the 48 hour check is owed)
-   - [x] Scope check: nothing else created, budget unchanged (AC-9) (plus the Identity Center KMS keys from the kept us-west-2 replica, about $2 a month)
+   - [x] Scope check: nothing else created, budget unchanged (AC-9) (the Identity Center us-west-2 replica and its KMS keys were removed again; the key is pending deletion)
    - [ ] Verify it: `/check verify route 53 dns for remwa.tech`
    - [ ] Review it (fresh model): `/check review route 53 dns for remwa.tech`
    - [ ] Document it: `/document route 53 dns for remwa.tech`
