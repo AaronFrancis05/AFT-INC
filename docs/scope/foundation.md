@@ -27,13 +27,13 @@ Spec [0001](../specs/0001-ci-repair-test-harness.md)
 Fix the three known auth defects before anything builds on top of them.
 **Done when:** the browser auth client uses a correct public base URL; the OTP is never printed outside development (A3); Google and GitHub sign in appear only when their keys are configured (A11).
 - [x] Design it (spec): `/architect auth defect fixes`
-- [ ] Build it: `/develop auth defect fixes`
+- [x] Build it: `/develop auth defect fixes`
    - [x] Provider helper and server registration, with the A11 unit tests (AC-2, AC-3, AC-9)
    - [x] Sign in, then sign up: shared social buttons, dynamic pages, and the sign up log removed (AC-4, AC-5, AC-7, AC-9)
    - [x] OTP log gated to development, with the A3 tests (AC-6, AC-9)
-   - [ ] Same origin auth client, stale test env and `.env.example` comments, full gate run and manual pass (AC-1, AC-5, AC-8) (code and gates done; the manual pass against the dev database is left for `/check verify`)
+   - [x] Same origin auth client, stale test env and `.env.example` comments, full gate run and manual pass (AC-1, AC-5, AC-8) (manual pass done in `/check verify`)
 code in `lib/auth-providers.ts`, `lib/auth-otp.ts`, `lib/auth.ts`, `lib/auth-client.ts`, `components/auth/`, `app/(auth)/auth/`
-- [ ] Verify it: `/check verify auth defect fixes`
+- [x] Verify it: `/check verify auth defect fixes`
 - [ ] Test it: `/test auth defect fixes`
 - [ ] Review it (fresh model): `/check review auth defect fixes`
 - [ ] Document it: `/document auth defect fixes`
