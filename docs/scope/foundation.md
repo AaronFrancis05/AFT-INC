@@ -42,7 +42,7 @@ Spec [0002](../specs/0002-auth-defect-fixes/index.md)
 
 ### 3. Platform architecture · needs a decision · GA
 The umbrella decision for the whole platform: monorepo layout, AWS and Kubernetes topology, data and tenancy model, workflow engine, provider adapter pattern, environments and releases.
-**Done when:** spec 0001 is accepted, and every later spec can point to it instead of deciding these again.
+**Done when:** the platform architecture spec is accepted, and every later spec can point to it instead of deciding these again.
 - [ ] Decide the architecture (spec): `/architect platform architecture`
 
 ### 4. Monorepo migration · needs a decision · GA
@@ -61,7 +61,7 @@ One validated config schema per app, so a missing or wrong secret stops the app 
 - [ ] Design it (spec): `/architect typed environment config`
 
 ### 7. Engineering standards and shared helpers · needs a decision · GA
-Spec 0002: one way to do errors, logging, validation, idempotency, tenant scoping, and API style, shipped as shared helpers.
+One standard spec: one way to do errors, logging, validation, idempotency, tenant scoping, and API style, shipped as shared helpers.
 **Done when:** shared helpers exist with tests for: idempotent mutations (X1), input validation and size limits (X8), money and time handling (X10), untrusted model output (X14), and tenant scoped data access that returns 404 across workspaces (X15).
 - [ ] Design it (spec): `/architect engineering standards and shared helpers`
 
