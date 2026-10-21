@@ -14,8 +14,8 @@ This file holds the project's working memory, so any session or teammate can pic
 - **Done**: `/audit` gap-fill of `AGENTS.md`; `/scope` wrote [docs/scope/index.md](docs/scope/index.md) plus 8 epic files (132 features, plus 3 pre-existing items A to C)
 - **Spec 0001** ([CI repair and test harness](docs/specs/0001-ci-repair-test-harness.md)) `Accepted`; every build task (1 to 9, plus 7b) is done, and `/check verify` passed on 2026-10-20 (commit c0dacf9, CI run 39400720181 green on all six checks). `main` is protected (squash merges only). `/test`, `/check review` (sonnet, Approve with nits), and `/document` (PR body) all completed on 2026-10-20
 - **Dev database**: AWS Aurora PostgreSQL 17 Serverless v2 cluster `aft-dev` in eu-west-1 (see Decisions log, 2026-10-20); both migrations applied; local `.env` points at it
-- **Next command**: `/sync` (on branch `docs/close-feature-1`, merged through its own PR), then `/clear`. Then `/develop auth defect fixes` (feature 2), then `/architect platform architecture` (feature 3)
-- **Owed to `/sync`**: copy the build approach (Tracer Bullet) from the scope header into `AGENTS.md` `## Build approach` (still a placeholder)
+- **Next command**: merge the `docs/close-feature-1` PR, then `/clear`. Then `/develop auth defect fixes` (feature 2), then `/architect platform architecture` (feature 3)
+- **Owed to `/sync`**: nothing (the 2026-10-21 run filled `## Build approach` and the test and toolchain notes)
 - **Blockers**: none
 
 ## Step 1 checklist
@@ -110,3 +110,7 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Spec 0001 still names `actions/*@v4` while CI uses `@v5` (deliberate, Node 24 runtime); owed a short spec note through `/architect`. A `prisma migrate diff` CI check is a follow up for feature 8 or 12.
 - Next command: squash merge PR #2, then close out feature 1 (`done`, spec `Accepted`), `/sync`, `/clear`, and `/develop auth defect fixes`.
 - PR #2 marked ready and squash merged (fc11e16) with all six checks green. Feature 1 set `done` in the scope, spec 0001 `Accepted`. `main` is protected, so the close out edits live on branch `docs/close-feature-1`.
+
+### 2026-10-21
+- `/sync` from the feature 1 merge (fc11e16) on branch `docs/close-feature-1`: `AGENTS.md` got the Build approach (Tracer Bullet), `npm ci` with the pinned toolchain, the typecheck, test, and e2e commands, `.env.example`, test placement and the `ci.test.ts` contract rule, plus gotchas for install script approvals and the jsdom OTP stubs. The `next dev` agent rules block is committed so the tree stays clean. Scope and spec 0001 were already current.
+- Agent skills installed per project in `.claude/skills/` (pinned in `skills-lock.json`), at the engineer's pick: `vitest` (antfu/skills), `react-testing-library` (pproenca/dot-skills), `playwright-cli` (microsoft/playwright-cli), `playwright-best-practices` (currents-dev). Scanned clean before recording. `@playwright/mcp` recorded as recommended; the engineer connects it. No skill exists for audit-ci.
