@@ -14,7 +14,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 | Epic | File | Features | Status |
 |---|---|---|---|
-| Foundation and platform engineering (incl. CI/CD for AFT) | [foundation.md](foundation.md) | 1 to 28 | 1 in progress, 27 planned |
+| Foundation and platform engineering (incl. CI/CD for AFT) | [foundation.md](foundation.md) | 1 to 28 | 1 done, 2 in progress, 25 planned |
 | Identity and workspaces | [identity.md](identity.md) | A, 29, 30, 41 to 48 | 1 existing, 10 planned |
 | Catalog and commerce | [commerce.md](commerce.md) | B, C, 31 to 37, 40, 49 to 61 | 2 in progress, 21 planned |
 | Project delivery (customer CI/CD) | [delivery.md](delivery.md) | 38, 39, 62 to 74 | 15 planned |
@@ -33,7 +33,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | B | [Marketing homepage](commerce.md) | Existing | in-progress |
 | C | [Dashboard shell](commerce.md) | Existing | in-progress |
 | 1 | [CI repair and test harness](foundation.md) | Foundation | done |
-| 2 | [Auth defect fixes](foundation.md) | Foundation | planned |
+| 2 | [Auth defect fixes](foundation.md) | Foundation | in-progress |
 | 3 | [Platform architecture](foundation.md) | Foundation | planned |
 | 4 | [Monorepo migration](foundation.md) | Foundation | planned |
 | 5 | [Workspace tooling](foundation.md) | Foundation | planned |
@@ -44,7 +44,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 10 | [AWS foundation and infrastructure state](foundation.md) | Foundation | planned |
 | 11 | [Network and Kubernetes cluster](foundation.md) | Foundation | planned |
 | 12 | [Data services](foundation.md) | Foundation | planned |
-| 13 | [Edge, DNS, and certificates](foundation.md) | Foundation | planned |
+| 13 | [Edge, DNS, and certificates](foundation.md) | Foundation | in-progress |
 | 14 | [Secrets delivery](foundation.md) | Foundation | planned |
 | 15 | [GitOps and environments](foundation.md) | Foundation | planned |
 | 16 | [Image build and supply chain pipeline](foundation.md) | Foundation | planned |

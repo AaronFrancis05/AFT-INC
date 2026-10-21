@@ -1,0 +1,6 @@
+Type,Host,Answer,TTL,Priority
+MX,aft.remwa.tech,inbound-smtp.eu-west-1.amazonaws.com,300,10
+TXT,resend._domainkey.aft.remwa.tech,p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2Pz265wS95HodMuDgVq/2QYMpuIC8aN6GGhbKW3LgzFajSciXso7DCngh832yE4+ZmmJW+geX31mMvzMI82cMNuG2f90bbpigZJy93nRaZH8otS/UF3XV183Y+ZuBcCW++VVLAv91XEfzmXSFj0FCdBiVNeptgw/qeJpSNdqH5QIDAQAB,300,
+CNAME,rsend.aft.remwa.tech,rsend-euw1.forge.rmta.net,300,
+CNAME,send.aft.remwa.tech,send.forge.rmta.net,300,
+TXT,_dmarc.remwa.tech,"v=DMARC1; p=none;",300,

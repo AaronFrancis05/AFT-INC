@@ -23,10 +23,22 @@ Fix the broken CI and add a real test runner, so every later feature lands on a 
 - [x] Ship it: squash merge the pull request with all six checks green (staging does not exist yet)
 Spec [0001](../specs/0001-ci-repair-test-harness.md)
 
-### 2. Auth defect fixes · GA
+### 2. Auth defect fixes · in-progress · GA
 Fix the three known auth defects before anything builds on top of them.
 **Done when:** the browser auth client uses a correct public base URL; the OTP is never printed outside development (A3); Google and GitHub sign in appear only when their keys are configured (A11).
+- [x] Design it (spec): `/architect auth defect fixes`
 - [ ] Build it: `/develop auth defect fixes`
+   - [x] Provider helper and server registration, with the A11 unit tests (AC-2, AC-3, AC-9)
+   - [x] Sign in, then sign up: shared social buttons, dynamic pages, and the sign up log removed (AC-4, AC-5, AC-7, AC-9)
+   - [x] OTP log gated to development, with the A3 tests (AC-6, AC-9)
+   - [ ] Same origin auth client, stale test env and `.env.example` comments, full gate run and manual pass (AC-1, AC-5, AC-8) (code and gates done; the manual pass against the dev database is left for `/check verify`)
+code in `lib/auth-providers.ts`, `lib/auth-otp.ts`, `lib/auth.ts`, `lib/auth-client.ts`, `components/auth/`, `app/(auth)/auth/`
+- [ ] Verify it: `/check verify auth defect fixes`
+- [ ] Test it: `/test auth defect fixes`
+- [ ] Review it (fresh model): `/check review auth defect fixes`
+- [ ] Document it: `/document auth defect fixes`
+- [ ] Ship it: squash merge the pull request with all six checks green (staging does not exist yet)
+Spec [0002](../specs/0002-auth-defect-fixes/index.md)
 
 ### 3. Platform architecture · needs a decision · GA
 The umbrella decision for the whole platform: monorepo layout, AWS and Kubernetes topology, data and tenancy model, workflow engine, provider adapter pattern, environments and releases.
@@ -80,10 +92,18 @@ Managed Postgres, Redis, and object storage, with backups.
 **Done when:** Postgres runs across zones with automated backups, Redis and storage buckets exist per environment, and a restore into a scratch database is proven (I8, X13).
 - [ ] Design it (spec): `/architect data services`
 
-### 13. Edge, DNS, and certificates · needs a decision · GA
+### 13. Edge, DNS, and certificates · in-progress · needs a decision · GA
 Public entry: DNS, TLS certificates, CDN, firewall, and ingress into the cluster.
 **Done when:** a test service is reachable over HTTPS on an AFT subdomain through the CDN and firewall, with certificates and DNS records managed automatically.
-- [ ] Design it (spec): `/architect edge dns and certificates`
+- [ ] Slice 1, remwa.tech DNS on Route 53 (spec [0003](../specs/0003-route53-dns-remwa-tech.md)): `/develop route 53 dns for remwa.tech`
+   - [ ] Admin identity: Organizations and Identity Center with MFA, `aft-admin` profile (AC-1, AC-2, AC-3)
+   - [ ] Records file from the name.com export, zone created and tagged, records applied and compared (AC-4, AC-5, AC-6)
+   - [ ] Nameserver switch at name.com, confirmed at 1 hour and 48 hours, 7 day rollback window (AC-7, AC-8)
+   - [ ] Scope check: nothing else created, budget unchanged (AC-9)
+   - [ ] Verify it: `/check verify route 53 dns for remwa.tech`
+   - [ ] Review it (fresh model): `/check review route 53 dns for remwa.tech`
+   - [ ] Document it: `/document route 53 dns for remwa.tech`
+- [ ] Design it (spec): `/architect edge dns and certificates` (the rest: certificates, CDN, firewall, ingress, CAA, DNSSEC)
 
 ### 14. Secrets delivery · needs a decision · GA
 Secrets live in a managed store and reach pods without ever touching the repo.
