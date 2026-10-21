@@ -36,7 +36,7 @@ code in `lib/auth-providers.ts`, `lib/auth-otp.ts`, `lib/auth.ts`, `lib/auth-cli
 - [x] Verify it: `/check verify auth defect fixes`
 - [x] Test it: `/test auth defect fixes`
 - [x] Review it (fresh model): `/check review auth defect fixes`
-- [ ] Document it: `/document auth defect fixes`
+- [x] Document it: `/document auth defect fixes`
 - [ ] Ship it: squash merge the pull request with all six checks green (staging does not exist yet)
 Spec [0002](../specs/0002-auth-defect-fixes/index.md)
 
