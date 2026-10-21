@@ -1,7 +1,7 @@
 # 0003. Move remwa.tech DNS to Route 53
 
 **Date**: 2026-10-21
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

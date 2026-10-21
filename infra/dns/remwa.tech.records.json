@@ -1,0 +1,54 @@
+{
+  "Comment": "remwa.tech records copied from name.com (export 2026-10-21), spec 0003",
+  "Changes": [
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "aft.remwa.tech.",
+        "Type": "MX",
+        "TTL": 300,
+        "ResourceRecords": [{ "Value": "10 inbound-smtp.eu-west-1.amazonaws.com" }]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "resend._domainkey.aft.remwa.tech.",
+        "Type": "TXT",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "\"p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2Pz265wS95HodMuDgVq/2QYMpuIC8aN6GGhbKW3LgzFajSciXso7DCngh832yE4+ZmmJW+geX31mMvzMI82cMNuG2f90bbpigZJy93nRaZH8otS/UF3XV183Y+ZuBcCW++VVLAv91XEfzmXSFj0FCdBiVNeptgw/qeJpSNdqH5QIDAQAB\""
+          }
+        ]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "rsend.aft.remwa.tech.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [{ "Value": "rsend-euw1.forge.rmta.net" }]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "send.aft.remwa.tech.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [{ "Value": "send.forge.rmta.net" }]
+      }
+    },
+    {
+      "Action": "UPSERT",
+      "ResourceRecordSet": {
+        "Name": "_dmarc.remwa.tech.",
+        "Type": "TXT",
+        "TTL": 300,
+        "ResourceRecords": [{ "Value": "\"v=DMARC1; p=none;\"" }]
+      }
+    }
+  ]
+}
