@@ -39,8 +39,13 @@ function Expected($Record) {
 }
 
 function Query([string]$Name, [string]$Type, [string]$Server) {
-  $answers = Resolve-DnsName -Name $Name -Type $Type -Server $Server -DnsOnly -NoHostsFile -QuickTimeout -ErrorAction SilentlyContinue |
-    Where-Object { $_.Section -eq "Answer" -and $_.Type -eq $Type -and $_.Name.TrimEnd(".") -eq $Name.TrimEnd(".") }
+  try {
+    $answers = Resolve-DnsName -Name $Name -Type $Type -Server $Server -DnsOnly -NoHostsFile -QuickTimeout -ErrorAction Stop |
+      Where-Object { $_.Section -eq "Answer" -and $_.Type -eq $Type -and $_.Name.TrimEnd(".") -eq $Name.TrimEnd(".") }
+  } catch {
+    # A failed lookup counts as a mismatch, never as a crash.
+    return @{ Values = @("lookup failed: " + $_.Exception.Message); Ttl = $null }
+  }
   $values = foreach ($a in $answers) {
     switch ($Type) {
       "TXT"   { Normalize "TXT" (($a.Strings | ForEach-Object { '"' + $_ + '"' }) -join " ") }
@@ -57,6 +62,9 @@ function Query([string]$Name, [string]$Type, [string]$Server) {
 function Same($A, $B) {
   return (@($A) -join "|") -eq (@($B) -join "|")
 }
+
+# `powershell -File` passes "8.8.8.8,1.1.1.1" as one string, so split it here.
+if ($Against) { $Against = @($Against | ForEach-Object { $_ -split "," } | Where-Object { $_ }) }
 
 $records = (Get-Content $recordsPath -Raw | ConvertFrom-Json).Changes | ForEach-Object { $_.ResourceRecordSet }
 if ($Only) { $records = $records | Where-Object { $_.Name.TrimEnd(".") -eq $Only.TrimEnd(".") } }
