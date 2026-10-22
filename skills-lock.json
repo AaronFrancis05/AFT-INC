@@ -43,6 +43,12 @@
       "skillPath": "skills/sentry-nextjs-sdk/SKILL.md",
       "computedHash": "d49bb4f9ad21d8c1ca3562e03cd269ef6d7b90598f05a2d43d594ce661ed4526"
     },
+    "stripe-best-practices": {
+      "source": "stripe/ai",
+      "sourceType": "github",
+      "skillPath": "skills/stripe-best-practices/SKILL.md",
+      "computedHash": "480360f5f993189ecc7f2287445ed7565e3a69dfebb23c63c5586b12624c530a"
+    },
     "turborepo": {
       "source": "vercel/turborepo",
       "sourceType": "github",
