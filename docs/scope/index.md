@@ -15,7 +15,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | Epic | File | Features | Status |
 |---|---|---|---|
 | Foundation and platform engineering (incl. CI/CD for AFT) | [foundation.md](foundation.md) | 1 to 28 | 2 done, 1 in progress, 25 planned |
-| Identity and workspaces | [identity.md](identity.md) | A, 29, 30, 41 to 48 | 1 existing, 10 planned |
+| Identity and workspaces | [identity.md](identity.md) | A, 29, 30, 41 to 48, 133 to 140 | 1 existing, 8 in progress, 10 planned |
 | Catalog and commerce | [commerce.md](commerce.md) | B, C, 31 to 37, 40, 49 to 61 | 2 in progress, 21 planned |
 | Project delivery (customer CI/CD) | [delivery.md](delivery.md) | 38, 39, 62 to 74 | 15 planned |
 | API and MCP integrations | [mcp.md](mcp.md) | 75 to 82 | 8 planned |
@@ -164,6 +164,14 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 130 | [Load test and SLOs](launch.md) | Slice 10 | planned |
 | 131 | [Disaster recovery drill](launch.md) | Slice 10 | planned |
 | 132 | [Release 1.0](launch.md) | Slice 10 | planned |
+| 133 | [SSO thin thread](identity.md) | Slice 2b | in-progress |
+| 134 | [SSO lifecycle and operations](identity.md) | Slice 2b | in-progress |
+| 135 | [SSO workspace picker and access gate](identity.md) | Slice 2b | in-progress |
+| 136 | [SSO client provisioning API](identity.md) | Slice 2b | in-progress |
+| 137 | [SSO for MCP clients](identity.md) | Slice 2b | in-progress |
+| 138 | [Sign in with AFT for customer apps](identity.md) | Slice 2b | in-progress |
+| 139 | [Main site signs in through AFT](identity.md) | Slice 2b | in-progress |
+| 140 | [Enterprise SSO for workspaces](identity.md) | Slice 2b | in-progress |
 
 ## Deferred
 
