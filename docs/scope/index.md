@@ -14,7 +14,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 | Epic | File | Features | Status |
 |---|---|---|---|
-| Foundation and platform engineering (incl. CI/CD for AFT) | [foundation.md](foundation.md) | 1 to 28 | 2 done, 1 in progress, 25 planned |
+| Foundation and platform engineering (incl. CI/CD for AFT) | [foundation.md](foundation.md) | 1 to 28 | 3 done, 1 in progress, 24 planned |
 | Identity and workspaces | [identity.md](identity.md) | A, 29, 30, 41 to 48, 133 to 140 | 1 existing, 8 in progress, 10 planned |
 | Catalog and commerce | [commerce.md](commerce.md) | B, C, 31 to 37, 40, 49 to 61 | 2 in progress, 21 planned |
 | Project delivery (customer CI/CD) | [delivery.md](delivery.md) | 38, 39, 62 to 74 | 15 planned |
@@ -34,7 +34,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | C | [Dashboard shell](commerce.md) | Existing | in-progress |
 | 1 | [CI repair and test harness](foundation.md) | Foundation | done |
 | 2 | [Auth defect fixes](foundation.md) | Foundation | done |
-| 3 | [Platform architecture](foundation.md) | Foundation | planned |
+| 3 | [Platform architecture](foundation.md) | Foundation | done |
 | 4 | [Monorepo migration](foundation.md) | Foundation | planned |
 | 5 | [Workspace tooling](foundation.md) | Foundation | planned |
 | 6 | [Typed environment config](foundation.md) | Foundation | planned |
