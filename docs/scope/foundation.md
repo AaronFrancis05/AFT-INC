@@ -40,10 +40,11 @@ code in `lib/auth-providers.ts`, `lib/auth-otp.ts`, `lib/auth.ts`, `lib/auth-cli
 - [x] Ship it: squash merge the pull request with all six checks green (staging does not exist yet)
 Spec [0002](../specs/0002-auth-defect-fixes/index.md)
 
-### 3. Platform architecture · needs a decision · GA
+### 3. Platform architecture · done · GA
 The umbrella decision for the whole platform: monorepo layout, AWS and Kubernetes topology, data and tenancy model, workflow engine, provider adapter pattern, environments and releases.
 **Done when:** the platform architecture spec is accepted, and every later spec can point to it instead of deciding these again.
-- [ ] Decide the architecture (spec): `/architect platform architecture`
+- [x] Decide the architecture (spec): `/architect platform architecture`
+Spec [0005](../specs/0005-platform-architecture/index.md) (accepted 2026-10-22: ECS Fargate instead of EKS; its Follow-up asks `/scope` to reorder Foundation per its Path to live and reword features 11, 15, 62, 65, 66, 67)
 
 ### 4. Monorepo migration · needs a decision · GA
 Move the current app into `apps/web` and pull shared code into packages, with no change in behavior.
