@@ -104,15 +104,49 @@ A nightly check that Stripe and AFT agree.
 **Done when:** a scheduled job compares subscriptions and customers, fixes safe differences, and alerts on the rest (B12).
 - [ ] Design it (spec): `/architect billing reconciliation`
 
-### 58. Credit ledger · needs a decision · GA
+### 58. Credit ledger · in-progress · GA
 Credits pay for AI generations and metered use, with an exact history.
 **Done when:** the balance is derived from an append only ledger; concurrent jobs can never drive it negative (B8); purchases, monthly grants, expiry, and refunds all appear as entries (B10).
-- [ ] Design it (spec): `/architect credit ledger`
+Spec: [0006](../specs/0006-usage-billing/index.md), child 0001 (credit ledger and automatic top ups).
+- [x] Design it (spec): `/architect credit ledger`
+- [ ] Build it: `/develop credit ledger`
+   - [ ] Thread: tables, grants, billing functions, one image job, a sandbox top up (AC-1 to AC-4, AC-7, AC-21, AC-26)
+   - [ ] Allowance grant, rollover, annual timer, defaults (AC-5, AC-6, AC-8)
+   - [ ] Top up hardening: card resolution, 3D Secure, retries, owner settings (AC-7 to AC-9, AC-11, AC-25)
+   - [ ] Cap, blocked states, grace, suspension and resume, debt (AC-10 to AC-12)
+   - [ ] Refunds, disputes, adjustments, audit pass (AC-13, AC-14, AC-25, AC-26)
+- [ ] Verify it: `/check verify credit ledger`
+- [ ] Test it: `/test credit ledger`
+- [ ] Review it (fresh model): `/check review credit ledger`
+- [ ] Document it: `/document credit ledger`
 
-### 59. Usage metering · needs a decision · GA
+### 59. Usage metering · in-progress · GA
 Metered use flows to Stripe for billing.
 **Done when:** API calls and generations produce usage events that reach Stripe once; failed or blocked jobs are not billed and their credits come back (B9); rejected calls are still recorded (M8).
-- [ ] Design it (spec): `/architect usage metering`
+Spec: [0006](../specs/0006-usage-billing/index.md), child 0002 (usage metering).
+- [x] Design it (spec): `/architect usage metering`
+- [ ] Build it: `/develop usage metering`
+   - [ ] Hot path flag through the outbox, `canSpend` with Postgres fallback (AC-19)
+   - [ ] API and MCP call counts, `UsageBatch`, hourly charge with carry (AC-16, AC-18)
+   - [ ] Instance minutes from state history (AC-15)
+   - [ ] Storage and bandwidth daily metering (AC-17)
+- [ ] Verify it: `/check verify usage metering`
+- [ ] Test it: `/test usage metering`
+- [ ] Review it (fresh model): `/check review usage metering`
+- [ ] Document it: `/document usage metering`
+
+### 141. Rate card and margin check · in-progress · GA · from spec 0006
+A versioned price list in credits, and a monthly check that prices cover real AWS and AI cost.
+**Done when:** usage is priced at the rate in force when it happened; a price rise needs 30 days' notice to owners; every tenant resource carries `aft:org`; a monthly report alerts on thin margins and cost with no charge.
+Spec: [0006](../specs/0006-usage-billing/index.md), child 0003 (rate card and margin check).
+- [x] Design it (spec): `/architect rate card and margin check`
+- [ ] Build it: `/develop rate card and margin check`
+   - [ ] Rate card seed, publish script with the notice rule, CI check over every model and size (AC-20 to AC-22)
+   - [ ] `aft:org` tag aspect and assertion, Cost Explorer role, monthly report and alerts, nightly audit (AC-1, AC-23, AC-24)
+- [ ] Verify it: `/check verify rate card and margin check`
+- [ ] Test it: `/test rate card and margin check`
+- [ ] Review it (fresh model): `/check review rate card and margin check`
+- [ ] Document it: `/document rate card and margin check`
 
 ### 60. Usage and credits dashboard · needs a decision
 Customers see what they used and what is left.

@@ -16,7 +16,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 |---|---|---|---|
 | Foundation and platform engineering (incl. CI/CD for AFT) | [foundation.md](foundation.md) | 1 to 28 | 3 done, 1 in progress, 24 planned |
 | Identity and workspaces | [identity.md](identity.md) | A, 29, 30, 41 to 48, 133 to 140 | 1 existing, 8 in progress, 10 planned |
-| Catalog and commerce | [commerce.md](commerce.md) | B, C, 31 to 37, 40, 49 to 61 | 2 in progress, 21 planned |
+| Catalog and commerce | [commerce.md](commerce.md) | B, C, 31 to 37, 40, 49 to 61, 141 | 5 in progress, 19 planned |
 | Project delivery (customer CI/CD) | [delivery.md](delivery.md) | 38, 39, 62 to 74 | 15 planned |
 | API and MCP integrations | [mcp.md](mcp.md) | 75 to 82 | 8 planned |
 | AI Media Studio | [media.md](media.md) | 83 to 98 | 16 planned |
@@ -89,8 +89,9 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 55 | [Dunning and suspension](commerce.md) | Slice 4 | planned |
 | 56 | [Tax and enterprise invoicing](commerce.md) | Slice 4 | planned |
 | 57 | [Billing reconciliation](commerce.md) | Slice 4 | planned |
-| 58 | [Credit ledger](commerce.md) | Slice 4 | planned |
-| 59 | [Usage metering](commerce.md) | Slice 4 | planned |
+| 58 | [Credit ledger](commerce.md) | Slice 4 | in-progress |
+| 59 | [Usage metering](commerce.md) | Slice 4 | in-progress |
+| 141 | [Rate card and margin check](commerce.md) | Slice 4 | in-progress |
 | 60 | [Usage and credits dashboard](commerce.md) | Slice 4 | planned |
 | 61 | [Billing history dashboard](commerce.md) | Slice 4 | planned |
 | 62 | [Instance deploy package standard](delivery.md) | Slice 5 | planned |
