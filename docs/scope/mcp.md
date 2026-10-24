@@ -2,9 +2,11 @@
 
 Back to the [scope index](index.md).
 
-Customers and their AI agents use AFT and their subscribed projects from their own apps, through API keys and MCP. Edge case IDs refer to the catalog in [PLAN.md](../../PLAN.md).
+Customers and their AI agents use AFT from their own apps, through API keys and MCP. Edge case IDs refer to the catalog in [PLAN.md](../../PLAN.md).
 
-## Slice 6: API and MCP
+**Parked (2026-10-24, spec [0007](../specs/0007-lean-hosting-customer-delivery/index.md)):** API and MCP resale of hosted projects is off, because AFT no longer hosts projects. Features 75, 76, and 80 lose their purpose as written; 77 to 79, 81, and 82 may return for AFT's own tools (media, App Studio). Nothing here is built until `/scope` re plans this epic, and any of it needs a bigger server than spec 0007's single t4g.small.
+
+## Parked: API and MCP
 
 ### 75. API gateway routing and key auth · needs a decision · GA
 One front door for the APIs of subscribed projects.

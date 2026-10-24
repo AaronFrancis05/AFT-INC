@@ -4,6 +4,8 @@ Back to the [scope index](index.md).
 
 Everything every later feature stands on: a green pipeline, the monorepo, shared standards, the AWS platform, the CI/CD pipeline for AFT itself (broken into small shippable steps), flags, observability, background work, the design system, and multiple languages. Edge case IDs refer to the catalog in [PLAN.md](../../PLAN.md).
 
+Since 2026-10-24 the platform runs on one EC2 server per spec [0007](../specs/0007-lean-hosting-customer-delivery/index.md); features 9 to 18 and 148 follow its *Path to live* (steps 1 to 11), and its child 0001 holds the build detail.
+
 ## Foundation: repair and decide
 
 ### 1. CI repair and test harness · done · GA
@@ -44,7 +46,7 @@ Spec [0002](../specs/0002-auth-defect-fixes/index.md)
 The umbrella decision for the whole platform: monorepo layout, AWS and Kubernetes topology, data and tenancy model, workflow engine, provider adapter pattern, environments and releases.
 **Done when:** the platform architecture spec is accepted, and every later spec can point to it instead of deciding these again.
 - [x] Decide the architecture (spec): `/architect platform architecture`
-Spec [0005](../specs/0005-platform-architecture/index.md) (accepted 2026-10-22: ECS Fargate instead of EKS; its Follow-up asks `/scope` to reorder Foundation per its Path to live and reword features 11, 15, 62, 65, 66, 67)
+Spec [0005](../specs/0005-platform-architecture/index.md) (accepted 2026-10-22: ECS Fargate instead of EKS), partly superseded by spec [0007](../specs/0007-lean-hosting-customer-delivery/index.md) (accepted 2026-10-24: one EC2 server, no customer hosting); Foundation now follows spec 0007's Path to live
 
 ### 4. Monorepo migration · needs a decision · GA
 Move the current app into `apps/web` and pull shared code into packages, with no change in behavior.
@@ -67,35 +69,76 @@ One standard spec: one way to do errors, logging, validation, idempotency, tenan
 - [ ] Design it (spec): `/architect engineering standards and shared helpers`
 
 ### 8. Local dev stack · needs a decision
-One command brings up every dependency locally, with seed data.
-**Done when:** a fresh clone runs the whole platform locally (database, cache, object storage, mail catcher) with seed data in one command.
+One command runs the apps locally against the `dev` database on the EC2 server, with seed data.
+**Done when:** a fresh clone runs the apps locally through one command that opens the SSM port forward to `dev` as `aft_dev` (spec 0007 AC-13), seeds data, and catches mail; no Docker or cache is needed on the engineer's machine.
 - [ ] Design it (spec): `/architect local dev stack`
 
-### 9. Container images · needs a decision
-Production container images for each app.
-**Done when:** each app builds a small, non root image that starts, passes a health check, and shuts down cleanly on SIGTERM (X13).
-- [ ] Design it (spec): `/architect container images`
+### 9. Container images · in-progress · GA
+Production ARM64 container images for each app, plus a `migrate` target (spec 0007 path step 2).
+**Done when:** each app builds a small, non root ARM64 image with a shallow `/healthz` and an internal `/readyz`, JSON logs, and a clean stop within 30 seconds of SIGTERM (AC-17); the `migrate` target runs Prisma migrations.
+Spec: [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001 (containers).
+- [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery`
+- [ ] Build it: `/develop container images`
+   - [ ] `apps/web` standalone ARM64 image, non root, `/healthz` and `/readyz`, SIGTERM (AC-17)
+   - [ ] `migrate` image target with the Prisma CLI (AC-17)
+- [ ] Verify it: `/check verify container images`
+- [ ] Test it: `/test container images`
+- [ ] Review it (fresh model): `/check review container images`
+- [ ] Document it: `/document container images`
+- [ ] Ship it: squash merge with all checks green
 
 ## Foundation: AWS platform
 
-### 10. AWS foundation and infrastructure state · needs a decision · GA
-AWS accounts, infrastructure as code with locked remote state, and keyless CI access to AWS.
-**Done when:** staging and production are separate, all infrastructure is in code, state is locked, drift is detected on a schedule (I5), and CI reaches AWS without stored keys.
-- [ ] Design it (spec): `/architect aws foundation and infrastructure state`
+### 10. AWS foundation · in-progress · GA
+The `aft-production` member account, its guardrails, CDK, keyless CI roles, and the budget (spec 0007 path step 3).
+**Done when:** the account exists with the Region SCP (AC-2), CDK is bootstrapped and every resource is in code (AC-16), CI reaches AWS only through `aft-ci-push` and `aft-ci-deploy` (AC-8), and the $28 budget plus the `cdk synth` cost check are live (AC-1, I15).
+Spec: [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001 (account and CI roles).
+- [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery`
+- [ ] Build it: `/develop aws foundation`
+   - [ ] Member account, SCP, Identity Center permission set, CDK bootstrap (AC-2, AC-16)
+   - [ ] Both GitHub OIDC roles and the `aft-deploy` SSM document (AC-8)
+   - [ ] $28 budget with alerts, `cdk synth` resource allow list check (AC-1)
+- [ ] Verify it: `/check verify aws foundation`
+- [ ] Test it: `/test aws foundation`
+- [ ] Review it (fresh model): `/check review aws foundation`
+- [ ] Document it: `/document aws foundation`
+- [ ] Ship it: squash merge with all checks green
 
-### 11. Network and Kubernetes cluster · needs a decision · GA
-The private network and the Kubernetes cluster, with autoscaling node pools.
-**Done when:** the cluster spans at least two availability zones, scales nodes on demand, and survives losing a node or a spot interruption without downtime (X13).
-- [ ] Design it (spec): `/architect network and kubernetes cluster`
+### 11. Server and Compose · in-progress · GA
+The VPC, the single EC2 instance, Docker Compose, and its alarms (spec 0007 path step 4).
+**Done when:** the instance runs with only 80 and 443 open and SSM only access (AC-3), IMDS reachable only by the worker (AC-4), container memory limits within 1,150 MB and swap active (AC-6), the A records point at the Elastic IP, and every alarm emails the engineer (AC-12, I9, I10, I11, I16).
+Spec: [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001 (network, instance, containers, alerts).
+- [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery`
+- [ ] Build it: `/develop server and compose`
+   - [ ] VPC, security group, instance, Elastic IP, A records, with CDK assertion tests (AC-3)
+   - [ ] Host bootstrap: Docker, git, swap, iptables metadata rule, render scratch quota (AC-4, AC-6)
+   - [ ] Compose file with limits and health checks, Caddy placeholder site (AC-6)
+   - [ ] Alarms: status checks with recover, memory, disk, CPU credits, Route 53 health check (AC-12)
+- [ ] Verify it: `/check verify server and compose`
+- [ ] Test it: `/test server and compose`
+- [ ] Review it (fresh model): `/check review server and compose`
+- [ ] Document it: `/document server and compose`
+- [ ] Ship it: squash merge with all checks green
 
-### 12. Data services · needs a decision · GA
-Managed Postgres, Redis, and object storage, with backups.
-**Done when:** Postgres runs across zones with automated backups, Redis and storage buckets exist per environment, and a restore into a scratch database is proven (I8, X13).
-- [ ] Design it (spec): `/architect data services`
+### 12. Data services · in-progress · GA
+Postgres on the box with spec 0005's roles, backups to S3, the restore drill, and the move off Aurora (spec 0007 path step 5).
+**Done when:** Postgres runs with databases `aft`, `dbos`, `dev` and every role (AC-13); nightly globals, dumps, and Caddy data reach S3 with a heartbeat alarm (AC-10); the monthly restore drill passes (AC-11, I8); `aft-dev` data lives in `dev` and the Aurora cluster is deleted (AC-13); a lost volume can be rebuilt (I12).
+Spec: [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001 (data and backups).
+- [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery`
+- [ ] Build it: `/develop data services`
+   - [ ] Postgres container, `bootstrap-roles.sql`, loopback only port (AC-4, AC-13)
+   - [ ] Backup timer, S3 bucket rules, heartbeat, DLM snapshots (AC-10)
+   - [ ] Restore drill and its alarm (AC-11)
+   - [ ] Move `aft-dev` into `dev`, then delete the Aurora cluster (AC-13)
+- [ ] Verify it: `/check verify data services`
+- [ ] Test it: `/test data services`
+- [ ] Review it (fresh model): `/check review data services`
+- [ ] Document it: `/document data services`
+- [ ] Ship it: squash merge with all checks green
 
-### 13. Edge, DNS, and certificates · in-progress · needs a decision · GA
-Public entry: DNS, TLS certificates, CDN, firewall, and ingress into the cluster.
-**Done when:** a test service is reachable over HTTPS on an AFT subdomain through the CDN and firewall, with certificates and DNS records managed automatically.
+### 13. Edge, DNS, and certificates · in-progress · GA
+Public entry: `remwa.tech` DNS on Route 53, then HTTPS from Caddy on the server (spec 0007 path step 7).
+**Done when:** `remwa.tech` and `www` serve valid certificates from Caddy with the `www` and HTTP redirects (AC-5, I13), and apps read the client IP only from Caddy's header (AC-14).
 - [ ] Slice 1, remwa.tech DNS on Route 53 (spec [0003](../specs/0003-route53-dns-remwa-tech.md)): `/develop route 53 dns for remwa.tech`
    - [ ] Admin identity: Organizations and Identity Center with MFA, `aft-admin` profile (AC-1, AC-2, AC-3)
    - [ ] Records file from the name.com export, zone created and tagged, records applied and compared (AC-4, AC-5, AC-6)
@@ -104,44 +147,96 @@ Public entry: DNS, TLS certificates, CDN, firewall, and ingress into the cluster
    - [ ] Verify it: `/check verify route 53 dns for remwa.tech`
    - [ ] Review it (fresh model): `/check review route 53 dns for remwa.tech`
    - [ ] Document it: `/document route 53 dns for remwa.tech`
-- [ ] Design it (spec): `/architect edge dns and certificates` (the rest: certificates, CDN, firewall, ingress, CAA, DNSSEC)
+- [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery` (spec [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001: Caddy certificates, no CDN or WAF at this size)
+- [ ] Slice 2, HTTPS and client IP: `/develop edge dns and certificates`
+   - [ ] Caddyfile with `email`, `www` and HTTP redirects, `/readyz` and `/internal/*` blocked (AC-5)
+   - [ ] Client IP from Caddy's `X-Forwarded-For`, one trusted hop (AC-14)
+- [ ] Verify it: `/check verify edge dns and certificates`
+- [ ] Test it: `/test edge dns and certificates`
+- [ ] Ship it: squash merge with all checks green
 
-### 14. Secrets delivery · needs a decision · GA
-Secrets live in a managed store and reach pods without ever touching the repo.
-**Done when:** apps read secrets from the managed store, and rotating one causes no downtime (X12).
-- [ ] Design it (spec): `/architect secrets delivery`
+### 14. Secrets delivery · in-progress · GA
+Secrets live in Parameter Store and reach each container as an env file written at deploy time, never touching the repo (spec 0007 path step 6).
+**Done when:** `seed-parameters.ts` lists every name, the deploy fails when a schema name is missing, and env files are written `0600` as root (AC-9); rotating a value takes effect on the next deploy (X12, dual key windows per app).
+Spec: [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001 (secrets).
+- [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery`
+- [ ] Build it: `/develop secrets delivery`
+   - [ ] Seed script and the env schema export per app (AC-9)
+   - [ ] Deploy time name check and env file rendering (AC-9)
+- [ ] Verify it: `/check verify secrets delivery`
+- [ ] Test it: `/test secrets delivery`
+- [ ] Review it (fresh model): `/check review secrets delivery`
+- [ ] Document it: `/document secrets delivery`
+- [ ] Ship it: squash merge with all checks green
 
 ## Foundation: CI/CD for the platform
 
-### 15. GitOps and environments · needs a decision · GA
-The deploy engine: the cluster pulls its desired state from git, per environment.
-**Done when:** staging and production are described in git, and the cluster converges to that state on its own and reports healthy.
-- [ ] Design it (spec): `/architect gitops and environments`
+### 15. GitOps and environments · dropped
+Folded into features 10 to 18 by spec 0007: there is one production environment described in CDK and the Compose release bundle, and no staging.
 
-### 16. Image build and supply chain pipeline · needs a decision · GA
-CI builds, scans, signs, and publishes images on every merge.
-**Done when:** each merge builds images with an SBOM and a signature, a critical vulnerability blocks the release (I7), deploys use image digests only (I3), and forks never get secrets (I6).
-- [ ] Design it (spec): `/architect image build and supply chain pipeline`
+### 16. Image pipeline and release bundles · in-progress · GA
+CI builds ARM64 images on every merge, pushes them by digest, and uploads a release bundle (spec 0007 path step 8).
+**Done when:** each merge pushes images to ECR by digest (I3) and uploads `compose.yml`, `Caddyfile`, `deploy.sh`, `bootstrap-roles.sql`, `digests.env`, `env-schema.json` to `releases/<sha>/` through `aft-ci-push` (AC-7, AC-8); the migration lint blocks unsafe migrations (X9); forks never get secrets (I6). Image scanning, SBOM, and signing (I7) thicken it later.
+Spec: [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001 (deploys).
+- [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery`
+- [ ] Build it: `/develop image pipeline and release bundles`
+   - [ ] ARM64 build and ECR push by digest on merge (AC-7)
+   - [ ] Release bundle upload and the migration lint (AC-7, X9)
+- [ ] Verify it: `/check verify image pipeline and release bundles`
+- [ ] Test it: `/test image pipeline and release bundles`
+- [ ] Review it (fresh model): `/check review image pipeline and release bundles`
+- [ ] Document it: `/document image pipeline and release bundles`
+- [ ] Ship it: squash merge with all checks green
 
-### 17. Database migration gate · needs a decision · GA
-Migrations run as their own step before a deploy, and only safe changes are allowed.
-**Done when:** migrations run before new pods start, a failed migration stops the deploy while old pods keep serving (I2), and destructive changes in the same release are rejected (X9).
-- [ ] Design it (spec): `/architect database migration gate`
+### 17. Database migration gate · in-progress · GA
+Migrations run as their own guarded step before containers are replaced (spec 0007 path step 9).
+**Done when:** each deploy takes a pre migration dump, dry runs `migrate` on `restore_check`, and stops on failure while the old release keeps serving (I2, I17); then the worker stops and `migrate` runs against `aft` and `dbos` (AC-7).
+Spec: [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001 (deploys).
+- [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery`
+- [ ] Build it: `/develop database migration gate`
+   - [ ] Pre migration dump and the dry run on `restore_check` (AC-7, I17)
+   - [ ] Worker stop, `migrate`, worker start (AC-7)
+- [ ] Verify it: `/check verify database migration gate`
+- [ ] Test it: `/test database migration gate`
+- [ ] Review it (fresh model): `/check review database migration gate`
+- [ ] Document it: `/document database migration gate`
+- [ ] Ship it: squash merge with all checks green
 
-### 18. Continuous deploy to staging · needs a decision · GA
-Every merge to `main` reaches staging automatically.
-**Done when:** a merge to `main` is live on staging within minutes, and a smoke test runs against it.
-- [ ] Design it (spec): `/architect continuous deploy to staging`
+### 18. Approved deploy to production · in-progress · GA
+After approval, a release reaches the server through the `aft-deploy` SSM document, with smoke tests and automatic rollback (spec 0007 path step 10).
+**Done when:** a deploy needs the `production` approval, never overlaps another deploy or a backup, passes the web and auth smoke tests, and rolls back to the previous release on failure (AC-7, I14); measured downtime stays at or under 30 seconds (AC-15).
+Spec: [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001 (deploys).
+- [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery`
+- [ ] Build it: `/develop approved deploy to production`
+   - [ ] `deploy` job with approval and `concurrency`, the `aft-deploy` document with `flock` (AC-7)
+   - [ ] Smoke tests, automatic rollback, image and release pruning (AC-7, I14)
+   - [ ] Downtime measurement (AC-15)
+- [ ] Verify it: `/check verify approved deploy to production`
+- [ ] Test it: `/test approved deploy to production`
+- [ ] Review it (fresh model): `/check review approved deploy to production`
+- [ ] Document it: `/document approved deploy to production`
+- [ ] Ship it: squash merge with all checks green
 
-### 19. Production promotion and canary · needs a decision · GA
-An approved promotion to production rolls out gradually and rolls back on its own.
-**Done when:** a promotion needs approval, rolls out to a small share of traffic first, and rolls back automatically when health or error checks fail (I1).
-- [ ] Design it (spec): `/architect production promotion and canary`
+### 148. First production go live · in-progress · GA · from spec 0007
+The last path step: prove the box holds up, rehearse a rebuild, turn on the sign up gate, and serve `remwa.tech` (spec 0007 path step 11).
+**Done when:** the load test plus one 50 MB render stays under 85 percent memory with no OOM kill (AC-6), the rebuild rehearsal finishes within 2 hours (AC-11, I12), the sign up gate is on (AC-18), and `remwa.tech` serves the app.
+Spec: [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001.
+- [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery`
+- [ ] Build it: `/develop first production go live`
+   - [ ] Load test with a render, or switch to `t4g.medium` (AC-6)
+   - [ ] Rebuild rehearsal on a temporary instance (AC-11)
+   - [ ] Sign up gate on, first release live (AC-18)
+- [ ] Verify it: `/check verify first production go live`
+- [ ] Test it: `/test first production go live`
+- [ ] Review it (fresh model): `/check review first production go live`
+- [ ] Document it: `/document first production go live`
+- [ ] Ship it: `remwa.tech` serves the app
 
-### 20. Pull request previews · needs a decision · GA
-Each pull request gets its own short lived environment.
-**Done when:** a pull request gets a preview URL, end to end tests run against it, and the preview is deleted when the pull request closes or its time runs out (I4).
-- [ ] Design it (spec): `/architect pull request previews`
+### 19. Production promotion and canary · dropped
+Dropped by spec 0007: one server has no traffic splitting; feature 18 covers approval, smoke tests, and rollback.
+
+### 20. Pull request previews · dropped
+Dropped by spec 0007: no preview environments on a single 2 GB server; CI tests every pull request.
 
 ### 21. Feature flags · needs a decision
 Every feature ships dark and turns on per environment, workspace, or user.
@@ -172,7 +267,7 @@ Events leave the database reliably, and incoming webhooks are processed once.
 
 ### 26. Rate limiting and request guards · needs a decision
 Protect every public endpoint from abuse and bad input.
-**Done when:** limits apply per IP, user, workspace, and key with a 429 and `Retry-After` (X7), and oversized or malformed requests get a clean 4xx with no stack trace (X8).
+**Done when:** limits apply per IP, user, workspace, and key with a 429 and `Retry-After` (X7), counted in Postgres (no Redis, spec 0007), and oversized or malformed requests get a clean 4xx with no stack trace (X8).
 - [ ] Design it (spec): `/architect rate limiting and request guards`
 
 ## Foundation: experience
