@@ -1,6 +1,6 @@
 import { Resend } from "resend";
-import { OTPTemplate } from "@/components/emails/otp-template";
-import { ResetPasswordTemplate } from "@/components/emails/reset-password-template";
+import { OTPTemplate } from "./templates/otp-template";
+import { ResetPasswordTemplate } from "./templates/reset-password-template";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 

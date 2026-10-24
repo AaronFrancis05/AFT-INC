@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { sendVerificationEmail } = vi.hoisted(() => ({ sendVerificationEmail: vi.fn() }));
 
-vi.mock("./email", () => ({ sendVerificationEmail }));
+vi.mock("@aft/email", () => ({ sendVerificationEmail }));
 
 import { sendVerificationOTP } from "./auth-otp";
 

@@ -1,4 +1,4 @@
-import { sendVerificationEmail } from "./email";
+import { sendVerificationEmail } from "@aft/email";
 
 // The emailOTP plugin's sender. When the email fails, the OTP is printed only
 // under `next dev` so local sign up still works; every other environment

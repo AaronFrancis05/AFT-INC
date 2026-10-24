@@ -12,7 +12,7 @@ vi.mock("better-auth/plugins", () => ({
   emailOTP: (options: unknown) => ({ id: "email-otp", options }),
 }));
 vi.mock("@aft/db", () => ({ default: {} }));
-vi.mock("./email", () => ({ sendResetPasswordEmail: vi.fn(), sendVerificationEmail: vi.fn() }));
+vi.mock("@aft/email", () => ({ sendResetPasswordEmail: vi.fn(), sendVerificationEmail: vi.fn() }));
 
 type AuthOptions = {
   socialProviders: Record<string, { clientId: string; clientSecret: string }>;
