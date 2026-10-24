@@ -53,8 +53,8 @@ Move the current app into `apps/web` and pull shared code into packages, with no
 **Done when:** the app runs from `apps/web` and behaves exactly as before (auth flows, dashboard); `packages/db`, `packages/auth`, `packages/ui`, `packages/email`, `packages/config` exist; the existing migration is preserved; edge cases I18 to I28 hold.
 - [x] Design it (spec): `/architect monorepo migration`
 - [ ] Build it: `/develop monorepo migration`
-   - [ ] Preflight and toolchain switch: open branches closed, baselines saved, pnpm 12.15.0 plus Turborepo, CI and `ci.test.ts` on pnpm, `pnpm audit` (AC-1, AC-7, AC-8, AC-9, AC-10, AC-18)
-   - [ ] App moved to `apps/web` with root `.env` loading and the workspace root set (AC-2, AC-6, AC-13, AC-17)
+   - [x] Preflight and toolchain switch: open branches closed, baselines saved, pnpm 12.15.0 plus Turborepo, CI and `ci.test.ts` on pnpm, `pnpm audit` (AC-1, AC-7, AC-8, AC-9, AC-10, AC-18)
+   - [x] App moved to `apps/web` with root `.env` loading and the workspace root set (AC-2, AC-6, AC-13, AC-17)
    - [ ] `packages/config` and `packages/db`: shared configs, catalog, generated Prisma client, `server-only`, strict env (AC-3, AC-4, AC-11, AC-12, AC-14, AC-15)
    - [ ] `packages/email`, `packages/auth`, `packages/ui`: code, tests, shadcn and Tailwind setup (AC-2, AC-11, AC-12, AC-16, AC-19)
    - [ ] Parity pass: tests, routes, lockfile versions, manual auth run on the dev database (AC-5, AC-6)
