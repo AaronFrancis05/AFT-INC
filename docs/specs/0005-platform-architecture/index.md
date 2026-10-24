@@ -1,7 +1,7 @@
 # 0005. Platform architecture: a lean AWS monorepo on ECS Fargate
 
 **Date**: 2026-10-22
-**Status**: Accepted
+**Status**: Partially superseded by [0007](../0007-lean-hosting-customer-delivery/index.md) (2026-10-24). Children 0001, 0004, 0005, 0009, the roles and row level security of 0003, child 0007 for App Studio code only, and AC-9, AC-10, AC-11, AC-13, AC-15 stay in force; the rest is replaced, see spec 0007 *What this supersedes*.
 
 ## Summary
 

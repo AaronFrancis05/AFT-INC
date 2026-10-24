@@ -7,6 +7,12 @@
       "skillPath": "skills/dbos-typescript/SKILL.md",
       "computedHash": "5bc4f28a600b1496af8e612649f0f55ddc5f91fe1a759db8c4dc71e344ce0a47"
     },
+    "docker-compose-patterns": {
+      "source": "docker/skills",
+      "sourceType": "github",
+      "skillPath": "skills/docker-compose-patterns/SKILL.md",
+      "computedHash": "14140693bc1c11a7b59d2b5528c1cb9cd7501697ceb919bf5e820c33b4faff01"
+    },
     "opentelemetry": {
       "source": "grafana/skills",
       "sourceType": "github",

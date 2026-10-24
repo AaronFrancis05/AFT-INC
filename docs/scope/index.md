@@ -1,10 +1,10 @@
 # Scope: AFT Inc
 
-AFT Inc is an AI platform where developers, enterprises, and everyday customers subscribe to production ready projects (as shared SaaS, a dedicated instance, or API plus MCP access), generate commercial images, videos, and 3D models, and turn an idea into a deployed app in a collaborative studio. The full plan, architecture, and edge case catalog live in [PLAN.md](../../PLAN.md); progress notes live in [MEMORY.md](../../MEMORY.md).
+AFT Inc is an AI platform where developers, enterprises, and everyday customers buy production ready projects (customized through a form and delivered into their own GitHub repo to run on their own hosting, with optional update pull requests, spec 0007), generate commercial images, videos, and 3D models, and turn an idea into a deployed app in a collaborative studio. The full plan, architecture, and edge case catalog live in [PLAN.md](../../PLAN.md); progress notes live in [MEMORY.md](../../MEMORY.md).
 
 **Build approach:** Tracer Bullet (prove one thin real path through every layer first, then thicken it one strand at a time).
 **Workflow:** Beta (after `/develop`: `/check verify`, then `/test`). Features tagged `· GA` (auth, workspaces, billing, metering, provisioning, infrastructure, CI/CD, MCP, security) add a fresh model `/check review` and `/document`. `/architect` is the first stop for any feature that `needs a decision`.
-**Ship rule:** every feature ships on its own, on one branch with one pull request: spec, build, verify, test (review and document at GA), merge, release to staging, then promote to production behind a feature flag that stays off until its epic is ready for users. Until features 18 and 19 exist, ship means merged to `main` with CI green. When `/architect` captures a spec, it adds a `Ship it` box as the last step of that feature.
+**Ship rule:** every feature ships on its own, on one branch with one pull request: spec, build, verify, test (review and document at GA), merge, then an approved deploy to production behind a feature flag that stays off until its epic is ready for users. There is no staging (spec 0007). Until feature 18 exists, ship means merged to `main` with CI green. When `/architect` captures a spec, it adds a `Ship it` box as the last step of that feature.
 **Constraints:** one engineer working with AI agents, no fixed deadline. Features are sized for one to three days each and built one at a time, in order.
 **Edge cases:** every `Done when` names the edge case IDs it owns from the PLAN.md catalog (X, A, C, B, D, M, G, S, I). `/architect` turns them into acceptance criteria, `/check verify` proves them, and `/test` names a test after each one.
 
@@ -14,16 +14,16 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 | Epic | File | Features | Status |
 |---|---|---|---|
-| Foundation and platform engineering (incl. CI/CD for AFT) | [foundation.md](foundation.md) | 1 to 28 | 3 done, 1 in progress, 24 planned |
+| Foundation and platform engineering (incl. CI/CD for AFT) | [foundation.md](foundation.md) | 1 to 28, 148 | 3 done, 10 in progress, 13 planned, 3 dropped |
 | Identity and workspaces | [identity.md](identity.md) | A, 29, 30, 41 to 48, 133 to 140 | 1 existing, 8 in progress, 10 planned |
-| Catalog and commerce | [commerce.md](commerce.md) | B, C, 31 to 37, 40, 49 to 61, 141 | 5 in progress, 19 planned |
-| Project delivery (customer CI/CD) | [delivery.md](delivery.md) | 38, 39, 62 to 74 | 15 planned |
-| API and MCP integrations | [mcp.md](mcp.md) | 75 to 82 | 8 planned |
+| Catalog and commerce | [commerce.md](commerce.md) | B, C, 31 to 37, 40, 49 to 61, 141 | 6 in progress, 18 planned |
+| Project delivery (to the customer's repo) | [delivery.md](delivery.md) | 38, 39, 62 to 74, 142 to 147 | 8 in progress, 13 dropped |
+| API and MCP integrations (parked) | [mcp.md](mcp.md) | 75 to 82 | 8 planned, parked |
 | AI Media Studio | [media.md](media.md) | 83 to 98 | 16 planned |
 | App Studio (Figma like, idea to app) | [studio.md](studio.md) | 99 to 118 | 20 planned |
 | Go to market and launch | [launch.md](launch.md) | 119 to 132 | 14 planned |
 
-**Phases, in build order:** Foundation (1 to 28) · Slice 1, the core loop: browse, subscribe, use (29 to 40) · Slice 2 identity breadth · Slice 3 catalog breadth · Slice 4 billing breadth · Slice 5 dedicated instances · Slice 6 API and MCP · Slice 7 images and video · Slice 8 3D · Slice 9 App Studio (9a format, 9b canvas, 9c collaboration, 9d AI design, 9e code and deploy) · Slice 10 go to market and launch.
+**Phases, in build order:** Foundation (1 to 28, then 148 go live) · Slice 1, the core loop: browse, buy, receive (29 to 40, 142, 143) · Slice 2 identity breadth · Slice 3 catalog breadth · Slice 4 billing breadth · Slice 5 delivery breadth (62, 144 to 147) · Parked: API and MCP · Slice 7 images and video · Slice 8 3D · Slice 9 App Studio (9a format, 9b canvas, 9c collaboration, 9d AI design, 9e code and deploy) · Slice 10 go to market and launch.
 
 ## At a glance
 
@@ -40,18 +40,18 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 6 | [Typed environment config](foundation.md) | Foundation | planned |
 | 7 | [Engineering standards and shared helpers](foundation.md) | Foundation | planned |
 | 8 | [Local dev stack](foundation.md) | Foundation | planned |
-| 9 | [Container images](foundation.md) | Foundation | planned |
-| 10 | [AWS foundation and infrastructure state](foundation.md) | Foundation | planned |
-| 11 | [Network and Kubernetes cluster](foundation.md) | Foundation | planned |
-| 12 | [Data services](foundation.md) | Foundation | planned |
+| 9 | [Container images](foundation.md) | Foundation | in-progress |
+| 10 | [AWS foundation](foundation.md) | Foundation | in-progress |
+| 11 | [Server and Compose](foundation.md) | Foundation | in-progress |
+| 12 | [Data services](foundation.md) | Foundation | in-progress |
 | 13 | [Edge, DNS, and certificates](foundation.md) | Foundation | in-progress |
-| 14 | [Secrets delivery](foundation.md) | Foundation | planned |
-| 15 | [GitOps and environments](foundation.md) | Foundation | planned |
-| 16 | [Image build and supply chain pipeline](foundation.md) | Foundation | planned |
-| 17 | [Database migration gate](foundation.md) | Foundation | planned |
-| 18 | [Continuous deploy to staging](foundation.md) | Foundation | planned |
-| 19 | [Production promotion and canary](foundation.md) | Foundation | planned |
-| 20 | [Pull request previews](foundation.md) | Foundation | planned |
+| 14 | [Secrets delivery](foundation.md) | Foundation | in-progress |
+| 15 | [GitOps and environments](foundation.md) | Foundation | dropped |
+| 16 | [Image pipeline and release bundles](foundation.md) | Foundation | in-progress |
+| 17 | [Database migration gate](foundation.md) | Foundation | in-progress |
+| 18 | [Approved deploy to production](foundation.md) | Foundation | in-progress |
+| 19 | [Production promotion and canary](foundation.md) | Foundation | dropped |
+| 20 | [Pull request previews](foundation.md) | Foundation | dropped |
 | 21 | [Feature flags](foundation.md) | Foundation | planned |
 | 22 | [Tracing and structured logs](foundation.md) | Foundation | planned |
 | 23 | [Error tracking, alerts, and SLOs](foundation.md) | Foundation | planned |
@@ -60,18 +60,21 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 26 | [Rate limiting and request guards](foundation.md) | Foundation | planned |
 | 27 | [Design system and AFT brand](foundation.md) | Foundation | planned |
 | 28 | [Internationalization foundation](foundation.md) | Foundation | planned |
+| 148 | [First production go live](foundation.md) | Foundation | in-progress |
 | 29 | [Organizations and personal workspaces](identity.md) | Slice 1 | planned |
 | 30 | [Route protection](identity.md) | Slice 1 | planned |
 | 31 | [Catalog data model](commerce.md) | Slice 1 | planned |
 | 32 | [Plans and pricing model](commerce.md) | Slice 1 | planned |
 | 33 | [Project listing page](commerce.md) | Slice 1 | planned |
 | 34 | [Project detail page](commerce.md) | Slice 1 | planned |
-| 35 | [Subscription checkout](commerce.md) | Slice 1 | planned |
+| 35 | [Purchase checkout, tax, and refunds](commerce.md) | Slice 1 | in-progress |
 | 36 | [Subscription sync from webhooks](commerce.md) | Slice 1 | planned |
 | 37 | [Entitlements service](commerce.md) | Slice 1 | planned |
-| 38 | [Project integration contract](delivery.md) | Slice 1 | planned |
-| 39 | [Shared SaaS tenant provisioning](delivery.md) | Slice 1 | planned |
-| 40 | [My subscriptions dashboard](commerce.md) | Slice 1 | planned |
+| 38 | [Project manifest and publishing](delivery.md) | Slice 1 | in-progress |
+| 39 | [Shared SaaS tenant provisioning](delivery.md) | Slice 1 | dropped |
+| 142 | [Render and push thread](delivery.md) | Slice 1 | in-progress |
+| 143 | [Purchase form and answers](delivery.md) | Slice 1 | in-progress |
+| 40 | [My purchases dashboard](commerce.md) | Slice 1 | planned |
 | 41 | [Members and roles](identity.md) | Slice 2 | planned |
 | 42 | [Invitations](identity.md) | Slice 2 | planned |
 | 43 | [Workspace switcher and settings](identity.md) | Slice 2 | planned |
@@ -94,27 +97,31 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 141 | [Rate card and margin check](commerce.md) | Slice 4 | in-progress |
 | 60 | [Usage and credits dashboard](commerce.md) | Slice 4 | planned |
 | 61 | [Billing history dashboard](commerce.md) | Slice 4 | planned |
-| 62 | [Instance deploy package standard](delivery.md) | Slice 5 | planned |
-| 63 | [Contract conformance suite](delivery.md) | Slice 5 | planned |
-| 64 | [Instance model and state machine](delivery.md) | Slice 5 | planned |
-| 65 | [Tenant namespace isolation](delivery.md) | Slice 5 | planned |
-| 66 | [Instance deploy through GitOps](delivery.md) | Slice 5 | planned |
-| 67 | [Subdomains, DNS, and TLS](delivery.md) | Slice 5 | planned |
-| 68 | [Provisioning status UI](delivery.md) | Slice 5 | planned |
-| 69 | [Per tenant secrets](delivery.md) | Slice 5 | planned |
-| 70 | [Instance teardown](delivery.md) | Slice 5 | planned |
-| 71 | [Instance upgrades and rollback](delivery.md) | Slice 5 | planned |
-| 72 | [Suspend and resume instances](delivery.md) | Slice 5 | planned |
-| 73 | [Instance backups and restore](delivery.md) | Slice 5 | planned |
-| 74 | [Custom domains](delivery.md) | Slice 5 | planned |
-| 75 | [API gateway routing and key auth](mcp.md) | Slice 6 | planned |
-| 76 | [Gateway rate limits and metering](mcp.md) | Slice 6 | planned |
-| 77 | [MCP server foundation](mcp.md) | Slice 6 | planned |
-| 78 | [MCP catalog and account tools](mcp.md) | Slice 6 | planned |
-| 79 | [MCP job tools](mcp.md) | Slice 6 | planned |
-| 80 | [Project MCP gateway](mcp.md) | Slice 6 | planned |
-| 81 | [Connections UI](mcp.md) | Slice 6 | planned |
-| 82 | [Developer docs](mcp.md) | Slice 6 | planned |
+| 62 | [Deploy recipes, first hosting platform](delivery.md) | Slice 5 | in-progress |
+| 63 | [Contract conformance suite](delivery.md) | Slice 5 | dropped |
+| 64 | [Instance model and state machine](delivery.md) | Slice 5 | dropped |
+| 65 | [Tenant namespace isolation](delivery.md) | Slice 5 | dropped |
+| 66 | [Instance deploy through GitOps](delivery.md) | Slice 5 | dropped |
+| 67 | [Subdomains, DNS, and TLS](delivery.md) | Slice 5 | dropped |
+| 68 | [Provisioning status UI](delivery.md) | Slice 5 | dropped |
+| 69 | [Per tenant secrets](delivery.md) | Slice 5 | dropped |
+| 70 | [Instance teardown](delivery.md) | Slice 5 | dropped |
+| 71 | [Instance upgrades and rollback](delivery.md) | Slice 5 | dropped |
+| 72 | [Suspend and resume instances](delivery.md) | Slice 5 | dropped |
+| 73 | [Instance backups and restore](delivery.md) | Slice 5 | dropped |
+| 74 | [Custom domains](delivery.md) | Slice 5 | dropped |
+| 144 | [Zip delivery and retries](delivery.md) | Slice 5 | in-progress |
+| 145 | [Update pull requests](delivery.md) | Slice 5 | in-progress |
+| 146 | [Critical fixes and lost repos](delivery.md) | Slice 5 | in-progress |
+| 147 | [Delivery roles and audit](delivery.md) | Slice 5 | in-progress |
+| 75 | [API gateway routing and key auth](mcp.md) | Parked | planned |
+| 76 | [Gateway rate limits and metering](mcp.md) | Parked | planned |
+| 77 | [MCP server foundation](mcp.md) | Parked | planned |
+| 78 | [MCP catalog and account tools](mcp.md) | Parked | planned |
+| 79 | [MCP job tools](mcp.md) | Parked | planned |
+| 80 | [Project MCP gateway](mcp.md) | Parked | planned |
+| 81 | [Connections UI](mcp.md) | Parked | planned |
+| 82 | [Developer docs](mcp.md) | Parked | planned |
 | 83 | [LLM gateway](media.md) | Slice 7 | planned |
 | 84 | [AI spend controls](media.md) | Slice 7 | planned |
 | 85 | [AI eval harness](media.md) | Slice 7 | planned |

@@ -13,16 +13,16 @@ Banner, featured projects, and services sections, with project cards from a hard
 ### C. Dashboard shell · in-progress
 Session guarded layout and sidebar work; the page shows mock CRM data and placeholder navigation, which features 40, 60, and 61 replace. code in `app/dashboard/`, `components/dashboard/`
 
-## Slice 1: Browse, subscribe, use (core loop)
+## Slice 1: Browse, buy, receive (core loop)
 
 ### 31. Catalog data model · needs a decision
-Projects, versions, categories, media, and delivery modes as real data.
-**Done when:** a project can be stored with its versions, category, media, and supported delivery modes (shared SaaS, dedicated instance, API plus MCP); unpublishing keeps history (X11).
+Projects, categories, and media as real data, plus each project's private source repo and Stripe price ids (spec 0007).
+**Done when:** a project can be stored with its category, media, `sourceRepo`, and price ids; versions come from feature 38; unpublishing keeps history (X11, D25).
 - [ ] Design it (spec): `/architect catalog data model`
 
 ### 32. Plans and pricing model · needs a decision · GA
-What a customer can buy for each project and delivery mode, and what each plan unlocks.
-**Done when:** each plan names its price, interval, delivery mode, and entitlements; money is stored as integer minor units with a currency (X10); a price change creates a new price and existing subscribers keep theirs (C3).
+What a customer can buy for each project: a one time purchase price plus optional monthly and yearly updates prices (spec 0007), and the plans that carry AI credits (spec 0006).
+**Done when:** each project names its purchase price and updates prices as Stripe Price ids; money is stored as integer minor units with a currency (X10); a price change creates a new price and existing subscribers keep theirs (C3).
 - [ ] Design it (spec): `/architect plans and pricing model`
 
 ### 33. Project listing page · needs a decision
@@ -31,14 +31,24 @@ The public `/projects` page lists published projects.
 - [ ] Design it (spec): `/architect project listing page`
 
 ### 34. Project detail page · needs a decision
-One page per project: what it does, screenshots, delivery modes, plans, and a subscribe button.
-**Done when:** each published project has a detail page with plans and a subscribe action; deprecated projects show a notice and no subscribe button (C1); missing media shows a placeholder (C5); SEO metadata and WCAG 2.2 AA are met.
+One page per project: what it does, screenshots, supported hosting targets, prices, and a buy button.
+**Done when:** each published project has a detail page with its price, updates option, targets, and a buy action; deprecated projects show a notice and no buy button (C1); missing media shows a placeholder (C5); SEO metadata and WCAG 2.2 AA are met.
 - [ ] Design it (spec): `/architect project detail page`
 
-### 35. Subscription checkout · needs a decision · GA
-A signed in user subscribes their workspace to a plan and pays by card.
-**Done when:** checkout completes for a card that passes or needs 3DS; declined or abandoned payments grant nothing (B1, B2); two tabs cannot create two subscriptions (B3, X1); the success page waits for confirmed payment instead of trusting the redirect (B4); production refuses test keys (B13).
-- [ ] Design it (spec): `/architect subscription checkout`
+### 35. Purchase checkout, tax, and refunds · in-progress · GA
+An owner buys a project once, optionally with an updates subscription, in one Stripe Checkout with Stripe Tax; refunds are possible only before delivery.
+**Done when:** a draft purchase opens one 30 minute checkout session (`payment`, or `subscription` with the one time price added) with automatic tax and tax ID collection (AC-22); declined or abandoned payments grant nothing (B1, B2); a repeat call returns the open session (B3, X1); only the verified webhook marks it paid (B4, B34); production refuses test keys (B13); a refund before delivery goes through `refund_pending` and is refused after delivery or while one runs (AC-33, B33); disputes stop updates (AC-38, B36); renewal failures pause updates (B35).
+Spec: [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0002 (build step 2).
+- [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery`
+- [ ] Build it: `/develop purchase checkout tax and refunds`
+   - [ ] Draft purchases, the checkout endpoint, Stripe customer per workspace, Stripe Tax (AC-22)
+   - [ ] Stripe webhooks stored by event id, paid and expired transitions (AC-22, B34)
+   - [ ] Refund before delivery, disputes, billing portal (AC-33, AC-38)
+- [ ] Verify it: `/check verify purchase checkout tax and refunds`
+- [ ] Test it: `/test purchase checkout tax and refunds`
+- [ ] Review it (fresh model): `/check review purchase checkout tax and refunds`
+- [ ] Document it: `/document purchase checkout tax and refunds`
+- [ ] Ship it: squash merge with all checks green
 
 ### 36. Subscription sync from webhooks · needs a decision · GA
 Stripe is the source of truth, and AFT mirrors subscription state reliably.
@@ -50,9 +60,9 @@ One place answers "may this workspace use this capability right now".
 **Done when:** every gated action asks the entitlements service, never a plan name; access starts on payment and stops on cancellation or suspension, with tests per plan.
 - [ ] Design it (spec): `/architect entitlements service`
 
-### 40. My subscriptions dashboard · needs a decision
-The dashboard home shows what the workspace owns, replacing the mock CRM data.
-**Done when:** the dashboard lists the workspace's subscriptions with project, plan, status, and how to access each one; the mock data and placeholder navigation are gone.
+### 40. My purchases dashboard · needs a decision
+The dashboard home shows what the workspace bought, replacing the mock CRM data.
+**Done when:** the dashboard lists the workspace's purchases with project, delivered version, repo connection, delivery status, update pull requests, and the updates subscription (spec 0007); the mock data and placeholder navigation are gone.
 - [ ] Design it (spec): `/architect my subscriptions dashboard`
 
 ## Slice 3: Catalog breadth
@@ -123,7 +133,7 @@ Spec: [0006](../specs/0006-usage-billing/index.md), child 0001 (credit ledger an
 ### 59. Usage metering · in-progress · GA
 Metered use flows to Stripe for billing.
 **Done when:** API calls and generations produce usage events that reach Stripe once; failed or blocked jobs are not billed and their credits come back (B9); rejected calls are still recorded (M8).
-Spec: [0006](../specs/0006-usage-billing/index.md), child 0002 (usage metering).
+Spec: [0006](../specs/0006-usage-billing/index.md), child 0002 (usage metering). Amendment owed before build (spec 0007): no instance minutes, the spend flag in Postgres instead of Valkey; rework with `/architect usage billing`.
 - [x] Design it (spec): `/architect usage metering`
 - [ ] Build it: `/develop usage metering`
    - [ ] Hot path flag through the outbox, `canSpend` with Postgres fallback (AC-19)

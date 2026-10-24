@@ -3,6 +3,12 @@
 **Date**: 2026-10-22
 **Status**: Proposed
 
+> **Amendment owed (2026-10-24, spec [0007](../0007-lean-hosting-customer-delivery/index.md))**: AFT no longer hosts dedicated instances, and Valkey is dropped. Before features 58 and 59 build, rework through `/architect usage billing`:
+> - remove AC-15 and the `instance.<size>.minute` unit
+> - read AC-19 and B18's `billing:may_spend` flag from Postgres with a 30 second in process cache
+> - keep credits for AI and media usage only
+> - project purchases and updates subscriptions are plain Stripe Checkout (spec 0007 child 0002), outside the credit ledger
+
 ## Summary
 
 Every workspace pays for the instances and services it uses without doing anything per resource. Each plan includes monthly credits (1 credit is 1 US cent); usage of dedicated instances, AI generations, API and MCP calls, storage, and bandwidth draws them down quietly, and when the balance runs low the saved card is charged for a top up automatically. A monthly spend cap, default on, stops a runaway bill, and AFT checks every month that its prices still cover what AWS and the AI providers really charged. This spec designs features 58 (credit ledger) and 59 (usage metering) and adds one new feature for the rate card and that cost check.

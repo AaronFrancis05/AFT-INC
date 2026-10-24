@@ -3,6 +3,16 @@
 **Date**: 2026-10-22
 **Status**: Accepted
 
+> **Amendment owed (2026-10-24, spec [0007](../0007-lean-hosting-customer-delivery/index.md))**: AFT no longer hosts dedicated instances, there is no staging environment, and Redis/Valkey is dropped. Before T1 builds, rework through `/architect sso architecture`:
+> - remove dedicated instance clients
+> - read the client IP per spec 0007 AC-14 (not `CloudFront-Viewer-Address`)
+> - run `auth` as a Compose service on the single EC2
+> - AC-9 rate limits on Postgres (no `REDIS_URL`)
+> - child 0005 AC-46 and AC-47: sessions in Postgres and `pg_advisory_xact_lock` for refresh
+> - child 0003: the idempotency cache as a table
+> - child 0003 AC-23 to AC-26: client secrets hashed in Postgres instead of Secrets Manager
+> - AC-11 and the `auth.staging` hostname: local versus production only
+
 ## Summary
 
 AFT becomes the place where people sign in for every app around it: AFT's own showcase projects, each customer's dedicated instance, MCP clients such as Claude or Cursor, and apps customers build themselves. It speaks OpenID Connect (OIDC, the standard "Sign in with X" protocol) from its own address, `https://auth.remwa.tech`, using Better Auth's `oauth-provider` plugin on the stack we already run. It also lets a company sign its staff in to AFT with their own Okta or Entra ID (inbound enterprise SSO) through Better Auth's `sso` plugin. This umbrella holds the shared contract (issuer, tokens, claims, scopes, data model, build order); six child specs hold the buildable parts.

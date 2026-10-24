@@ -13,11 +13,11 @@
 ## Context
 
 AFT Inc is an AI platform with three parts:
-1. A **marketplace** of production-ready projects that you built. Customers subscribe to them as shared SaaS, a dedicated hosted instance, or API + MCP access.
+1. A **marketplace** of production-ready projects that you built. Customers buy a project once, customize it through a form, and receive it in their own GitHub repo to deploy on their own hosting, with an optional updates subscription (spec 0007, 2026-10-24; this replaced shared SaaS, dedicated hosted instances, and API + MCP access).
 2. An **AI Media Studio** that generates HD/4K images, 9:16 short videos for TikTok, and later 3D models (GLB) with turntable videos.
 3. An **App Studio** (Figma-like, with live collaboration) that turns an idea into a brief, then wireframes, then hi-fi designs, then generated Next.js code, then a deployed preview.
 
-CI/CD pipelines both ship the platform and spin up customer deployments. MCP lets anything integrate with AFT and the subscribed projects.
+CI/CD ships the platform; customer projects are delivered as code into the customer's repo, never deployed by AFT (spec 0007). MCP lets anything integrate with AFT (parked until App Studio or media need it).
 
 **Today's repo** (`AFT-INC/`, brownfield, git remote `AaronFrancis05/AFT-INC`, branch `main`):
 - **Stack**: Next.js 16.2 App Router, React 19.2, TS strict, Tailwind v4, shadcn (`radix-lyra`, phosphor/lucide icons), Prisma 7 + `@prisma/adapter-pg` (client generated to `lib/generated/prisma`), Better Auth 1.5 (email+password, email OTP, Google/GitHub), Resend + react-email, zod 4, react-hook-form.
@@ -37,19 +37,21 @@ CI/CD pipelines both ship the platform and spin up customer deployments. MCP let
 | Area | Decision |
 |---|---|
 | Repo | pnpm + Turborepo monorepo |
-| Cloud | AWS: EKS, RDS Postgres, ElastiCache Redis, S3 + CloudFront, ECR, Route 53, ACM, Secrets Manager |
-| Orchestration | Kubernetes. Platform in namespaces; each dedicated customer instance in its own namespace with quotas and network policies. GitOps via Argo CD |
-| CI/CD | Both: platform CI/CD (GitHub Actions to ECR to Argo CD, PR previews), and a customer provisioning pipeline (shared tenant, dedicated instance, generated apps) |
-| Payments | Stripe Billing: subscriptions, metered usage/credits, invoices |
+| Cloud | AWS, one `aft-production` account in `eu-west-1`: one EC2 t4g.small, Postgres 17 on the box, S3, ECR, Route 53, SSM Parameter Store; no Redis (superseded 2026-10-22 by spec 0005, then 2026-10-24 by spec 0007) |
+| Orchestration | Docker Compose on the single EC2 behind Caddy; no customer workloads (spec 0007; Kubernetes and then Fargate superseded) |
+| CI/CD | Platform only: GitHub Actions, OIDC roles, ECR by digest, release bundles deployed by a custom SSM document after approval; no staging. Customer projects are delivered by a render and push workflow into the customer's repo (spec 0007) |
+| Payments | Stripe Checkout for one time project purchases plus optional updates subscriptions, with Stripe Tax; a credit ledger for AI and media usage (spec 0006, amendment owed) |
 | AI media | Hosted model APIs behind an internal provider interface. A custom fine-tuned AFT image model comes later, behind the same interface |
 | Media outputs | Phase A: image + 9:16 video (≤1080p+, TikTok-ready). Phase B: 3D GLB + turntable video |
 | LLM | Multi-provider from day one (Claude, OpenAI, Gemini), with routing, fallback, cost tracking and evals |
 | App Studio v1 | Full: idea → PRD → wireframes → hi-fi → code in sandbox → preview deploy, **with live multiplayer collaboration** |
-| Subscription modes | Shared multi-tenant SaaS · dedicated hosted instance · API + MCP access |
+| Subscription modes | One time purchase, customized by a form and delivered to the customer's own repo and hosting · optional updates subscription (pull requests) (spec 0007; shared SaaS, dedicated hosted instances, and API + MCP resale are off) |
 | Rigor (workflow tier) | Project default **Beta** (spec → build → verify → test). **GA** (adds a second-model review + docs) for auth, orgs, billing, metering, provisioning, infra, CI/CD, MCP |
 | Build approach | **Tracer Bullet**: one thin end-to-end slice through every layer, then thicken |
 
 ## Target architecture
+
+> **Superseded (2026-10-24).** The current architecture is spec [0007](docs/specs/0007-lean-hosting-customer-delivery/index.md): one EC2 server (Caddy, web, auth, worker, Postgres in Docker Compose) and projects delivered to customers' own repos. The original diagram below is kept for history; the monorepo layout still holds, except that `packages/provisioning` becomes `packages/delivery` and `infra/` holds `cdk/`, `compose/`, and `host/`.
 
 ```
                          Route 53 + CloudFront (CDN, WAF)
@@ -295,6 +297,11 @@ Each edge case has an ID and a required handling. How the IDs flow through the w
 - **B11** Tax, VAT ids, or enterprise invoices on net terms → Stripe Tax, tax id collection, and invoice billing for enterprise.
 - **B12** Stripe and the DB drift apart (a dashboard edit, a deleted customer) → a nightly reconciliation job that alerts on mismatches.
 - **B13** Test vs live mode mix-up → separate keys per environment, enforced by the env schema. Prod refuses `sk_test`.
+- B14 to B32 are listed in spec 0006's rationale (owed here through `/scope`).
+- **B33** A refund is requested after delivery or while a delivery runs → refused (`ALREADY_DELIVERED` or `DELIVERY_RUNNING`); a refund before delivery moves `paid` to `refund_pending` in one conditional update (spec 0007 AC-33).
+- **B34** A Stripe webhook arrives before the purchase row commits, or twice → store it by event id first (X2), find the purchase by checkout session id, retry until it exists.
+- **B35** An updates subscription renewal fails → Stripe dunning, `past_due`, then `canceled`; update PRs stop, critical fixes continue (D23).
+- **B36** A charge is disputed after delivery → mark the purchase disputed, stop updates, alert the engineer; a won dispute clears it (spec 0007 AC-38).
 
 ### D: Project delivery & provisioning
 - **D1** Provisioning fails midway (namespace created, DNS failed) → a state machine per step, with compensating teardown and a resumable retry. It never leaves orphans.
@@ -309,6 +316,23 @@ Each edge case has an ID and a required handling. How the IDs flow through the w
 - **D10** A showcase project breaks the integration contract → a contract conformance test suite must pass before a version can be published.
 - **D11** Teardown on cancel or deletion → keep a final backup for N days, then hard delete. Report and log what was removed.
 - **D12** A tenant secret is exposed → it is unique per tenant, stored only in Secrets Manager, and can be rotated per tenant.
+- _Since spec 0007 (2026-10-24) AFT hosts no customer instances: D1, D2, D3, D7, D10, and D11 apply to delivery workflows and versions; D4, D5, D6, D8, D9, and D12 are retired. Delivery edge cases follow._
+- **D13** The connected repo has commits at connect time, or gets one before the push → refuse with `REPO_NOT_EMPTY`.
+- **D14** GitHub is down, rate limited, or times out → DBOS retries with backoff and jitter for up to 24 hours, then `failed`, emails, and a retry button.
+- **D15** The app is uninstalled, the repo deleted, removed from the installation, or made public → the connection is `revoked` or `public`, owners are emailed, billing continues, updates arrive as zips.
+- **D16** An update conflicts with the customer's edits → the PR is opened with conflict markers, listed files, and an email (`conflict_pr_open`).
+- **D17** The options schema changes between versions → use the manifest default, else wait in `needs_answers` and email owners; removed options are ignored and noted.
+- **D18** The customer squash merges, rebases, or edits `.aft/delivery.json` → updates read the base version from that file on the current head; fall back to the recorded delivered version and say so.
+- **D19** The default branch rejects the initial push → push `aft/initial` and ask the owner to make it the default; else `DEFAULT_BRANCH_PROTECTED`.
+- **D20** The chosen target can't host the project or isn't enabled → hidden in the picker; the API returns 422 `TARGET_NOT_SUPPORTED`.
+- **D21** The secret scan finds something → block the push, alert with rule, path, and fingerprint (never the value), admin retry with that fingerprint allowed.
+- **D22** A render exceeds 3 minutes, 50 MB, or 5,000 files → `RENDER_TOO_LARGE`; alert as a bug, since publishing renders the same project.
+- **D23** The updates subscription lapses while an update PR is open → the PR stays; no new update PRs; critical fixes still arrive.
+- **D24** An owner replaces the repo → the old connection is `replaced`; the new empty private repo gets a redelivery; only it gets updates.
+- **D25** The project is unpublished or deprecated (C1) → buyers keep access to versions they own; updates continue until the end of life notice expires.
+- **D26** A version is yanked → never offered, delivered, or used as an update target; open PRs for it are closed with a note.
+- **D27** A forged installation id, repo id, or `state` reaches the GitHub setup callback → ownership and state checks fail, nothing is stored, 403.
+- **D28** A git tag is moved after publishing → ignored; renders use the stored commit SHA.
 
 ### M: MCP & API gateway
 - **M1** The OAuth token expires or is revoked mid-session → MCP returns a standard auth error, and the client refreshes or re-authorizes.
@@ -360,6 +384,15 @@ Each edge case has an ID and a required handling. How the IDs flow through the w
 - **I6** A PR from a fork → no secrets and no deploy. It runs only the safe CI subset.
 - **I7** A critical CVE in the base image → the scan blocks the release, and a scheduled rebuild picks up patches.
 - **I8** A backup can't be restored → a monthly automated restore drill into a scratch DB, which alerts on failure.
+- **I9** The EC2 instance fails a hardware status check → the CloudWatch alarm runs `recover` (same id, disk, and Elastic IP) and emails the engineer.
+- **I10** The box runs out of memory → per container limits, automatic restarts, the memory alarm, then the pre decided `t4g.medium` fallback.
+- **I11** The root disk fills → log rotation, image pruning, 5 releases kept, a render scratch quota, dumps streamed to S3, a disk alarm at 80 percent.
+- **I12** The EBS volume or the AZ is lost → rebuild from CDK and restore globals, dumps, and Caddy data from S3 (rehearsed); up to 24 hours of data lost.
+- **I13** Let's Encrypt fails or rate limits → Caddy retries and falls back to ZeroSSL; restored Caddy data avoids new issuance after a rebuild.
+- **I14** The deploy job dies midway → the lock is released, the next run with the same release is idempotent, and migrations are expand only.
+- **I15** The AWS credits are not reinstated → the card pays; the $28 budget alert warns first.
+- **I16** The instance runs out of CPU credits → the `CPUCreditBalance` alarm fires; switch to `unlimited`, then resize if the surplus passes $5 a month.
+- **I17** The migration dry run on `restore_check` fails → the deploy stops before touching `aft` or any container.
 
 ## Core data model (seed for spec 0001 data child)
 
