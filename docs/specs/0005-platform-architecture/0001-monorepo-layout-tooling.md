@@ -2,6 +2,8 @@
 
 Part of [0005, platform architecture](index.md). Shared rules are in the index *Cross child contract*.
 
+> **Amended 2026-10-24 by spec [0008](../0008-monorepo-migration/index.md).** pnpm 12 replaced `onlyBuiltDependencies` with `allowBuilds` in `pnpm-workspace.yaml`, and CI installs pnpm with `pnpm/action-setup` instead of Corepack (deprecated, leaving Node after 24). The generated Prisma client is no longer committed. Everything else here stands.
+
 ## Summary
 
 All AFT code lives in one repository managed by pnpm workspaces and Turborepo. Apps are things that deploy; packages are shared code with a public entry point, and nothing reaches into another package's insides. Packages are plain TypeScript source that each app compiles, so there is no separate build step for them. Apps and packages are created only when a feature needs them.

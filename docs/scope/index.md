@@ -14,7 +14,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 | Epic | File | Features | Status |
 |---|---|---|---|
-| Foundation and platform engineering (incl. CI/CD for AFT) | [foundation.md](foundation.md) | 1 to 28, 148 | 3 done, 10 in progress, 13 planned, 3 dropped |
+| Foundation and platform engineering (incl. CI/CD for AFT) | [foundation.md](foundation.md) | 1 to 28, 148 | 3 done, 11 in progress, 12 planned, 3 dropped |
 | Identity and workspaces | [identity.md](identity.md) | A, 29, 30, 41 to 48, 133 to 140 | 1 existing, 8 in progress, 10 planned |
 | Catalog and commerce | [commerce.md](commerce.md) | B, C, 31 to 37, 40, 49 to 61, 141 | 6 in progress, 18 planned |
 | Project delivery (to the customer's repo) | [delivery.md](delivery.md) | 38, 39, 62 to 74, 142 to 147 | 8 in progress, 13 dropped |
@@ -35,7 +35,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 1 | [CI repair and test harness](foundation.md) | Foundation | done |
 | 2 | [Auth defect fixes](foundation.md) | Foundation | done |
 | 3 | [Platform architecture](foundation.md) | Foundation | done |
-| 4 | [Monorepo migration](foundation.md) | Foundation | planned |
+| 4 | [Monorepo migration](foundation.md) | Foundation | in-progress |
 | 5 | [Workspace tooling](foundation.md) | Foundation | planned |
 | 6 | [Typed environment config](foundation.md) | Foundation | planned |
 | 7 | [Engineering standards and shared helpers](foundation.md) | Foundation | planned |
