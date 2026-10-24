@@ -233,3 +233,23 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Stopped in step 6 (`packages/auth`): spec 0008 exports `resolveSocialProviders` only from `@aft/auth/server`, which loads Better Auth, Prisma, and Resend on import, so the two A11 page tests crash without a Resend key. The engineer chose to architect it first. The unfinished step 6 move is in `git stash` ("feat/monorepo-migration step 6 (packages/auth) WIP ..."); it also splits the client boundary test so each workspace scans its own files.
 - `/architect` amended spec 0008 the same day (accepted): `@aft/auth/providers` (server-only, resolver plus types) for the two pages and client type imports, `./server` re-exports it; the client boundary tests split with named describes and file sets; `forceReload` and `server-only` in the catalog written into the spec. Sonnet cross check: 6 gaps, all fixed (including a step 8 check that a package edit misses the app's test cache, with a `transit` task as the fallback).
 - Next: `/clear`, then `/develop monorepo migration` resumes at step 6 (`git stash pop` first), then steps 7 (`packages/ui`) and 8 (parity, fresh clone AC-3, cache AC-14, shadcn AC-16, Tailwind AC-19, manual auth run AC-5).
+
+### 2026-10-25 (monorepo migration build, steps 6 to 8)
+- Resumed `/develop monorepo migration` after the spec 0008 amendment (`git stash pop`; peers idle; up to date with `origin/main`). Commits, each green on lint, typecheck, tests, and build with the same 15 route table: 84a5479 `@aft/auth` (server, providers, client, schemas; pages import `@aft/auth/providers`, client components `import type` from it; boundary tests split, scans now catch multi line imports and `@aft/db`); abd4111 `@aft/ui` (primitives, `cn`, `use-mobile`, theme CSS with `@source "../../src"`, both `components.json`, self alias); 553f982 `transit` task (a `packages/auth` edit replayed `@aft/app-web#test` from cache, as the spec foresaw; now lint, typecheck, and test miss).
+- Tests: 106 (100 before); missing only the three planned `ci.test.ts` renames.
+- Step 8 checks passed:
+  - AC-1: every direct dependency version unchanged; only `audit-ci` and `tsx` gone, and `@next/env`, `server-only`, `turbo` added.
+  - AC-3: fresh clone, no `.env`, CI placeholders only, 18 tasks green.
+  - AC-12: a client value import of `@aft/auth/providers` fails `next build`; a type only import passes.
+  - AC-14: a shell var and a one byte `.env` change both change the build hash.
+  - AC-15: one React.
+  - AC-19: `.size-9` is in the built CSS.
+- Deviations to list in the PR:
+  - `react-hook-form` added to `catalog:` and as a `@aft/ui` peer (`form.tsx` imports it; one instance for `FormProvider`).
+  - `sonner` and `lucide-react` not declared in `@aft/ui` (no ui file imports them, I19).
+  - `packages/ui/tsconfig.json` `types` adds `@testing-library/jest-dom/vitest` (matcher types for `form.test.tsx`).
+  - The app drops `class-variance-authority`, `clsx`, `input-otp`, `radix-ui`, `tailwind-merge`, `tw-animate-css`, `shadcn`.
+- Gotcha: after a failed `next build`, the next build can panic in Turbopack (`generate_source_map was canceled`, the same TaskId each time); `rm -rf apps/web/.next` clears it.
+- Blocked, AC-16: `pnpm dlx shadcn@4.22.1 add accordion` wrote to `C:\Users\ARON\Desktop\remwa\accordion.tsx` (outside the repo) and added a bogus `cn` dependency. `shadcn info` resolves `components`, `hooks`, `ui` (the wildcard exports `./components/*` → `*.tsx`, `./hooks/*` → `*.ts`) to `Desktop\remwa`, from both `apps/web` and `packages/ui`; `utils` and `lib` resolve correctly. An app tsconfig `paths` entry for `@aft/ui/*` did not help. All probe output was removed. The engineer chose `/debug` first.
+- Still owed for step 8: AC-16; the manual auth run on `next dev` against the dev database (AC-5) and the sidebar look (AC-19), both by the engineer. Scope milestones 4 and 5 stay unticked until then.
+- Next: `/clear`, then `/debug shadcn add writes outside the repo (spec 0008 AC-16)`; if the fix changes the exports map or the shadcn setup, `/architect` amends spec 0008; then `/develop monorepo migration` finishes step 8.
