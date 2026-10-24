@@ -14,19 +14,19 @@ import {
   Mail,
   Share2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@aft/ui/components/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@aft/ui/components/card";
+import { Input } from "@aft/ui/components/input";
+import { Avatar, AvatarFallback } from "@aft/ui/components/avatar";
+import { Badge } from "@aft/ui/components/badge";
+import { SidebarTrigger } from "@aft/ui/components/sidebar";
+import { Separator } from "@aft/ui/components/separator";
+import { Tabs, TabsList, TabsTrigger } from "@aft/ui/components/tabs";
 import {
   Table,
   TableBody,
@@ -34,15 +34,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
+} from "@aft/ui/components/table";
+import { Checkbox } from "@aft/ui/components/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@aft/ui/components/select";
 import { LogoutButton } from "@/components/auth/logout-button";
 
 const stats = [

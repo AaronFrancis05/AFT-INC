@@ -1,9 +1,9 @@
 import { auth } from "@aft/auth/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@aft/ui/components/sidebar";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
-import { TooltipProvider } from "@/components/ui/tooltip"
+import { TooltipProvider } from "@aft/ui/components/tooltip"
 
 export const dynamic = "force-dynamic";
 

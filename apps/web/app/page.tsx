@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Nav from'@/components/nav/nav'
-import { Button } from "@/components/ui/button";
+import { Button } from "@aft/ui/components/button";
 import Link from "next/link";
 import { 
     Globe, 

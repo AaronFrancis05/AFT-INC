@@ -2,14 +2,14 @@
 import Image from 'next/image'
 import { NAV_ITEMS } from '@/lib/constant'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { Button } from '@aft/ui/components/button'
 import {
     Sheet,
     SheetContent,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
-} from "@/components/ui/sheet"
+} from "@aft/ui/components/sheet"
 import { Menu } from "lucide-react"
 
 const Nav = () => {

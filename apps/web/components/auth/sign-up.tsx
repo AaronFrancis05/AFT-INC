@@ -12,9 +12,9 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+} from '@aft/ui/components/form'
+import { Input } from '@aft/ui/components/input'
+import { Button } from '@aft/ui/components/button'
 import { SocialButtons } from '@/components/auth/social-buttons'
 import { authClient } from '@aft/auth/client'
 import type { SocialProvider } from '@aft/auth/providers'

@@ -12,14 +12,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form'
-import { Button } from '@/components/ui/button'
+} from '@aft/ui/components/form'
+import { Button } from '@aft/ui/components/button'
 import { AppLogoIcon } from '@/components/icons'
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@/components/ui/input-otp"
+} from "@aft/ui/components/input-otp"
 import { authClient } from '@aft/auth/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'

@@ -12,18 +12,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
+} from "@aft/ui/components/form";
+import { Input } from "@aft/ui/components/input";
+import { Button } from "@aft/ui/components/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@aft/ui/components/avatar";
+import { Textarea } from "@aft/ui/components/textarea";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@aft/ui/components/card";
 import { ArrowLeft, Upload, RefreshCw, Sun, Bell } from "lucide-react";
 import { toast } from "sonner";
 

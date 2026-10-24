@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
+import { Button } from '@aft/ui/components/button'
 import { authClient } from '@aft/auth/client'
 import { toast } from 'sonner'
 import { LogOut } from 'lucide-react'

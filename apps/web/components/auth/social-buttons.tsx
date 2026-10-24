@@ -1,8 +1,8 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@aft/ui/components/button'
 import { Icons } from '@/components/icons'
-import { cn } from '@/lib/utils'
+import { cn } from '@aft/ui/lib/utils'
 import type { SocialProvider } from '@aft/auth/providers'
 
 const PROVIDER_UI: Record<SocialProvider, { label: string; Icon: typeof Icons.google }> = {

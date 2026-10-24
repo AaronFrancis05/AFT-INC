@@ -28,10 +28,10 @@ import {
   SidebarMenuItem,
   SidebarRail,
   useSidebar,
-} from "@/components/ui/sidebar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+} from "@aft/ui/components/sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@aft/ui/components/avatar";
+import { Button } from "@aft/ui/components/button";
+import { cn } from "@aft/ui/lib/utils";
 
 const mainMenuItems = [
   {
