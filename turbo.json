@@ -1,4 +1,47 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "tasks": {}
+  "globalDependencies": [".env"],
+  "globalEnv": [
+    "DATABASE_URL",
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "RESEND_API_KEY",
+    "RESEND_FROM_EMAIL",
+    "NODE_ENV"
+  ],
+  "globalPassThroughEnv": ["CI", "PORT", "HOME", "PLAYWRIGHT_BROWSERS_PATH", "NEXT_TELEMETRY_DISABLED"],
+  "tasks": {
+    "typecheck": {},
+    "lint": {},
+    "test": {
+      "outputs": ["coverage/**"]
+    },
+    "test:coverage": {
+      "outputs": ["coverage/**"]
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "test:e2e": {
+      "dependsOn": ["build"],
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "cache": false
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "//#test:root": {
+      "inputs": ["ci.test.ts", ".github/**", "package.json", "apps/*/package.json", "pnpm-workspace.yaml", ".nvmrc", "packages/**"]
+    },
+    "//#test:root:coverage": {
+      "inputs": ["ci.test.ts", ".github/**", "package.json", "apps/*/package.json", "pnpm-workspace.yaml", ".nvmrc", "packages/**"]
+    }
+  }
 }

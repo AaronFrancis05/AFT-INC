@@ -9,6 +9,7 @@ const read = (path: string) => readFileSync(path, "utf8");
 const ci = read(".github/workflows/ci.yml");
 const setup = read(".github/actions/setup/action.yml");
 const pkg = JSON.parse(read("package.json"));
+const web = JSON.parse(read("apps/web/package.json"));
 const workspace = read("pnpm-workspace.yaml");
 
 // Every source file under packages/, skipping installed, generated, and tool output folders.
@@ -119,13 +120,17 @@ describe("Toolchain pins", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("covers AC-1: npm test runs Vitest once and test:watch keeps it running", () => {
-    expect(pkg.scripts.test).toBe("vitest run");
-    expect(pkg.scripts["test:watch"]).toBe("vitest");
+  it("covers AC-1: the test job runs turbo run test:coverage and the root contract test", () => {
+    expect(ci).toContain("run: pnpm turbo run test:coverage //#test:root:coverage");
+    expect(web.scripts.test).toBe("vitest run");
+    expect(web.scripts["test:watch"]).toBe("vitest");
+    // The root test script goes through Turborepo, so turbo run test can never recurse into itself.
+    expect(pkg.scripts.test).toBe("turbo run test");
+    expect(pkg.scripts["test:root"]).toBe("vitest run");
   });
 
   it("covers AC-8: the shadcn CLI is a dev dependency, not a runtime one", () => {
-    expect(pkg.dependencies.shadcn).toBeUndefined();
+    expect(pkg.dependencies?.shadcn).toBeUndefined();
     expect(pkg.devDependencies.shadcn).toBeDefined();
   });
 });

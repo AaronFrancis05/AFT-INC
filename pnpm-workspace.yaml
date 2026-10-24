@@ -1,3 +1,7 @@
+packages:
+  - apps/*
+  - packages/*
+
 # Dependency build scripts reviewed once, with the same decisions npm had in
 # package.json allowScripts (spec 0008, AC-8). strictDepBuilds stays on, so a new
 # unreviewed build script fails pnpm install locally and in CI (I21).
