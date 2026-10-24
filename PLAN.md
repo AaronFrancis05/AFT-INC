@@ -393,6 +393,17 @@ Each edge case has an ID and a required handling. How the IDs flow through the w
 - **I15** The AWS credits are not reinstated → the card pays; the $28 budget alert warns first.
 - **I16** The instance runs out of CPU credits → the `CPUCreditBalance` alarm fires; switch to `unlimited`, then resize if the surplus passes $5 a month.
 - **I17** The migration dry run on `restore_check` fails → the deploy stops before touching `aft` or any container.
+- **I18** A migration file changes bytes during the monorepo move → `git mv` only, LF line endings, exact rename check plus `prisma migrate status` (spec 0008).
+- **I19** A workspace imports a package it does not declare → pnpm's isolated linker fails; declare it in that workspace, never hoist.
+- **I20** A client component imports `@aft/db` or `@aft/auth/server` → `server-only` fails `next build`.
+- **I21** A new dependency ships an install script → `pnpm install` fails until `allowBuilds` decides it.
+- **I22** Turborepo replays a cache made under different env values → strict env mode, a declared variable list, and `.env` as a global dependency.
+- **I23** The generated Prisma client is missing or stale → `db:generate` runs before every dependent task.
+- **I24** A branch or another session predates a repo wide move → resolved before the move starts.
+- **I25** Two versions of React or Next.js load in one app → `catalog:` and peer dependencies keep one.
+- **I26** Tailwind skips classes that live in a package → `@source` in the shared ui CSS.
+- **I27** A non Next.js Node runtime loads `server-only` and crashes → alias it to the empty stub in `@aft/config`.
+- **I28** pnpm symlinks or long paths fail on Windows → junctions need no admin; enable long paths and reinstall.
 
 ## Core data model (seed for spec 0001 data child)
 

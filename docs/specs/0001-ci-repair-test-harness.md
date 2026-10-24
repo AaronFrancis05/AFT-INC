@@ -3,6 +3,8 @@
 **Date**: 2026-10-19
 **Status**: Accepted
 
+> **Amended 2026-10-24 by spec [0008](0008-monorepo-migration/index.md).** After the monorepo move the `audit` job runs `pnpm audit --prod --audit-level high` instead of `audit-ci` (same threshold), the `prisma` job no longer checks a committed client, and every job runs through `pnpm turbo run`. The six check names are unchanged.
+
 ## Summary
 
 Today every pull request fails, because CI calls a test command that does not exist. This spec replaces the broken workflow with a real CI pipeline: lint, typecheck, unit and component tests (Vitest), Prisma checks, a dependency audit, a production build, and a browser smoke test (Playwright). It also fixes what would make those gates fail on day one (existing lint errors and known critical vulnerabilities), and protects `main` so nothing merges without passing. After this, every later feature lands on a green, trustworthy pipeline.

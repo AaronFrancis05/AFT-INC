@@ -48,10 +48,22 @@ The umbrella decision for the whole platform: monorepo layout, AWS and Kubernete
 - [x] Decide the architecture (spec): `/architect platform architecture`
 Spec [0005](../specs/0005-platform-architecture/index.md) (accepted 2026-10-22: ECS Fargate instead of EKS), partly superseded by spec [0007](../specs/0007-lean-hosting-customer-delivery/index.md) (accepted 2026-10-24: one EC2 server, no customer hosting); Foundation now follows spec 0007's Path to live
 
-### 4. Monorepo migration · needs a decision · GA
+### 4. Monorepo migration · in-progress · GA
 Move the current app into `apps/web` and pull shared code into packages, with no change in behavior.
-**Done when:** the app runs from `apps/web` and behaves exactly as before (auth flows, dashboard); `packages/db`, `packages/auth`, `packages/ui`, `packages/email`, `packages/config` exist; the existing migration is preserved.
-- [ ] Design it (spec): `/architect monorepo migration`
+**Done when:** the app runs from `apps/web` and behaves exactly as before (auth flows, dashboard); `packages/db`, `packages/auth`, `packages/ui`, `packages/email`, `packages/config` exist; the existing migration is preserved; edge cases I18 to I28 hold.
+- [x] Design it (spec): `/architect monorepo migration`
+- [ ] Build it: `/develop monorepo migration`
+   - [ ] Preflight and toolchain switch: open branches closed, baselines saved, pnpm 12.15.0 plus Turborepo, CI and `ci.test.ts` on pnpm, `pnpm audit` (AC-1, AC-7, AC-8, AC-9, AC-10, AC-18)
+   - [ ] App moved to `apps/web` with root `.env` loading and the workspace root set (AC-2, AC-6, AC-13, AC-17)
+   - [ ] `packages/config` and `packages/db`: shared configs, catalog, generated Prisma client, `server-only`, strict env (AC-3, AC-4, AC-11, AC-12, AC-14, AC-15)
+   - [ ] `packages/email`, `packages/auth`, `packages/ui`: code, tests, shadcn and Tailwind setup (AC-2, AC-11, AC-12, AC-16, AC-19)
+   - [ ] Parity pass: tests, routes, lockfile versions, manual auth run on the dev database (AC-5, AC-6)
+- [ ] Verify it: `/check verify monorepo migration`
+- [ ] Test it: `/test monorepo migration`
+- [ ] Review it (fresh model): `/check review monorepo migration`
+- [ ] Document it: `/document monorepo migration`
+- [ ] Ship it: squash merge the pull request with all six checks green
+Spec [0008](../specs/0008-monorepo-migration/index.md)
 
 ### 5. Workspace tooling · needs a decision
 Shared lint, format, type settings, and commit hooks for every workspace.

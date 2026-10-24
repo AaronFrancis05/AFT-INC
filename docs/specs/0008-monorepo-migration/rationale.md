@@ -1,0 +1,89 @@
+# 0008. Move the app into a pnpm and Turborepo monorepo: rationale
+
+## Context
+
+AFT is one Next.js 16.4 app at the repo root, installed with npm 11.19.1 on Node 24. Shared concerns live in `lib/` (Better Auth server and client, Prisma client, Resend email), `components/ui` (shadcn primitives), and `components/emails`. The generated Prisma client (12 files) is committed under `lib/generated/prisma`, and CI fails if it drifts from the schema. CI has six required checks, protected by branch protection and by a contract test (`ci.test.ts`) that reads the workflow files. There are 100 tests, one Playwright smoke test, and two applied migrations on the AWS dev database.
+
+Spec 0005 child 0001 (still in force under spec 0007) already chose pnpm workspaces plus Turborepo, `@aft/*` package names, packages consumed as TypeScript source, and the first five packages. Spec 0007's path to live makes this move step 1, because `apps/auth` (spec 0004) and `apps/worker` (DBOS, spec 0007) must share the database, auth, and email code, and the container images in feature 9 are built per app. What was still open is the how: what goes into each package, whether generated code stays committed, where env files live, how CI and the contract test change, how to keep server code out of browser bundles once it sits in a package, and how to prove nothing changed.
+
+Forces: one engineer working with AI agents; no users and no deployed environment yet, so there is no traffic to protect, but the dev database holds applied migrations whose checksums must not change; pnpm 12 has changed settings since spec 0005 was written (`onlyBuiltDependencies` is gone, `allowBuilds` replaces it), and Corepack is deprecated and leaves Node after version 24; the shared checkout is used by more than one session, and a long lived branch that moves every file conflicts with anything else open.
+
+## Options considered
+
+### Option 1: Move in place in one PR, in green milestone commits
+
+Switch tooling first with the app untouched, then `git mv` the app, then extract packages one commit each, each commit green.
+
+**Pros**:
+- Matches the one feature, one PR ship rule and the milestone commit rule.
+- History follows the files (`git mv`), and a bad step is found by bisecting a handful of commits.
+- Tooling problems (phantom dependencies, Next.js workspace root) surface before any file moves, so they are not mixed with import rewrites.
+
+**Cons**:
+- One very large diff to review.
+- The branch must be short lived; anything else open conflicts.
+
+### Option 2: Fresh scaffold, copy code in
+
+Generate a new monorepo with `create-turbo`, then copy the app and shared code into it.
+
+**Pros**:
+- Clean starter configs with no leftovers.
+- Easy to compare against the Turborepo reference layout.
+
+**Cons**:
+- Loses file history unless the copy is done with `git mv` anyway.
+- Starter defaults (ESLint, tsconfig, Next.js versions) differ from what passes today, so "no behavior change" is harder to prove.
+
+### Option 3: Several PRs
+
+pnpm switch, app move, and each package as separate PRs.
+
+**Pros**:
+- Smaller reviews; each merge is a safe resting point.
+
+**Cons**:
+- Breaks the one feature per PR rule in the scope.
+- `main` sits in half moved states (for example the app moved but Prisma still inside it) between merges, which other sessions might build on.
+
+### Option 4: Strangler, build `apps/web` beside the root app
+
+Keep the root app running while a new `apps/web` grows, then delete the old one.
+
+**Pros**:
+- The old app keeps working the whole time.
+
+**Cons**:
+- Two copies of every file during the move, with nothing to protect: there are no users or deployments yet.
+
+## Rationale
+
+Option 1 is right because the thing the strangler pattern protects (live traffic) does not exist yet, while the things that can actually break (migration checksums, CI check names, client and server boundaries) are all caught by CI on each small commit. Doing the tooling switch first, with the app still at the root, isolates the riskiest unknown (how pnpm's strict linking and Turborepo's strict env mode treat today's code) from the import rewrites. Option 2 throws away history and the configs that already pass; Option 3 breaks the ship rule and leaves `main` half moved; Option 4 doubles the code for no benefit.
+
+The smaller calls, all chosen by the engineer:
+- **Generate the Prisma client, stop committing it.** Committing it made sense for a single app with no task runner; with Turborepo, `db:generate` runs before every dependent task, so the large generated diff and the drift check both go away. Runner up: keep committing, which needs no generate step but carries noise into every schema PR.
+- **Auth server and client in `packages/auth`, UI in the app.** `apps/auth` needs the same Better Auth config and client; the sign in forms are page specific and spec 0004 already plans to copy pages. Runner up: move the forms too, which pulls `packages/ui` into auth earlier than needed.
+- **shadcn's monorepo layout for `packages/ui`.** It is what the shadcn CLI supports, so `add` keeps working; the theme tokens move too so `apps/auth` looks the same. Runner up: primitives only.
+- **One root `.env`, loaded explicitly.** One file to edit, matching feature 8's single local dev command. Runner up: per app files, which duplicate `DATABASE_URL`.
+- **`ci.test.ts` as a root task.** It reads root files, so it belongs at the root. Runner up: a tooling workspace that exists for one test.
+- **`@aft/config` with tsconfig bases and today's ESLint rules.** Packages get linted from day one with no new rules. Runner up: tsconfig only.
+- **Keep `@/` in `apps/web` only.** Fewest edits; packages use relative imports. Runner up: drop the alias, which rewrites nearly every import.
+- **`@aft/email` holds templates and send functions.** It is the email adapter spec 0005 names, and the worker will send mail too. Runner up: templates only.
+- **Vitest per workspace.** Matches spec 0005 and Turborepo's per package cache. Runner up: one root config with projects.
+- **Tests plus a manual auth run as proof.** The e2e smoke does not sign in, so the manual run (as in spec 0002) covers the auth paths. Runner up: automated checks only.
+- **`server-only` on server entry points.** A client import now fails the build instead of leaking `DATABASE_URL`. Runner up: the written rule only.
+- **Strict env mode with a declared list.** Keeps the cache honest. Runner up: loose mode.
+- **`pnpm/action-setup` in CI.** Corepack is deprecated and leaves Node after 24. Runner up: Corepack.
+- **Close open branches first.** Rebasing across a full move is the most expensive conflict there is. Runner up: rebase later.
+
+- **`pnpm audit` instead of `audit-ci`.** `audit-ci` shells out to the package manager's audit and parses its JSON; pnpm 11 and later changed the audit endpoint, so the gate could break on day one. pnpm's own `pnpm audit --prod --audit-level high` matches `audit-ci.jsonc` (`high`, `skip-dev`) exactly, and its allowlist (`auditConfig.ignoreGhsas`) lives in the workspace file. Runner up: keep `audit-ci` and test it in step 1.
+
+Decided while writing (no engineer input needed): pnpm 12.15.0 and Turborepo 2.11.10 (current `latest` on the registry today); `pnpm import` to keep resolved versions identical (runner up: a fresh resolve, which could change versions mid move); a `.turbo` cache in CI through `actions/cache` (runner up: none, slower CI); `turbopack.root` and `outputFileTracingRoot` at the repo root now rather than in feature 9 (runner up: wait, which leaves a build warning and a trap for feature 9); `no-restricted-imports` for deep imports (runner up: an ESLint plugin for boundaries, one more dependency for one rule).
+
+## Cross check record
+
+On 2026-10-24 a read only Sonnet cross check reviewed the first draft and reported 6 blockers, 25 gaps, and 4 nits. The engineer chose to apply every recommended fix:
+
+- Blockers fixed: `server-only` crashing plain Node (stub alias, AC-12, I27); root anchored `.gitignore` entries; no `DATABASE_URL` for `prisma generate` in most CI jobs (*CI placeholders*); Tailwind not scanning `packages/ui` (`@source`, AC-19, I26); shadcn's generated `@/` imports against the no `@/` rule (*shadcn setup*); the test parity rule against the rewritten `ci.test.ts` (*Renamed CI contract tests*).
+- Gaps closed: a per workspace dependency table, a full file move table, the Vitest environment and coverage per workspace, `--passWithNoTests`, `vi.mock` rewrites, the Playwright web server, tsconfig bases, workspace scripts (root `test:root` so turbo cannot recurse), the schema `output` line exception in AC-4, lockfile version checks after `pnpm import`, the `@/` gate in packages, Prisma type re-exports as types only, `prisma.config.ts` and `next.config.ts` root paths through `fileURLToPath`, `loadEnvConfig` arguments, turbo `inputs` and `cache: false` for e2e, pass through env vars, `pnpm audit` instead of `audit-ci` (AC-9), the setup action order and `.turbo` cache key, the build-smoke step order, client entries never importing server code, and the full workspace file with a wider catalog.
+- Not taken: deferring `packages/ui` and `packages/email` to a later feature, because scope feature 4's "Done when" requires all five packages. `turbo boundaries` is noted for feature 5 instead of replacing the lint rule now.
