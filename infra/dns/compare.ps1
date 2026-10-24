@@ -76,16 +76,21 @@ if ($Against) {
   $saved = Get-Content $baselinePath -Raw | ConvertFrom-Json
   foreach ($r in $records) {
     $base = $saved | Where-Object { $_.Name -eq $r.Name -and $_.Type -eq $r.Type }
+    # A missing or empty baseline row, or an empty answer, is a mismatch, never an "ok".
+    $baseValues = @($base.Values | Where-Object { $_ })
     foreach ($server in $Against) {
       $got = Query $r.Name $r.Type $server
-      $ok = Same $got.Values @($base.Values)
+      $ok = ($baseValues.Count -gt 0) -and (@($got.Values).Count -gt 0) -and (Same $got.Values $baseValues)
       if (-not $ok) { $failed = $true }
       "{0,-4} {1,-6} {2,-36} @ {3}" -f $(if ($ok) { "ok" } else { "DIFF" }), $r.Type, $r.Name, $server
     }
   }
 } else {
   $awsServers = aws route53 get-hosted-zone --id $ZoneId --profile $Profile --query "DelegationSet.NameServers" --output text
-  $servers = @($awsServers -split "\s+" | Where-Object { $_ }) + $OldNameServer
+  # PowerShell 5.1 does not stop on a native command's exit code, so check it, and require all 4 AWS servers.
+  $awsServers = @($awsServers -split "\s+" | Where-Object { $_ })
+  if ($LASTEXITCODE -ne 0 -or $awsServers.Count -ne 4) { Write-Error "get-hosted-zone failed or did not return 4 nameservers."; exit 1 }
+  $servers = $awsServers + $OldNameServer
   $baselineRows = @()
   foreach ($r in $records) {
     $want = Expected $r
@@ -95,13 +100,20 @@ if ($Against) {
       if (-not $ok) { $failed = $true }
       "{0,-4} {1,-6} {2,-36} @ {3} (ttl {4})" -f $(if ($ok) { "ok" } else { "DIFF" }), $r.Type, $r.Name, $server, $got.Ttl
     }
-    $answer = aws route53 test-dns-answer --hosted-zone-id $ZoneId --record-name $r.Name.TrimEnd(".") --record-type $r.Type --profile $Profile --query "RecordData" --output json | ConvertFrom-Json
-    $route53 = @($answer | ForEach-Object { Normalize $r.Type $_ }) | Sort-Object
-    $ok = Same $route53 $want
+    $answer = aws route53 test-dns-answer --hosted-zone-id $ZoneId --record-name $r.Name.TrimEnd(".") --record-type $r.Type --profile $Profile --query "RecordData" --output json
+    $testOk = $LASTEXITCODE -eq 0
+    $route53 = @()
+    if ($testOk) { $route53 = @($answer | ConvertFrom-Json | ForEach-Object { Normalize $r.Type $_ }) | Sort-Object }
+    $ok = $testOk -and (Same $route53 $want)
     if (-not $ok) { $failed = $true }
     "{0,-4} {1,-6} {2,-36} @ route53 test-dns-answer" -f $(if ($ok) { "ok" } else { "DIFF" }), $r.Type, $r.Name
     if ($Baseline) {
-      $baselineRows += [pscustomobject]@{ Name = $r.Name; Type = $r.Type; Values = (Query $r.Name $r.Type "8.8.8.8").Values }
+      # Only a public answer equal to the records file may become the baseline.
+      $public = (Query $r.Name $r.Type "8.8.8.8").Values
+      $ok = Same $public $want
+      if (-not $ok) { $failed = $true }
+      "{0,-4} {1,-6} {2,-36} @ 8.8.8.8 (baseline)" -f $(if ($ok) { "ok" } else { "DIFF" }), $r.Type, $r.Name
+      $baselineRows += [pscustomobject]@{ Name = $r.Name; Type = $r.Type; Values = $public }
     }
   }
   if ($Baseline -and -not $failed) {

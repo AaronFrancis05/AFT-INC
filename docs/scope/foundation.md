@@ -140,12 +140,12 @@ Spec: [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001 
 Public entry: `remwa.tech` DNS on Route 53, then HTTPS from Caddy on the server (spec 0007 path step 7).
 **Done when:** `remwa.tech` and `www` serve valid certificates from Caddy with the `www` and HTTP redirects (AC-5, I13), and apps read the client IP only from Caddy's header (AC-14).
 - [ ] Slice 1, remwa.tech DNS on Route 53 (spec [0003](../specs/0003-route53-dns-remwa-tech/index.md)): `/develop route 53 dns for remwa.tech`
-   - [ ] Admin identity: Organizations and Identity Center with MFA, `aft-admin` profile (AC-1, AC-2, AC-3) (built; owed: the Organizations verification email, a second root MFA device, billing and alternate contacts)
+   - [x] Admin identity: Organizations and Identity Center with MFA, `aft-admin` profile (AC-1, AC-2, AC-3) (verification email, second root MFA device, and contacts confirmed by the engineer on 2026-10-24)
    - [x] Records file from the name.com export, zone created and tagged, records applied and compared (AC-4, AC-5, AC-6)
-   - [ ] Nameserver switch at name.com, confirmed at 1 hour and 48 hours, 7 day rollback window (AC-7, AC-8) (switched and the 1 hour check passed on 2026-10-21; the 48 hour check is owed)
-   - [x] Scope check: nothing else created, budget unchanged (AC-9) (the Identity Center us-west-2 replica and its KMS keys were removed again; the key is pending deletion)
+   - [x] Nameserver switch at name.com, confirmed at 1 hour and 48 hours, 7 day rollback window (AC-7, AC-8) (switched 2026-10-21; 48 hour check passed 2026-10-24; keep the name.com records until 2026-10-28)
+   - [x] Scope check: nothing else created, budget unchanged during the slice (AC-9) (the Identity Center us-west-2 replica and its KMS keys were removed again; the key is pending deletion; on 2026-10-24 the budget was replaced by `aft-monthly-28usd` for spec 0007)
    - [x] Verify it: `/check verify route 53 dns for remwa.tech`
-   - [ ] Review it (fresh model): `/check review route 53 dns for remwa.tech`
+   - [x] Review it (fresh model): `/check review route 53 dns for remwa.tech`
    - [ ] Document it: `/document route 53 dns for remwa.tech`
 - [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery` (spec [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001: Caddy certificates, no CDN or WAF at this size)
 - [ ] Slice 2, HTTPS and client IP: `/develop edge dns and certificates`
