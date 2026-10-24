@@ -144,7 +144,7 @@ Public entry: `remwa.tech` DNS on Route 53, then HTTPS from Caddy on the server 
    - [x] Records file from the name.com export, zone created and tagged, records applied and compared (AC-4, AC-5, AC-6)
    - [ ] Nameserver switch at name.com, confirmed at 1 hour and 48 hours, 7 day rollback window (AC-7, AC-8) (switched and the 1 hour check passed on 2026-10-21; the 48 hour check is owed)
    - [x] Scope check: nothing else created, budget unchanged (AC-9) (the Identity Center us-west-2 replica and its KMS keys were removed again; the key is pending deletion)
-   - [ ] Verify it: `/check verify route 53 dns for remwa.tech`
+   - [x] Verify it: `/check verify route 53 dns for remwa.tech`
    - [ ] Review it (fresh model): `/check review route 53 dns for remwa.tech`
    - [ ] Document it: `/document route 53 dns for remwa.tech`
 - [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery` (spec [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001: Caddy certificates, no CDN or WAF at this size)
