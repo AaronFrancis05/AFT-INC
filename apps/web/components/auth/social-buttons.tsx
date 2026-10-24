@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Icons } from '@/components/icons'
 import { cn } from '@/lib/utils'
-import type { SocialProvider } from '@/lib/auth-providers'
+import type { SocialProvider } from '@aft/auth/providers'
 
 const PROVIDER_UI: Record<SocialProvider, { label: string; Icon: typeof Icons.google }> = {
   google: { label: 'Google', Icon: Icons.google },

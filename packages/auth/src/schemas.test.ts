@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { signUpSchema, verifyEmailSchema } from "./auth-schemas";
+import { signUpSchema, verifyEmailSchema } from "./schemas";
 
 const validSignUp = {
   name: "Ada Lovelace",

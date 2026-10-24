@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { SocialProvider } from "@/lib/auth-providers";
+import type { SocialProvider } from "@aft/auth/providers";
 
 import { SocialButtons } from "./social-buttons";
 

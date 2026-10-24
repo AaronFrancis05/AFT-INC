@@ -11,7 +11,7 @@ const { verifyEmail, sendVerificationOtp, push, toast } = vi.hoisted(() => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-vi.mock("@/lib/auth-client", () => ({
+vi.mock("@aft/auth/client", () => ({
   authClient: { emailOtp: { verifyEmail, sendVerificationOtp } },
 }));
 

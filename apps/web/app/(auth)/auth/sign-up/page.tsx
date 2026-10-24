@@ -1,5 +1,5 @@
 import { SignUp } from "@/components/auth";
-import { resolveSocialProviders } from "@/lib/auth-providers";
+import { resolveSocialProviders } from "@aft/auth/providers";
 
 // Read the provider keys on every request, so one build works in every environment.
 export const dynamic = "force-dynamic";

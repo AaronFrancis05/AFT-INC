@@ -12,7 +12,7 @@ const { signUpEmail, signInSocial, sendVerificationOtp, push, toast } = vi.hoist
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-vi.mock("@/lib/auth-client", () => ({
+vi.mock("@aft/auth/client", () => ({
   authClient: {
     signUp: { email: signUpEmail },
     signIn: { social: signInSocial },

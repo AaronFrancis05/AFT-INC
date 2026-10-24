@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/input-otp"
 
 import { AppLogoIcon } from '@/components/icons'
-import { authClient } from '@/lib/auth-client'
+import { authClient } from '@aft/auth/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Eye, EyeOff } from 'lucide-react'

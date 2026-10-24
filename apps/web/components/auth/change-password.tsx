@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { passwordChangeSchema, type PasswordChangeInput } from '@/lib/auth-schemas'
+import { passwordChangeSchema, type PasswordChangeInput } from '@aft/auth/schemas'
 import {
   Form,
   FormControl,
@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
 import { AppLogoIcon } from '@/components/icons'
-import { authClient } from '@/lib/auth-client'
+import { authClient } from '@aft/auth/client'
 import { toast } from 'sonner'
 import { Eye, EyeOff } from 'lucide-react'
 

@@ -1,3 +1,5 @@
+import "server-only";
+
 // Decides which social sign in providers are configured (edge case A11).
 // lib/auth.ts registers exactly these, and the sign in and sign up pages show
 // exactly these buttons, so the two can never disagree. Spec 0002.

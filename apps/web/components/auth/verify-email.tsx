@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { verifyEmailSchema, type VerifyEmailInput } from '@/lib/auth-schemas'
+import { verifyEmailSchema, type VerifyEmailInput } from '@aft/auth/schemas'
 import {
   Form,
   FormControl,
@@ -20,7 +20,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp"
-import { authClient } from '@/lib/auth-client'
+import { authClient } from '@aft/auth/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useSessionStorageValue } from '@/hooks/use-session-storage-value'
