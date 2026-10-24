@@ -146,7 +146,7 @@ Public entry: `remwa.tech` DNS on Route 53, then HTTPS from Caddy on the server 
    - [x] Scope check: nothing else created, budget unchanged during the slice (AC-9) (the Identity Center us-west-2 replica and its KMS keys were removed again; the key is pending deletion; on 2026-10-24 the budget was replaced by `aft-monthly-28usd` for spec 0007)
    - [x] Verify it: `/check verify route 53 dns for remwa.tech`
    - [x] Review it (fresh model): `/check review route 53 dns for remwa.tech`
-   - [ ] Document it: `/document route 53 dns for remwa.tech`
+   - [x] Document it: `/document route 53 dns for remwa.tech`
 - [x] Design it (spec): `/architect lean ec2 hosting and customer-hosted delivery` (spec [0007](../specs/0007-lean-hosting-customer-delivery/index.md), child 0001: Caddy certificates, no CDN or WAF at this size)
 - [ ] Slice 2, HTTPS and client IP: `/develop edge dns and certificates`
    - [ ] Caddyfile with `email`, `www` and HTTP redirects, `/readyz` and `/internal/*` blocked (AC-5)
