@@ -80,6 +80,21 @@ The smaller calls, all chosen by the engineer:
 
 Decided while writing (no engineer input needed): pnpm 12.15.0 and Turborepo 2.11.10 (current `latest` on the registry today); `pnpm import` to keep resolved versions identical (runner up: a fresh resolve, which could change versions mid move); a `.turbo` cache in CI through `actions/cache` (runner up: none, slower CI); `turbopack.root` and `outputFileTracingRoot` at the repo root now rather than in feature 9 (runner up: wait, which leaves a build warning and a trap for feature 9); `no-restricted-imports` for deep imports (runner up: an ESLint plugin for boundaries, one more dependency for one rule).
 
+## Amendment 2026-10-25: a light providers entry
+
+**What happened.** At build step 6, the sign in and sign up pages imported `resolveSocialProviders` from `@aft/auth/server`, the only subpath that exported it. That entry re-exports `auth`, so importing it evaluates `auth.ts`, which builds Better Auth with the Prisma adapter and loads `@aft/email`, whose module creates the Resend client. Before the move these pages imported only `lib/auth-providers.ts`, which reads `process.env` and nothing else. The two A11 page tests call the real resolver, and they crashed with "Missing API key" because tests have no Resend key. The app itself still worked (the pages run on the server with the env loaded), so the gap was in the spec's export surface, not in the code.
+
+**Options considered.**
+- **Option A: a `./providers` subpath (chosen).** Export `src/server/auth-providers.ts` as `@aft/auth/providers`; the pages and the client type imports use it; `./server` keeps re-exporting the same names. Restores the old import weight exactly, keeps the tests unchanged, and gives `apps/auth` (spec 0004) a cheap way to list providers. Cost: one more subpath to document.
+- **Option B: create the Resend client lazily.** No new export, but the page tests would then build Better Auth and the Prisma client inside jsdom, and every page that lists providers would still load the whole auth server. Rejected: it hides the coupling instead of removing it.
+- **Option C: mock `@aft/auth/server` in the page tests.** Rejected: the A11 tests exist to run the real resolver against stubbed env, so a mock would stop them testing anything.
+
+**Engineer's picks (both recommended).** Client components import the `SocialProvider` type from `@aft/auth/providers` (erased at build, and it keeps browser files pointed at the light entry by name). The entry starts with `import "server-only"`, because the resolver reads OAuth secrets, so a value import into a `'use client'` file fails `next build` (I20); Vitest already aliases the stub (AC-12).
+
+**Also recorded.** The client boundary scan in `lib/auth-client.test.ts` read the app's `components/auth` folder. Left in `packages/auth`, a Turborepo cached pass of `@aft/auth:test` would not notice a change in an app component, so a violation could hide behind the cache. The scans are split: the package test checks its own client entries, and `apps/web/components/auth/client-boundary.test.ts` repeats the two scans under the same `it` names over the app's components. Two corrections found while building steps 1 to 5 are written into the spec too: `loadEnvConfig` needs `forceReload`, because Next.js has already loaded (and cached) env files from `apps/web` before `next.config.ts` runs, so without it the root `.env` never reached the build workers; and `server-only` joins the catalog, because two workspaces use it.
+
+**Cross check of the amendment (Sonnet, 2026-10-25).** Nothing blocking; six gaps, all fixed at the engineer's request: the test split now names its describes and file sets; the types only scans match the new specifiers and reject a mixed `import { type X }`; the AC-11 client and schemas test is named; the invariant now forbids only values of `@aft/auth/providers` in client code; `./server` re-exports from the same file; and two checks were added (a type import must still build, and a package edit must miss the app's test cache, with the `transit` task as the named fallback).
+
 ## Cross check record
 
 On 2026-10-24 a read only Sonnet cross check reviewed the first draft and reported 6 blockers, 25 gaps, and 4 nits. The engineer chose to apply every recommended fix:
