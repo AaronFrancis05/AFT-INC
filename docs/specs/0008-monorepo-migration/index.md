@@ -1,7 +1,7 @@
 # 0008. Move the app into a pnpm and Turborepo monorepo
 
 **Date**: 2026-10-24
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

@@ -1,12 +1,26 @@
-// Contract checks for the CI pipeline in spec 0001. They read the workflow files as text,
-// so a later edit cannot silently drop a required check or expose a secret.
-import { existsSync, readFileSync } from "node:fs";
+// Contract checks for the CI pipeline in spec 0001, moved to pnpm and Turborepo by spec 0008.
+// They read the workflow files as text, so a later edit cannot silently drop a required
+// check or expose a secret.
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const read = (path: string) => readFileSync(path, "utf8");
 const ci = read(".github/workflows/ci.yml");
 const setup = read(".github/actions/setup/action.yml");
 const pkg = JSON.parse(read("package.json"));
+const workspace = read("pnpm-workspace.yaml");
+
+// Every source file under packages/, skipping installed, generated, and tool output folders.
+function packageSources(dir = "packages"): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory())
+      return ["node_modules", "generated", "coverage", ".turbo"].includes(entry.name) ? [] : packageSources(path);
+    return /\.(ts|tsx|mts|mjs|js)$/.test(entry.name) ? [path] : [];
+  });
+}
 
 // The six required checks named in the branch protection command (AC-12).
 const REQUIRED_CHECKS = ["test", "typecheck", "lint", "prisma", "build-smoke", "audit"];
@@ -72,15 +86,37 @@ describe("Toolchain pins", () => {
     expect(setup).toContain("node-version-file: .nvmrc");
   });
 
-  it("covers AC-11: CI installs the npm version from packageManager and fails on a mismatch", () => {
-    const version = pkg.packageManager.replace(/^npm@/, "");
-    expect(setup).toContain(`npm install -g npm@${version}`);
-    expect(setup).toContain(`test "$(npm -v)" = "${version}"`);
+  it("covers AC-11: CI installs the pnpm version from packageManager, installed by pnpm/action-setup", () => {
+    expect(pkg.packageManager).toMatch(/^pnpm@\d+\.\d+\.\d+$/);
+    expect(setup).toMatch(/uses: pnpm\/action-setup@v\d+$/m);
+    // No version input, so the action reads packageManager and the two cannot drift.
+    expect(setup).not.toMatch(/^\s+version:/m);
+    expect(setup).toContain("pnpm install --frozen-lockfile");
   });
 
-  it("covers AC-11: CI fails on any install script that is not reviewed", () => {
-    expect(setup).toContain("npm install-scripts ls");
-    expect(setup).toMatch(/grep -q "No packages with unreviewed install scripts" \|\| \{.*exit 1; \}/);
+  it("covers AC-11: allowBuilds lists the reviewed packages and strictDepBuilds is not turned off", () => {
+    for (const approved of ['"@prisma/engines": true', "prisma: true", "esbuild: true", "sharp: true", "unrs-resolver: true"])
+      expect(workspace).toContain(approved);
+    expect(workspace).toContain("msw: false");
+    expect(workspace).not.toMatch(/strictDepBuilds:\s*false/);
+    expect(workspace).not.toMatch(/dangerouslyAllowAllBuilds:\s*true/);
+    expect(pkg.allowScripts).toBeUndefined();
+  });
+
+  it("covers 0008 AC-9: the audit job fails on high or critical advisories in runtime dependencies", () => {
+    expect(ci).toContain("run: pnpm audit --prod --audit-level high");
+    expect(workspace).toMatch(/^auditConfig:\n {2}(#.*\n {2})*ignoreGhsas:/m);
+  });
+
+  it("covers 0008 AC-1, AC-9: the npm lockfile and audit-ci are gone", () => {
+    expect(existsSync("package-lock.json")).toBe(false);
+    expect(existsSync("audit-ci.jsonc")).toBe(false);
+    expect(pkg.devDependencies["audit-ci"]).toBeUndefined();
+  });
+
+  it("covers 0008 AC-11: no file under packages imports the @/ alias", () => {
+    const offenders = packageSources().filter((file) => /["']@\//.test(read(file)));
+    expect(offenders).toEqual([]);
   });
 
   it("covers AC-1: npm test runs Vitest once and test:watch keeps it running", () => {

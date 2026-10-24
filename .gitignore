@@ -1,7 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Build and tool entries are not anchored, so they apply in every workspace (spec 0008).
 
 # dependencies
-/node_modules
+node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -11,14 +12,20 @@
 !.yarn/versions
 
 # testing
-/coverage
+coverage
 
 # next.js
-/.next/
-/out/
+.next/
+out/
 
 # production
-/build
+build/
+
+# turborepo
+.turbo/
+
+# generated Prisma client (pnpm turbo run db:generate)
+packages/db/src/generated/
 
 # misc
 .DS_Store
@@ -41,6 +48,6 @@ yarn-error.log*
 next-env.d.ts
 
 # playwright
-/playwright-report
-/test-results
-/blob-report
+playwright-report
+test-results
+blob-report

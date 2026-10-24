@@ -1,0 +1,15 @@
+# Dependency build scripts reviewed once, with the same decisions npm had in
+# package.json allowScripts (spec 0008, AC-8). strictDepBuilds stays on, so a new
+# unreviewed build script fails pnpm install locally and in CI (I21).
+allowBuilds:
+  "@prisma/engines": true
+  prisma: true
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+  msw: false
+
+auditConfig:
+  # Only advisories with no available fix belong here, each as a GHSA ID
+  # preceded by a comment with the reason and a review date (AC-9).
+  ignoreGhsas: []
