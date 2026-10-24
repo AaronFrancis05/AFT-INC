@@ -4,6 +4,10 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [tsconfigPaths(), react()],
+  resolve: {
+    // server-only throws outside Next.js; tests load the empty stub instead (spec 0008, AC-12).
+    alias: { "server-only": "@aft/config/stubs/empty" },
+  },
   test: {
     environment: "jsdom",
     globals: false,
@@ -14,7 +18,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text-summary", "lcov"],
       include: ["app/**", "components/**", "lib/**", "hooks/**"],
-      exclude: ["lib/generated/**", "components/ui/**", "**/*.test.{ts,tsx}"],
+      exclude: ["components/ui/**", "**/*.test.{ts,tsx}"],
     },
   },
 });

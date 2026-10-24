@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import prisma from "./prisma";
+import prisma from "@aft/db";
 import { emailOTP } from "better-auth/plugins";
 import { sendResetPasswordEmail } from "./email";
 import { sendVerificationOTP } from "./auth-otp";

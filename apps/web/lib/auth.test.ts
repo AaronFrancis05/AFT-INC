@@ -11,7 +11,7 @@ vi.mock("better-auth/adapters/prisma", () => ({ prismaAdapter: vi.fn(() => "pris
 vi.mock("better-auth/plugins", () => ({
   emailOTP: (options: unknown) => ({ id: "email-otp", options }),
 }));
-vi.mock("./prisma", () => ({ default: {} }));
+vi.mock("@aft/db", () => ({ default: {} }));
 vi.mock("./email", () => ({ sendResetPasswordEmail: vi.fn(), sendVerificationEmail: vi.fn() }));
 
 type AuthOptions = {

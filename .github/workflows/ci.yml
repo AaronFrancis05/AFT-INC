@@ -79,18 +79,10 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Validate schema
-        run: pnpm --filter @aft/app-web exec prisma validate
-      - name: Regenerate client
-        run: pnpm --filter @aft/app-web exec prisma generate
-      - name: Committed client matches the schema
-        run: |
-          drift="$(git status --porcelain apps/web/lib/generated/prisma)"
-          if [ -n "$drift" ]; then
-            echo "The committed Prisma client is stale. Run pnpm --filter @aft/app-web exec prisma generate and commit apps/web/lib/generated/prisma."
-            echo "$drift"
-            git diff --stat apps/web/lib/generated/prisma
-            exit 1
-          fi
+        run: pnpm --filter @aft/db exec prisma validate
+      # The client is generated, not committed (spec 0008, AC-4), so generating it is the check.
+      - name: Generate client
+        run: pnpm turbo run db:generate
 
   build-smoke:
     name: build-smoke

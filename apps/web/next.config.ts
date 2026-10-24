@@ -10,6 +10,8 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../
 loadEnvConfig(repoRoot, process.env.NODE_ENV !== "production", console, true);
 
 const nextConfig: NextConfig = {
+  // Workspace packages ship TypeScript source, so Next.js compiles them (AC-17).
+  transpilePackages: ["@aft/db"],
   // Both point at the repo root, so Next.js sees one workspace and traces package files (AC-17).
   turbopack: { root: repoRoot },
   outputFileTracingRoot: repoRoot,
