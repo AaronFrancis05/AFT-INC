@@ -23,6 +23,11 @@
     "NEXT_TELEMETRY_DISABLED"
   ],
   "tasks": {
+    "transit": {
+      "dependsOn": [
+        "^transit"
+      ]
+    },
     "db:generate": {
       "inputs": [
         "prisma/**",
@@ -34,13 +39,19 @@
     },
     "typecheck": {
       "dependsOn": [
+        "transit",
         "db:generate",
         "^db:generate"
       ]
     },
-    "lint": {},
+    "lint": {
+      "dependsOn": [
+        "transit"
+      ]
+    },
     "test": {
       "dependsOn": [
+        "transit",
         "db:generate",
         "^db:generate"
       ],
@@ -50,6 +61,7 @@
     },
     "test:coverage": {
       "dependsOn": [
+        "transit",
         "db:generate",
         "^db:generate"
       ],
