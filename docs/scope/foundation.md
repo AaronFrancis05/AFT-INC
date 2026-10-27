@@ -73,11 +73,11 @@ Shared lint, format, type settings, and commit hooks for every workspace.
 **Done when:** one command lints, formats, and typechecks every workspace, and commit hooks block unformatted code.
 Spec: [0009](../specs/0009-workspace-tooling/index.md). Ships as two PRs (format, then tooling), a one off exception so `git blame` can skip the reformat.
 - [x] Design it (spec): `/architect workspace tooling`
-- [ ] Build it: `/develop workspace tooling`
+- [x] Build it: `/develop workspace tooling` (code in `lint-staged.config.mjs`, `scripts/lint-staged/`, `.husky/`, `packages/config/`)
    - [x] PR 1, the reformat: Prettier config, ignore file, `.editorconfig`, and one repo wide `prettier --write`, merged alone (AC-1, AC-2, I18, I24, I42); squash 7c7c901 (#15)
-   - [ ] Commit hook and one command: Husky, lint-staged with the per workspace ESLint helper, `pnpm check`, `pnpm format`, Prisma format, the CI Format step, `HUSKY=0` (AC-4 to AC-10, I33 to I39, I44)
-   - [ ] Stricter rules: `noUncheckedIndexedAccess` and two more flags, the promise lint rules, `eslint-config-prettier`, the `@aft/config` tsconfig, and the fixes (AC-11, AC-12, I41)
-   - [ ] Editor files, `.git-blame-ignore-revs`, and the `ci.test.ts` checks (AC-3, AC-13, AC-14, I40, I43, I45)
+   - [x] Commit hook and one command: Husky, lint-staged with the per workspace ESLint helper, `pnpm check`, `pnpm format`, Prisma format, the CI Format step, `HUSKY=0` (AC-4 to AC-10, I33 to I39, I44)
+   - [x] Stricter rules: `noUncheckedIndexedAccess` and two more flags, the promise lint rules, `eslint-config-prettier`, the `@aft/config` tsconfig, and the fixes (AC-11, AC-12, I41)
+   - [x] Editor files, `.git-blame-ignore-revs`, and the `ci.test.ts` checks (AC-3, AC-13, AC-14, I40, I43, I45)
 - [ ] Verify it: `/check verify workspace tooling`
 - [ ] Test it: `/test workspace tooling`
 - [ ] Ship it: squash merge both pull requests with all six checks green, PR 1 first
