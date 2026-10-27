@@ -82,10 +82,17 @@
         "audit-ci.jsonc",
         "packages/*/package.json",
         "packages/**/*.{ts,tsx,mts,mjs,js}",
+        ".prettierignore",
+        "prettier.config.mjs",
+        "lint-staged.config.mjs",
+        ".husky/**",
+        "packages/config/tsconfig/*.json",
+        "scripts/**",
         "!packages/**/node_modules/**",
         "!packages/**/generated/**",
         "!packages/**/coverage/**",
-        "!packages/**/.turbo/**"
+        "!packages/**/.turbo/**",
+        "!.husky/_/**"
       ]
     },
     "//#test:root:coverage": {
@@ -103,10 +110,17 @@
         "audit-ci.jsonc",
         "packages/*/package.json",
         "packages/**/*.{ts,tsx,mts,mjs,js}",
+        ".prettierignore",
+        "prettier.config.mjs",
+        "lint-staged.config.mjs",
+        ".husky/**",
+        "packages/config/tsconfig/*.json",
+        "scripts/**",
         "!packages/**/node_modules/**",
         "!packages/**/generated/**",
         "!packages/**/coverage/**",
-        "!packages/**/.turbo/**"
+        "!packages/**/.turbo/**",
+        "!.husky/_/**"
       ]
     },
     "//#format:root:check": {
