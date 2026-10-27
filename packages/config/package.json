@@ -14,13 +14,17 @@
   "scripts": {
     "lint": "eslint . --max-warnings=0"
   },
-  "dependencies": {
-    "eslint-config-next": "catalog:"
-  },
   "peerDependencies": {
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
     "eslint": "catalog:",
+    "vitest": "catalog:"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-next": "catalog:",
     "vitest": "catalog:"
   }
 }

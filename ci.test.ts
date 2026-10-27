@@ -23,6 +23,20 @@ function packageSources(dir = "packages"): string[] {
   });
 }
 
+// Every workspace manifest: the root plus each folder the pnpm-workspace.yaml globs (apps/*, packages/*) match.
+function workspaceManifests() {
+  const globs = [...workspace.matchAll(/^ {2}- ([\w-]+)\/\*$/gm)].map(([, dir]) => dir);
+  const dirs = globs.flatMap((dir) =>
+    readdirSync(dir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && existsSync(join(dir, entry.name, "package.json")))
+      .map((entry) => join(dir, entry.name)),
+  );
+  return [".", ...dirs].map((dir) => JSON.parse(read(join(dir, "package.json"))));
+}
+
+// Tools used only to lint or to add components; never runtime dependencies (spec 0008 AC-9, I31).
+const BUILD_ONLY_TOOLS = ["shadcn", "eslint-config-next"];
+
 // The six required checks named in the branch protection command (AC-12).
 const REQUIRED_CHECKS = ["test", "typecheck", "lint", "prisma", "build-smoke", "audit"];
 
@@ -132,5 +146,27 @@ describe("Toolchain pins", () => {
   it("covers AC-8: the shadcn CLI is a dev dependency, not a runtime one", () => {
     expect(pkg.dependencies?.shadcn).toBeUndefined();
     expect(pkg.devDependencies.shadcn).toBeDefined();
+  });
+
+  it("covers 0008 AC-9: build only tools are dev dependencies in every workspace", () => {
+    const manifests = workspaceManifests();
+    // A glob typo must not let this pass with nothing checked.
+    expect(manifests.map((m) => m.name)).toEqual(expect.arrayContaining(["@aft/config", "@aft/ui"]));
+    const offenders = manifests.flatMap((m) =>
+      BUILD_ONLY_TOOLS.filter((tool) => m.dependencies?.[tool]).map((tool) => `${m.name}: ${tool}`),
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  it("covers 0008 AC-9: every workspace peer is also a dev dependency", () => {
+    const manifests = workspaceManifests();
+    expect(manifests.map((m) => m.name)).toEqual(expect.arrayContaining(["@aft/config", "@aft/ui"]));
+    // pnpm's autoInstallPeers records an unmirrored peer as a runtime dependency, so pnpm audit --prod would audit it (I31).
+    const offenders = manifests.flatMap((m) =>
+      Object.keys(m.peerDependencies ?? {})
+        .filter((peer) => !m.devDependencies?.[peer])
+        .map((peer) => `${m.name}: ${peer}`),
+    );
+    expect(offenders).toEqual([]);
   });
 });
