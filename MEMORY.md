@@ -307,3 +307,12 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Dev database rule `sgr-09bf6237c10f892d2` swapped in place to `41.210.155.224/32` with the engineer's go. The rule description is now `engineer-ip`. TCP took about a minute to open after the swap.
 - Scope feature 4: `Verify it` ticked (GA, stays `in-progress`). Spec 0008 stays `In Progress`.
 - Next: `/clear`, then `/test monorepo migration`, then `/check review monorepo migration`.
+
+### 2026-10-27 (/test monorepo migration)
+- No uncommitted source, so the engineer picked the three new logic files with no lasting test (moved files keep their moved tests). 20 new tests:
+  - `apps/web/eslint.config.test.ts` (9): lints snippets with the app's real flat config. Covers the AC-11 deep `src` import and `@aft/app-web` bans, exports map imports allowed, and the I29 `cn` guard (value, type only, multi line, re-export; `cnx` not caught). The first lint loads the Next config (several seconds), so it warms up in `beforeAll`.
+  - `apps/web/next.config.test.ts` (6): AC-13 root `.env` with `forceReload`, dev files only outside production; AC-17 `transpilePackages`, and Turbopack and tracing roots equal to the env root.
+  - `packages/db/src/index.test.ts` (5): adapter built from `DATABASE_URL`, no connect on import, one client reused outside production, never stored globally in production.
+- 18 of 18 lint, typecheck, and test tasks green; 128 tests (108 before). `test-preferences.json` `packageManager` fixed from `npm` to `pnpm`.
+- Scope feature 4: `Test it` ticked (stays `in-progress`; review, document, and ship remain).
+- Next: `/clear`, then `/check review monorepo migration` (raise the Vitest worker timeout flake there).
