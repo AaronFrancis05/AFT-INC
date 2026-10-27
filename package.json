@@ -11,6 +11,11 @@
     "test:coverage": "turbo run test:coverage --concurrency=2",
     "test:root": "vitest run",
     "test:root:coverage": "vitest run --coverage",
+    "check": "turbo run lint typecheck format:check //#format:root:check --continue",
+    "format": "turbo run format //#format:root",
+    "format:root": "prettier --write .",
+    "format:root:check": "prettier --check .",
+    "lint:fix": "turbo run lint:fix",
     "prepare": "husky || true"
   },
   "devDependencies": {

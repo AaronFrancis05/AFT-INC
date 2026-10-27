@@ -73,6 +73,8 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Lint
         run: pnpm turbo run lint
+      - name: Format
+        run: pnpm turbo run format:check //#format:root:check
 
   prisma:
     name: prisma

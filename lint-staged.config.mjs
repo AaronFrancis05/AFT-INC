@@ -2,4 +2,5 @@
 export default {
   "*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}": "prettier --write --ignore-unknown",
   "*.{json,jsonc,yaml,yml,css}": "prettier --write --ignore-unknown",
+  "packages/db/prisma/schema.prisma": () => "node scripts/lint-staged/prisma-format.mjs",
 };

@@ -34,6 +34,16 @@
     "lint": {
       "dependsOn": ["transit"]
     },
+    "lint:fix": {
+      "dependsOn": ["transit"],
+      "cache": false
+    },
+    "format:check": {
+      "inputs": ["prisma/schema.prisma"]
+    },
+    "format": {
+      "cache": false
+    },
     "test": {
       "dependsOn": ["transit", "db:generate", "^db:generate"],
       "outputs": ["coverage/**"]
@@ -98,6 +108,12 @@
         "!packages/**/coverage/**",
         "!packages/**/.turbo/**"
       ]
+    },
+    "//#format:root:check": {
+      "cache": false
+    },
+    "//#format:root": {
+      "cache": false
     }
   }
 }
