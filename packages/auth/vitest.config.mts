@@ -8,6 +8,8 @@ export default defineConfig({
     alias: { "server-only": "@aft/config/stubs/empty" },
   },
   test: {
+    // Vitest 5.0.5 gives each worker 60 seconds to start; two per workspace stays well inside it (spec 0008, AC-20, I32).
+    maxWorkers: 2,
     // jsdom as before the move, so the test counts hold.
     environment: "jsdom",
     globals: false,

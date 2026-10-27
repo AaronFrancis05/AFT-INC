@@ -24,15 +24,19 @@ function packageSources(dir = "packages"): string[] {
   });
 }
 
-// Every workspace manifest: the root plus each folder the pnpm-workspace.yaml globs (apps/*, packages/*) match.
-function workspaceManifests() {
+// Each workspace folder the pnpm-workspace.yaml globs (apps/*, packages/*) match.
+function workspaceDirs() {
   const globs = [...workspace.matchAll(/^ {2}- ([\w-]+)\/\*$/gm)].map(([, dir]) => dir);
-  const dirs = globs.flatMap((dir) =>
+  return globs.flatMap((dir) =>
     readdirSync(dir, { withFileTypes: true })
       .filter((entry) => entry.isDirectory() && existsSync(join(dir, entry.name, "package.json")))
       .map((entry) => join(dir, entry.name)),
   );
-  return [".", ...dirs].map((dir) => JSON.parse(read(join(dir, "package.json"))));
+}
+
+// Every workspace manifest: the root plus each workspace folder.
+function workspaceManifests() {
+  return [".", ...workspaceDirs()].map((dir) => JSON.parse(read(join(dir, "package.json"))));
 }
 
 // Tools used only to lint or to add components; never runtime dependencies (spec 0008 AC-9, I31).
@@ -100,9 +104,16 @@ describe("CI workflow", () => {
     expect(pkg.scripts["test:coverage"]).toContain("--concurrency=2");
     expect(ci).toMatch(/^\s+run: pnpm turbo run test:coverage .*--concurrency=2$/m);
     const testJob = ci.slice(ci.indexOf("\n  test:\n"), ci.indexOf("\n  typecheck:\n"));
-    expect(testJob).toContain('VITEST_MAX_WORKERS: "2"');
     expect(testJob).toContain("TURBO_FORCE: ${{ github.run_attempt > 1 }}");
-    expect(turbo.globalPassThroughEnv).toContain("VITEST_MAX_WORKERS");
+    // The worker cap lives in each workspace config, not in CI (amendment 2026-10-28).
+    const configs = workspaceDirs()
+      .map((dir) => join(dir, "vitest.config.mts"))
+      .filter((file) => existsSync(file));
+    expect(configs).toHaveLength(5);
+    for (const file of configs) expect(read(file), file).toMatch(/^\s+maxWorkers: 2,$/m);
+    expect(read("vitest.config.mts")).not.toContain("maxWorkers");
+    expect(ci).not.toContain("VITEST_MAX_WORKERS");
+    expect(turbo.globalPassThroughEnv).not.toContain("VITEST_MAX_WORKERS");
     // No blind retry for the worker start timeout (I32); comment lines may mention it.
     const code = ci.split("\n").filter((line) => !line.trim().startsWith("#"));
     expect(code.filter((line) => line.includes("--retry"))).toEqual([]);

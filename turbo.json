@@ -20,8 +20,7 @@
     "PORT",
     "HOME",
     "PLAYWRIGHT_BROWSERS_PATH",
-    "NEXT_TELEMETRY_DISABLED",
-    "VITEST_MAX_WORKERS"
+    "NEXT_TELEMETRY_DISABLED"
   ],
   "tasks": {
     "transit": {
@@ -109,6 +108,7 @@
         ".github/**",
         "package.json",
         "apps/*/package.json",
+        "apps/*/vitest.config.mts",
         "pnpm-workspace.yaml",
         ".nvmrc",
         "turbo.json",
@@ -129,6 +129,7 @@
         ".github/**",
         "package.json",
         "apps/*/package.json",
+        "apps/*/vitest.config.mts",
         "pnpm-workspace.yaml",
         ".nvmrc",
         "turbo.json",

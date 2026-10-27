@@ -12,6 +12,8 @@ export default defineConfig({
     alias: [{ find: /^@aft\/ui\/(.*)$/, replacement: `${src}/$1` }],
   },
   test: {
+    // Vitest 5.0.5 gives each worker 60 seconds to start; two per workspace stays well inside it (spec 0008, AC-20, I32).
+    maxWorkers: 2,
     environment: "jsdom",
     globals: false,
     setupFiles: ["@aft/config/vitest/setup"],

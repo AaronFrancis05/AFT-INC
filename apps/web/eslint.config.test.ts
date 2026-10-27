@@ -9,11 +9,12 @@ import { beforeAll, describe, expect, it } from "vitest";
 const appDir = path.dirname(fileURLToPath(import.meta.url));
 let eslint: ESLint;
 
-// The first lint loads the whole Next.js config (several seconds), so do it once here.
+// The first lint loads the whole Next.js config (about 5 seconds alone), so do it once here. The
+// 120 second limit leaves room for a loaded machine; it is a limit, not a retry (spec 0008, AC-20).
 beforeAll(async () => {
   eslint = new ESLint({ cwd: appDir });
   await eslint.lintText("export {};\n", { filePath: path.join(appDir, "components", "probe.tsx") });
-}, 60_000);
+}, 120_000);
 
 // Messages from the boundary rule only, so unrelated rules (unused vars and so on) never mask a result.
 async function restricted(code: string) {

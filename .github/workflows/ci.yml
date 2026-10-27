@@ -15,9 +15,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Placeholders only; nothing here is a secret (I6). One value per variable across all
-# jobs keeps Turborepo hashes stable (spec 0008, CI placeholders). VITEST_MAX_WORKERS and
-# TURBO_FORCE live in the test job on purpose: pass through and Turborepo's own variables
-# never enter task hashes, so they do not break that rule (AC-20).
+# jobs keeps Turborepo hashes stable (spec 0008, CI placeholders). TURBO_FORCE lives in the
+# test job on purpose: Turborepo's own variables never enter task hashes, so it does not
+# break that rule (AC-20).
 env:
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aft_ci
   BETTER_AUTH_SECRET: ci-only-not-a-secret-0123456789abcdef
@@ -31,8 +31,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      # Vitest 5.0.5 gives a worker 60 seconds to start, so cap how many start at once (I32).
-      VITEST_MAX_WORKERS: "2"
       # A rerun bypasses the Turborepo cache, so it really runs Vitest again.
       TURBO_FORCE: ${{ github.run_attempt > 1 }}
     steps:
