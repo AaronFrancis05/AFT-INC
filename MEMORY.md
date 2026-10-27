@@ -362,3 +362,12 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Scope feature 4: `Ship it` ticked, status `done` (heading and index table). Spec 0008 `Accepted`.
 - Not edited (outside /sync's ownership): `README.md` still says `npm run dev`; MEMORY.md *Current position* is stale (still describes feature 1).
 - Next: `/clear`, then the next feature in the scope (feature 5, workspace tooling, needs `/architect`).
+
+### 2026-10-28 (/architect workspace tooling: spec 0009)
+- Spec 0009 written and accepted (status `Proposed`; feature linked, `/develop` advances it). Engineer's picks (all recommended): Prettier 3.9.10 (defaults, printWidth 100, `prettier-plugin-tailwindcss` 0.8.1), markdown never formatted; one report only `pnpm check` (lint, typecheck, `format:check`, `//#format:root:check`, `--continue`) and a writing `pnpm format`; a Format step inside the CI `lint` job (six gates unchanged); Husky 9.1.7 plus lint-staged 17.6.0, `pre-commit` only (ESLint fix then Prettier on staged files; no push hook, no commit message hook, no tests); `prisma format --check` in `@aft/db`; `noUncheckedIndexedAccess`, `noImplicitOverride`, `noFallthroughCasesInSwitch` (15 errors today); `no-floating-promises` and `no-misused-promises` only; `.editorconfig` plus committed `.vscode` (open `AFT-INC` as the VS Code folder from now on); the ESLint import rule stays (no `turbo boundaries`).
+- `main` allows only squash merges with linear history, so the feature ships as two PRs: PR 1 is the reformat alone, PR 2 is the tooling plus `.git-blame-ignore-revs` with PR 1's squash SHA.
+- Architect calls: Prettier config at the root (not `@aft/config`); ESLint runs from the hook through `scripts/lint-staged/eslint.mjs` per workspace (no pnpm in hooks, I34); `prepare: husky || true`.
+- A Sonnet cross check found 10 gaps, all fixed (AC-2 versus I42, `jsx` missing from the extension list, `prepare` on production installs, the helper contract, contract test names with edge case IDs, a cap of 25 promise rule findings before returning to `/architect`, manual proof procedure, the shared checkout check, `--continue`). Verified: `prisma format --check` works in 7.10.1 with no `DATABASE_URL`.
+- New edge cases I33 to I45 in PLAN.md. Skills found for these tools were declined (recorded in the spec Follow-up for `/sync`).
+- Scope feature 5: `Design it` ticked, `in-progress`, four milestones, Verify, Test, Ship (Beta).
+- Next: `/clear`, then `/develop workspace tooling` (PR 1, the reformat, first).
