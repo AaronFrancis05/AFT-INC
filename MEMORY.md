@@ -355,3 +355,10 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - With the engineer's go: pushed `feat/monorepo-migration` and opened PR #12 (https://github.com/AaronFrancis05/AFT-INC/pull/12).
 - Scope feature 4: `Document it` ticked; `Ship it` remains (GA, stays `in-progress`).
 - Next: watch PR #12 CI; rerun the `test` job twice on the same commit (reruns uncached through `TURBO_FORCE`) and check each job's cache key shows its job ID; then squash merge, then `/sync` right away (AGENTS.md and README.md are stale).
+
+### 2026-10-28 (/sync after the monorepo migration merge)
+- PR #12 squash merged to `main` as be85e39 with all six checks green (run 40589264847 on e2acf46). The `test` job ran once (attempt 1); the three attempt CI proof from AC-20 was not run before merge. It can still be run by rerunning the `test` job of the `main` push run for be85e39 twice.
+- Root `AGENTS.md` corrected line by line for the monorepo: Stack (pnpm 12.15.0 plus Turborepo 2.11.10, layout), Commands (pnpm), Environment (root `.env`, `globalEnv`), Rules (`@/` in apps/web only, `@aft/*` exports maps, `server-only`, `@aft/db`, `db:migrate`, `@aft/auth/schemas`, shadcn add from `packages/ui`, Vitest `maxWorkers: 2`, `ci.test.ts` inputs, catalog and dev dependency rules), Gotchas (auth client and providers paths, CI gates, `allowBuilds`, I32, `pnpm exec` reinstall, I23, I30 plus `MSYS_NO_PATHCONV`), Agent skills (`pnpm`, `turborepo`), Context files (`apps/web/AGENTS.md`).
+- Scope feature 4: `Ship it` ticked, status `done` (heading and index table). Spec 0008 `Accepted`.
+- Not edited (outside /sync's ownership): `README.md` still says `npm run dev`; MEMORY.md *Current position* is stale (still describes feature 1).
+- Next: `/clear`, then the next feature in the scope (feature 5, workspace tooling, needs `/architect`).

@@ -29,7 +29,7 @@ What you must never do: deviate from PLAN.md without an `/architect` spec update
 - **Language / Runtime**: TypeScript (strict), Node 24 LTS locally and in CI
 - **Framework**: Next.js 16.4 App Router, React 19.2
 - **Key dependencies**: Better Auth 1.7 (email and password, email OTP, Google, GitHub), Prisma 7 with `@prisma/adapter-pg` on PostgreSQL, Resend with react-email, zod 4 with react-hook-form, shadcn (`radix-lyra` style) on Tailwind v4
-- **Package manager**: npm (`package-lock.json`)
+- **Package manager**: pnpm 12.15.0 workspaces (`pnpm-lock.yaml`; versions pinned once in the `pnpm-workspace.yaml` catalog) with Turborepo 2.11.10. Layout: `apps/web` (`@aft/app-web`) plus `packages/config`, `db`, `email`, `auth`, and `ui` (`@aft/*`, shipped as TypeScript source; spec 0008)
 
 ## Build approach
 
@@ -38,35 +38,45 @@ Tracer Bullet: prove one thin real path through every layer first, then thicken 
 ## Commands
 
 ```bash
-# Install (Node 24 from .nvmrc, npm 11.19.1 from packageManager)
-npm ci
+# Install (Node 24 from .nvmrc, pnpm 12.15.0 from packageManager; CI adds --frozen-lockfile)
+pnpm install
 
-# Database: regenerate the client (output in lib/generated/prisma), apply migrations
-npx prisma generate
-npx prisma migrate dev
+# Database (packages/db): generate the client (gitignored, in packages/db/src/generated/prisma;
+# Turborepo also runs this before typecheck, test, build, and dev), then apply migrations
+pnpm turbo run db:generate
+pnpm --filter @aft/db db:migrate
 
-# Dev server
-npm run dev
+# Dev server (from the root or apps/web; both read the root .env)
+pnpm dev
 
 # Build
-npm run build
+pnpm build
 
 # Lint (zero warnings allowed)
-npm run lint
+pnpm lint
 
 # Typecheck
-npm run typecheck
+pnpm typecheck
 
-# Unit and component tests (Vitest); test:watch for local work, test:coverage is what CI runs
-npm test
+# Unit and component tests (Vitest, every workspace, two at a time); test:coverage is what CI runs.
+# Use these root scripts: a bare `turbo run test` skips the concurrency cap
+pnpm test
+pnpm test:coverage
 
-# Browser smoke tests (Playwright) against a production build
-npm run build && npm run test:e2e
+# One workspace only, or watch mode in the app
+pnpm --filter @aft/app-web test
+pnpm --filter @aft/app-web test:watch
+
+# CI contract test (ci.test.ts at the root)
+pnpm test:root
+
+# Browser smoke tests (Playwright); Turborepo builds the app first
+pnpm turbo run test:e2e --filter=@aft/app-web
 ```
 
 ## Environment
 
-Set in `.env` (gitignored, copy `.env.example`): `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`. Client code may only read `NEXT_PUBLIC_*` variables.
+Set in `.env` (gitignored, copy `.env.example`): `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`. Client code may only read `NEXT_PUBLIC_*` variables. There is one `.env`, at the repo root, for every workspace. Turborepo runs in strict env mode, so a new variable must also be added to `turbo.json` `globalEnv`, or tasks cannot see it.
 
 ## Specs
 
@@ -74,15 +84,16 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md` (or a `NNNN-title/` 
 
 ## Rules
 
-- Import with the `@/` alias (it maps to the repo root).
-- Server code reads the session with `auth.api.getSession({ headers: await headers() })` from `@/lib/auth`; client code uses `authClient` from `@/lib/auth-client`. Never import `@/lib/auth` or `@/lib/prisma` into a `'use client'` file.
-- All database access goes through the shared client in `@/lib/prisma`. The generated client in `lib/generated/prisma` is committed: regenerate it after a schema change, never edit it by hand.
-- Schema changes go through `npx prisma migrate dev`. Never edit a migration that is already applied.
-- Forms use a zod schema (in `lib/*-schemas.ts`), react-hook-form with `zodResolver`, and the shadcn `Form` components. User feedback goes through `sonner` toasts.
-- UI primitives come from `components/ui` (add them with the shadcn CLI). Merge classes with `cn()` from `@/lib/utils`.
+- Inside `apps/web`, import with the `@/` alias (it maps to `apps/web`). Shared code comes from the `@aft/*` packages, only through each package's `exports` map: a deep `@aft/*/src/*` import, importing `@aft/app-web`, or `@/` inside `packages/` fails lint or `ci.test.ts`.
+- Server code reads the session with `auth.api.getSession({ headers: await headers() })`, with `auth` from `@aft/auth/server`; client code uses `authClient` from `@aft/auth/client`. `@aft/db`, `@aft/auth/server`, and `@aft/auth/providers` start with `import "server-only"`, so importing one into a `'use client'` file fails `next build` (a whole `import type` from `@aft/auth/providers` is fine). Any Node runtime that is not Next.js (Vitest, scripts, a future `apps/worker`) aliases `server-only` to `@aft/config/stubs/empty`.
+- All database access goes through the shared client from `@aft/db`. The generated client in `packages/db/src/generated/prisma` is gitignored and made by `db:generate`; never edit it by hand.
+- Schema changes go through `pnpm --filter @aft/db db:migrate`. Never edit a migration that is already applied.
+- Forms use a zod schema (auth forms: `@aft/auth/schemas`), react-hook-form with `zodResolver`, and the shadcn `Form` components. User feedback goes through `sonner` toasts.
+- UI primitives come from `@aft/ui` (`packages/ui/src/components`). Add one with `pnpm exec shadcn add <component>` run from `packages/ui` (never from `apps/web`, never `pnpm dlx`), then apply the post add rewrite in spec 0008 *shadcn setup*. Merge classes with `cn()` from `@aft/ui/lib/utils`; lint fails on any import of the npm `cn` package (I29).
 - Pages that read the session export `const dynamic = "force-dynamic"`.
-- Tests live beside the code as `*.test.ts(x)` (Vitest, jsdom, Testing Library); Playwright smoke tests live in `e2e/*.spec.ts`. Preferences are in `test-preferences.json`.
-- `ci.test.ts` is a contract test over `.github/workflows/ci.yml`, the setup action, `.nvmrc`, and `package.json`. Change it together with CI, never to silence it.
+- Tests live beside the code as `*.test.ts(x)` (Vitest in each workspace, jsdom or node, Testing Library); Playwright smoke tests live in `apps/web/e2e/*.spec.ts`. Every workspace Vitest config sets `maxWorkers: 2` (spec 0008, AC-20). Preferences are in `test-preferences.json`.
+- `ci.test.ts` is a contract test over `.github/workflows/ci.yml`, the setup action, `.nvmrc`, `turbo.json`, `pnpm-workspace.yaml`, every workspace `package.json`, and the Vitest configs. Change it together with CI, never to silence it. When it starts reading a new file, add that file to the `//#test:root` inputs in `turbo.json`.
+- A dependency used by more than one workspace is pinned once in the `pnpm-workspace.yaml` catalog and referenced as `catalog:`. Build only tools (`shadcn`, `eslint-config-next`) and every declared peer stay in `devDependencies`, so `pnpm audit --prod` covers only runtime code (I31). A workspace declares every package it imports; never hoist (I19).
 
 ## Git
 
@@ -94,12 +105,16 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md` (or a `NNNN-title/` 
 
 ## Gotchas
 
-- `lib/auth-client.ts` passes no `baseURL`: the browser calls `/api/auth` on the page's own origin. Never set `NEXT_PUBLIC_BETTER_AUTH_URL`, Better Auth would honor it first. `BETTER_AUTH_URL` is server only and must be set in every deployed environment (spec 0002).
-- A social provider turns on only when both its ID and secret are set. `resolveSocialProviders()` in `lib/auth-providers.ts` feeds both `lib/auth.ts` and the `force-dynamic` sign in and sign up pages; client files may import it for types only (A11).
+- `@aft/auth/client` (`packages/auth/src/client/index.ts`) passes no `baseURL`: the browser calls `/api/auth` on the page's own origin. Never set `NEXT_PUBLIC_BETTER_AUTH_URL`, Better Auth would honor it first. `BETTER_AUTH_URL` is server only and must be set in every deployed environment (spec 0002).
+- A social provider turns on only when both its ID and secret are set. `resolveSocialProviders()` from `@aft/auth/providers` feeds both `@aft/auth/server` and the `force-dynamic` sign in and sign up pages; client files may import it for types only (A11).
 - The OTP fallback line prints only under `next dev` (A3), so testing `next start` locally needs a working `RESEND_API_KEY`.
 - On Windows an empty env var is deleted, so `.env` refills it. To blank an OAuth key for a local run, set it to a single space (the resolver trims it).
-- CI (`.github/workflows/ci.yml`) runs six required gates: test (`npm run test:coverage`), typecheck, lint, prisma, build-smoke, and audit.
-- npm blocks package install scripts until reviewed. Approvals live in `package.json` `allowScripts`; review a new one with `npm install-scripts`, or CI fails.
+- CI (`.github/workflows/ci.yml`) runs six required gates: test (`pnpm turbo run test:coverage //#test:root:coverage --concurrency=2`), typecheck, lint, prisma, build-smoke, and audit (`pnpm audit --prod --audit-level high`). Jobs use placeholder env values, never secrets (I6), and each job has its own `.turbo` cache. A rerun of the `test` job bypasses the Turborepo cache on purpose (`TURBO_FORCE`).
+- pnpm blocks dependency build scripts until reviewed. Approvals live in `pnpm-workspace.yaml` `allowBuilds`, and `strictDepBuilds` makes an unreviewed one fail `pnpm install` locally and in CI (I21).
+- Vitest 5.0.5 gives each worker a fixed 60 seconds to start; under load a whole workspace fails with "Timeout waiting for worker to respond" and a rerun passes (I32). The fix is the `--concurrency=2` and `maxWorkers: 2` caps, never a retry.
+- `pnpm exec` reinstalls when a manifest drifts from the lockfile, so a throwaway `package.json` edit also rewrites `pnpm-lock.yaml`. After reverting it, run `pnpm install` and check `git diff pnpm-lock.yaml`.
+- On a fresh clone, an editor shows missing Prisma types until `pnpm turbo run db:generate` runs (I23).
+- On Windows, keep dots out of the checkout path: shadcn 4.22.1 cuts wildcard alias paths at a dot in a parent folder and writes outside the repo (I30). In Git Bash, set `MSYS_NO_PATHCONV=1` before a turbo command that names a root task such as `//#test:root`, or the leading `//` is rewritten.
 - jsdom lacks `ResizeObserver` and `document.elementFromPoint`, which the OTP input needs. Stub both in a test file that renders it. user-event clicks hang under fake timers, so switch to real timers before clicking.
 - Next.js 16 renamed `middleware.ts` to `proxy.ts`. Check the bundled docs before adding route protection.
 - Branding is still placeholder text ("Better Auth" in the sidebar, "My App" in metadata), and the dashboard shows mock data.
@@ -112,6 +127,8 @@ Installed per project in `.claude/skills/` (pinned in `skills-lock.json`; restor
 - [react-testing-library](.claude/skills/react-testing-library/): `pproenca/dot-skills`, Testing Library queries, user-event, async patterns
 - [playwright-cli](.claude/skills/playwright-cli/): `microsoft/playwright-cli`, browser automation and running Playwright tests
 - [playwright-best-practices](.claude/skills/playwright-best-practices/): `currents-dev/playwright-best-practices-skill`, E2E patterns, flaky tests, CI, accessibility
+- [pnpm](.claude/skills/pnpm/): `antfu/skills`, pnpm workspaces, catalogs, overrides, and `pnpm-workspace.yaml`
+- [turborepo](.claude/skills/turborepo/): `vercel/turborepo`, `turbo.json` tasks, caching, env modes, filtering, and CI
 - MCP servers: `playwright` (`@playwright/mcp`, configured in `.mcp.json`; Claude Code asks you to approve it on first use)
 
 ## AWS
@@ -152,5 +169,6 @@ AWS account access is set up with the Agent Toolkit: CLI profile `remwa`, defaul
 ## Context files
 
 <!-- Nested AGENTS.md files are listed here as they are created -->
+- [apps/web/AGENTS.md](apps/web/AGENTS.md): the Next.js agent rules block that `next dev` writes for the app
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._
