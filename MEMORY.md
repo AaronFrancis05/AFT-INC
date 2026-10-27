@@ -371,3 +371,11 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - New edge cases I33 to I45 in PLAN.md. Skills found for these tools were declined (recorded in the spec Follow-up for `/sync`).
 - Scope feature 5: `Design it` ticked, `in-progress`, four milestones, Verify, Test, Ship (Beta).
 - Next: `/clear`, then `/develop workspace tooling` (PR 1, the reformat, first).
+
+### 2026-10-28 (/develop workspace tooling, PR 1 the reformat)
+- Spec 0009 landed first as its own docs PR #14 (squash 861b7ea), engineer's pick, so no PR was open when PR 1 started (AC-2). Spec status `Proposed` → `In Progress`.
+- PR 1 (#15, `feat/workspace-tooling-format`) squash merged as `7c7c901774b6129c1e123e2b08d02a49f4f7a5cf`, all six checks green. It holds `prettier` 3.9.10 and `prettier-plugin-tailwindcss` 0.8.1 (exact, root), `prettier.config.mjs`, `.prettierignore`, `.editorconfig` (exactly as the spec), plus `prettier --write .` over 73 files. No migration touched. Lockfile: `@react-email/render`'s transitive `prettier` deduped 3.8.1 → 3.9.10.
+- Proof: `prettier --check .` passes; lint, typecheck, build, and test:coverage plus root coverage green uncached; `vitest list` gave the same 128 names before and after; no I42 test fix needed. One local `turbo run lint typecheck build` failed `@aft/app-web#build` under parallel load; it passed alone and through turbo by itself.
+- Flag for `/architect`: `infra/dns/compare.ps1 -Save` rewrites `infra/dns/baseline-pre-switch.json` in PowerShell's layout, so the next save would fail the PR 2 format check (an I40 case missing from the exact `.prettierignore`).
+- Scope feature 5: the PR 1 milestone is ticked. Working on branch `feat/workspace-tooling` (from 7c7c901). Nothing may merge to `main` before PR 2.
+- Next: `/clear`, then `/develop workspace tooling` (PR 2, build plan step 4, the thin hook thread). `.git-blame-ignore-revs` gets `7c7c901774b6129c1e123e2b08d02a49f4f7a5cf`.
