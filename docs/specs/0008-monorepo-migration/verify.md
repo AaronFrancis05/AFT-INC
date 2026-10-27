@@ -50,5 +50,14 @@ Run `next dev` on port 3000 against the dev database (Better Auth rejects any ot
 - [x] `packages/ui/components.json` `utils` alias → `@aft/ui/lib/utils` → AC-16
 - [x] Each config's repo root → computed with `fileURLToPath(import.meta.url)` → AC-13, AC-17
 
+## Step 8c review fixes (amendment 2026-10-27, third)
+- [ ] `pnpm turbo run test:coverage //#test:root:coverage --concurrency=2 --force` (in Git Bash, with `MSYS_NO_PATHCONV=1`) → passes 4 times in a row → AC-20 (I32). 2026-10-28: 3 of 4 without the worker cap (run 4: `eslint.config.test.ts` `beforeAll` hook timeout); 4 of 4 with `VITEST_MAX_WORKERS=2`
+- [ ] PR `test` job → passes on 3 attempts of the same commit; reruns show Vitest output, not cache replays (`TURBO_FORCE` true on attempt 2 and up) → AC-20
+- [x] `pnpm turbo run //#test:root --dry=json` → no `inputs` key on `//#test:root` matches `node_modules|coverage|generated|\.turbo` (67 inputs, 2026-10-28) → AC-20, *Turborepo tasks*
+- [ ] Run `pnpm --filter @aft/ui test:coverage`, then `pnpm test:root` through turbo → the root contract test is a cache hit → *Turborepo tasks*
+- [ ] Each CI job's "Restore Turborepo cache" step → key contains its own job ID → *Setup action*
+- [x] `git diff pnpm-lock.yaml` after the catalog move → only a `catalogs:` entry for `@next/env` and the `apps/web` specifier, no `packages:` change → AC-1, AC-15
+- [x] Root contract test → 22 of 22, including the AC-7 cache key, AC-15 `@next/env`, and AC-20 checks → AC-10, AC-15, AC-20
+
 ## Acceptance-criteria coverage
-- AC-1 install, list, lockfile, value sourcing · AC-2 layout · AC-3 fresh clone, transit · AC-4 renames, migrate status, generated client · AC-5 test parity, e2e, the manual auth steps · AC-6 route table · AC-7 workflow jobs · AC-8 `allowBuilds` · AC-9 audit · AC-10 root contract test · AC-11 deep import, `@/` gate · AC-12 `server-only` build failure · AC-13 root `.env` · AC-14 cache misses · AC-15 one React · AC-16 shadcn add, cn guard · AC-17 build warnings · AC-18 preflight (checked at step 0, recorded in `MEMORY.md` 2026-10-25) · AC-19 `size-9`, sidebar comparison
+- AC-1 install, list, lockfile, value sourcing · AC-2 layout · AC-3 fresh clone, transit · AC-4 renames, migrate status, generated client · AC-5 test parity, e2e, the manual auth steps · AC-6 route table · AC-7 workflow jobs · AC-8 `allowBuilds` · AC-9 audit · AC-10 root contract test · AC-11 deep import, `@/` gate · AC-12 `server-only` build failure · AC-13 root `.env` · AC-14 cache misses · AC-15 one React · AC-16 shadcn add, cn guard · AC-17 build warnings · AC-18 preflight (checked at step 0, recorded in `MEMORY.md` 2026-10-25) · AC-19 `size-9`, sidebar comparison · AC-20 local and CI proofs, dry run inputs
