@@ -408,6 +408,19 @@ Each edge case has an ID and a required handling. How the IDs flow through the w
 - **I30** A dot in a parent folder name on Windows makes `shadcn add` write outside the repo → keep the checkout path free of dots (spec 0008).
 - **I31** A build only tool lands in a workspace's runtime dependencies (declared there, like `shadcn`, or an unmirrored peer that `autoInstallPeers` records as runtime, like `eslint` in `@aft/config`) and drags its whole tree into `pnpm audit --prod`, failing the `audit` job → keep such tools in `devDependencies` and mirror every peer there; two `ci.test.ts` checks scan every workspace (spec 0008, AC-9).
 - **I32** Too many Vitest workers start at once under Turborepo, and one misses Vitest 5.0.5's hard coded 60 second worker start limit, failing a whole workspace with no test result (a rerun passes, so it looks like noise) → test runs use `--concurrency=2` and CI sets `VITEST_MAX_WORKERS=2`; never a blind retry (spec 0008, AC-20).
+- **I33** A file is staged only in part → lint-staged hides the unstaged lines, fixes the staged ones, and restores; on a conflict it brings back its backup and fails the commit (spec 0009).
+- **I34** A hook calls pnpm, which reinstalls on manifest drift and rewrites `pnpm-lock.yaml` mid commit → hooks start binaries with `node` or `./node_modules/.bin`, never `pnpm` or `npx` (spec 0009).
+- **I35** Hooks are missing in a fresh clone, or `prepare` fails with no `.git` or no Husky → `prepare: husky || true`; CI sets `HUSKY=0` (spec 0009).
+- **I36** A git client without Node on PATH runs the hook → the hook fails and blocks the commit; put Node on that client's PATH, never `--no-verify` as a habit (spec 0009).
+- **I37** Two lint-staged globs match one file and edit it at once → the globs are disjoint (spec 0009).
+- **I38** A staged file ESLint ignores trips `--max-warnings=0` → `--no-warn-ignored` (spec 0009).
+- **I39** An ESLint fix leaves a line unformatted → Prettier runs last; `eslint-config-prettier` turns off ESLint style rules (spec 0009).
+- **I40** A tool owned or vendored file fails the format check after its tool rewrites it → listed in `.prettierignore` (spec 0009).
+- **I41** A type aware lint rule meets a file no tsconfig includes → add it to the workspace tsconfig; never `allowDefaultProject` (spec 0009).
+- **I42** A repo wide reformat changes a file a test reads as text → the reformat PR runs the whole suite and fixes the match with the same meaning (spec 0009).
+- **I43** A Windows checkout writes CRLF and fails the LF check → `.gitattributes` `eol=lf`, Prettier, and `.editorconfig` agree (spec 0009).
+- **I44** A commit skips the hook → the CI `lint` job's Format step catches it (spec 0009).
+- **I45** The editor runs ESLint or Prettier from the wrong folder → `eslint.workingDirectories` auto, `prettier.requireConfig`, and `AFT-INC` opened as the VS Code folder (spec 0009).
 
 ## Core data model (seed for spec 0001 data child)
 
