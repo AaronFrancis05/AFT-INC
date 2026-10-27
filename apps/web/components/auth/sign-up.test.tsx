@@ -36,6 +36,7 @@ const EMAIL = "ada@example.com";
 async function fillAndSubmit() {
   const user = userEvent.setup();
   const [password, confirmPassword] = screen.getAllByPlaceholderText("••••••••");
+  if (!password || !confirmPassword) throw new Error("expected two password fields");
   await user.type(screen.getByPlaceholderText("John Doe"), "Ada Lovelace");
   await user.type(screen.getByPlaceholderText("you@example.com"), EMAIL);
   await user.type(password, "Analytical1");

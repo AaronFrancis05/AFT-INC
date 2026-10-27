@@ -23,14 +23,17 @@ describe("next.config root .env loading (spec 0008 AC-13)", () => {
   it("loads env files from the repo root, the folder holding pnpm-workspace.yaml", async () => {
     await loadConfig();
     expect(loadEnvConfig).toHaveBeenCalledTimes(1);
-    const [dir] = loadEnvConfig.mock.calls[0];
+    // The line above proves the first call exists.
+    const [dir] = loadEnvConfig.mock.calls[0]!;
     expect(existsSync(path.join(dir, "pnpm-workspace.yaml"))).toBe(true);
     expect(existsSync(path.join(dir, "apps", "web", "next.config.ts"))).toBe(true);
   });
 
   it("forces a reload, so the root files replace the empty load Next.js cached from apps/web", async () => {
     await loadConfig();
-    const [, , log, forceReload] = loadEnvConfig.mock.calls[0];
+    const call = loadEnvConfig.mock.calls[0];
+    if (!call) throw new Error("loadEnvConfig was not called");
+    const [, , log, forceReload] = call;
     expect(forceReload).toBe(true);
     expect(log).toBe(console);
   });
@@ -38,13 +41,13 @@ describe("next.config root .env loading (spec 0008 AC-13)", () => {
   it("loads development env files outside production", async () => {
     vi.stubEnv("NODE_ENV", "development");
     await loadConfig();
-    expect(loadEnvConfig.mock.calls[0][1]).toBe(true);
+    expect(loadEnvConfig.mock.calls[0]?.[1]).toBe(true);
   });
 
   it("does not load development env files in production", async () => {
     vi.stubEnv("NODE_ENV", "production");
     await loadConfig();
-    expect(loadEnvConfig.mock.calls[0][1]).toBe(false);
+    expect(loadEnvConfig.mock.calls[0]?.[1]).toBe(false);
   });
 });
 
@@ -61,7 +64,9 @@ describe("next.config workspace settings (spec 0008 AC-17)", () => {
 
   it("points Turbopack and file tracing at the same repo root that env loading uses", async () => {
     const config = await loadConfig();
-    const [root] = loadEnvConfig.mock.calls[0];
+    const call = loadEnvConfig.mock.calls[0];
+    if (!call) throw new Error("loadEnvConfig was not called");
+    const [root] = call;
     expect(config.turbopack?.root).toBe(root);
     expect(config.outputFileTracingRoot).toBe(root);
   });

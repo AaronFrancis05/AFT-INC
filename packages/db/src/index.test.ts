@@ -48,7 +48,7 @@ describe("@aft/db client", () => {
       connectionString: "postgresql://user:pass@localhost:5432/aft_test",
     });
     expect(clientArgs).toHaveBeenCalledTimes(1);
-    expect(clientArgs.mock.calls[0][0]).toHaveProperty("adapter");
+    expect(clientArgs.mock.calls[0]?.[0]).toHaveProperty("adapter");
   });
 
   it("does not open a connection just by being imported", async () => {

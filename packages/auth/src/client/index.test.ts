@@ -33,7 +33,7 @@ describe("lib/auth-client.ts", () => {
   it("passes no baseURL, so the browser calls /api/auth on the page's own origin (AC-1)", () => {
     expect(created).toHaveLength(1);
     expect(created[0]).not.toHaveProperty("baseURL");
-    expect(created[0].plugins).toEqual([{ id: "email-otp" }]);
+    expect(created[0]?.plugins).toEqual([{ id: "email-otp" }]);
   });
 
   it("no client auth file reads process.env (AC-1)", () => {

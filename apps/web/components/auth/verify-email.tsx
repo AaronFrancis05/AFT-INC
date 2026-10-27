@@ -144,7 +144,8 @@ export function VerifyEmail() {
               className="ml-3 px-2"
               onClick={(e) => {
                 e.preventDefault();
-                handleResendCode();
+                // Safe not to wait: Better Auth reports failures through onError, which toasts.
+                void handleResendCode();
               }}
             >
               <button disabled={!canResend || resendLoading}>

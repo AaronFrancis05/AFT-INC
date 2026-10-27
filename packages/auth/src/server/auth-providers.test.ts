@@ -94,6 +94,6 @@ describe("warnMissingSocialProviders", () => {
     const { missing } = resolveSocialProviders({ GITHUB_CLIENT_ID: "github-id-value" });
     warnMissingSocialProviders(missing, log);
 
-    expect(log.mock.calls[0][0]).not.toContain("github-id-value");
+    expect(log.mock.calls[0]?.[0]).not.toContain("github-id-value");
   });
 });

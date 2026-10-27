@@ -42,6 +42,7 @@ const EMAIL = "ada@example.com";
 async function fillForm(code: string, password: string, confirm: string) {
   const user = userEvent.setup();
   const [newPassword, confirmPassword] = screen.getAllByPlaceholderText("••••••••");
+  if (!newPassword || !confirmPassword) throw new Error("expected two password fields");
   await user.type(screen.getByRole("textbox"), code);
   await user.type(newPassword, password);
   await user.type(confirmPassword, confirm);
