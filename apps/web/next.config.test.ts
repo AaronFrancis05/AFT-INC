@@ -51,7 +51,12 @@ describe("next.config root .env loading (spec 0008 AC-13)", () => {
 describe("next.config workspace settings (spec 0008 AC-17)", () => {
   it("compiles every workspace package the app imports", async () => {
     const config = await loadConfig();
-    expect([...(config.transpilePackages ?? [])].sort()).toEqual(["@aft/auth", "@aft/db", "@aft/email", "@aft/ui"]);
+    expect([...(config.transpilePackages ?? [])].sort()).toEqual([
+      "@aft/auth",
+      "@aft/db",
+      "@aft/email",
+      "@aft/ui",
+    ]);
   });
 
   it("points Turbopack and file tracing at the same repo root that env loading uses", async () => {

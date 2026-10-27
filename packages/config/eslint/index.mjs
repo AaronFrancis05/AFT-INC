@@ -22,7 +22,8 @@ export default defineConfig([
           patterns: [
             {
               group: ["@aft/*/src", "@aft/*/src/*"],
-              message: "Import from the package's exports (for example @aft/auth/server), never its src folder.",
+              message:
+                "Import from the package's exports (for example @aft/auth/server), never its src folder.",
             },
             {
               group: ["@aft/app-web", "@aft/app-web/*"],

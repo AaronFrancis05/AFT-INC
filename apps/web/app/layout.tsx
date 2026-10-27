@@ -4,9 +4,9 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { cn } from "@aft/ui/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
-const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn( geist.variable, "font-mono", jetbrainsMono.variable)}>
+    <html lang="en" className={cn(geist.variable, "font-mono", jetbrainsMono.variable)}>
       <body className={inter.className}>
         {children}
         <Toaster richColors />

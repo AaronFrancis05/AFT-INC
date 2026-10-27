@@ -15,12 +15,7 @@ import {
   Share2,
 } from "lucide-react";
 import { Button } from "@aft/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@aft/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@aft/ui/components/card";
 import { Input } from "@aft/ui/components/input";
 import { Avatar, AvatarFallback } from "@aft/ui/components/avatar";
 import { Badge } from "@aft/ui/components/badge";
@@ -129,7 +124,7 @@ export default function DashboardPage() {
   const maxRevenue = Math.max(...revenueData.map((d) => d.revenue));
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col">
       {/* Header */}
       <header className="flex h-16 items-center justify-between border-b bg-background px-6">
         <div className="flex items-center gap-4">
@@ -146,19 +141,13 @@ export default function DashboardPage() {
           </Button>
           <div className="flex -space-x-2">
             <Avatar className="h-8 w-8 border-2 border-background">
-              <AvatarFallback className="bg-orange-100 text-orange-600 text-xs">
-                JD
-              </AvatarFallback>
+              <AvatarFallback className="bg-orange-100 text-xs text-orange-600">JD</AvatarFallback>
             </Avatar>
             <Avatar className="h-8 w-8 border-2 border-background">
-              <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                AB
-              </AvatarFallback>
+              <AvatarFallback className="bg-blue-100 text-xs text-blue-600">AB</AvatarFallback>
             </Avatar>
             <Avatar className="h-8 w-8 border-2 border-background">
-              <AvatarFallback className="bg-green-100 text-green-600 text-xs">
-                CD
-              </AvatarFallback>
+              <AvatarFallback className="bg-green-100 text-xs text-green-600">CD</AvatarFallback>
             </Avatar>
           </div>
           <LogoutButton variant="outline" size="sm" />
@@ -166,7 +155,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 space-y-6">
+      <main className="flex-1 space-y-6 p-6">
         {/* Tabs */}
         <div className="flex items-center justify-between">
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
@@ -179,11 +168,11 @@ export default function DashboardPage() {
           </Tabs>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
+              <Filter className="mr-2 h-4 w-4" />
               Filter
             </Button>
             <Button size="sm" className="bg-orange-500 hover:bg-orange-600">
-              <Download className="h-4 w-4 mr-2" />
+              <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
           </div>
@@ -196,26 +185,22 @@ export default function DashboardPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {stat.title}
-                    </p>
-                    <div className="flex items-center gap-3 mt-2">
+                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <div className="mt-2 flex items-center gap-3">
                       <p className="text-2xl font-bold">{stat.value}</p>
                       <div className="flex items-center gap-1">
                         <div className="flex gap-0.5">
                           {[1, 2, 3, 4, 5].map((i) => (
                             <div
                               key={i}
-                              className={`w-1 rounded-full ${
-                                i <= 3 ? "bg-primary" : "bg-muted"
-                              }`}
+                              className={`w-1 rounded-full ${i <= 3 ? "bg-primary" : "bg-muted"}`}
                               style={{ height: `${8 + i * 3}px` }}
                             />
                           ))}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 mt-2">
+                    <div className="mt-2 flex items-center gap-1">
                       <Badge
                         variant="secondary"
                         className={`text-xs ${
@@ -225,15 +210,13 @@ export default function DashboardPage() {
                         }`}
                       >
                         {stat.trend === "up" ? (
-                          <TrendingUp className="h-3 w-3 mr-1" />
+                          <TrendingUp className="mr-1 h-3 w-3" />
                         ) : (
-                          <TrendingDown className="h-3 w-3 mr-1" />
+                          <TrendingDown className="mr-1 h-3 w-3" />
                         )}
                         {stat.change}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {stat.description}
-                      </span>
+                      <span className="text-xs text-muted-foreground">{stat.description}</span>
                     </div>
                   </div>
                 </div>
@@ -245,16 +228,14 @@ export default function DashboardPage() {
         {/* Charts Row */}
         <div className="grid gap-4 lg:grid-cols-5">
           {/* Revenue Forecast */}
-          <Card className="lg:col-span-3 bg-background">
+          <Card className="bg-background lg:col-span-3">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
-                <CardTitle className="text-base font-semibold">
-                  Revenue Forecast
-                </CardTitle>
+                <CardTitle className="text-base font-semibold">Revenue Forecast</CardTitle>
               </div>
               <div className="flex items-center gap-2">
                 <Select defaultValue="monthly">
-                  <SelectTrigger className="w-[100px] h-8 text-xs">
+                  <SelectTrigger className="h-8 w-[100px] text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -264,7 +245,7 @@ export default function DashboardPage() {
                   </SelectContent>
                 </Select>
                 <Select defaultValue="contacts">
-                  <SelectTrigger className="w-[100px] h-8 text-xs">
+                  <SelectTrigger className="h-8 w-[100px] text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -275,56 +256,46 @@ export default function DashboardPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="h-[250px] flex items-end gap-2">
+              <div className="flex h-[250px] items-end gap-2">
                 {revenueData.map((data, index) => (
-                  <div key={data.month} className="flex-1 flex flex-col items-center gap-2">
+                  <div key={data.month} className="flex flex-1 flex-col items-center gap-2">
                     <div
                       className={`w-full rounded-t-md transition-all ${
-                        index === 4
-                          ? "bg-primary"
-                          : "bg-muted hover:bg-muted-foreground/20"
+                        index === 4 ? "bg-primary" : "bg-muted hover:bg-muted-foreground/20"
                       }`}
                       style={{
                         height: `${(data.revenue / maxRevenue) * 180}px`,
                       }}
                     />
-                    <span className="text-xs text-muted-foreground">
-                      {data.month}
-                    </span>
+                    <span className="text-xs text-muted-foreground">{data.month}</span>
                   </div>
                 ))}
               </div>
-              <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t">
+              <div className="mt-4 flex items-center justify-center gap-6 border-t pt-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-primary" />
-                  <span className="text-xs text-muted-foreground">
-                    Sales revenue
-                  </span>
+                  <div className="h-3 w-3 rounded-full bg-primary" />
+                  <span className="text-xs text-muted-foreground">Sales revenue</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-muted" />
-                  <span className="text-xs text-muted-foreground">
-                    Sales revenue
-                  </span>
+                  <div className="h-3 w-3 rounded-full bg-muted" />
+                  <span className="text-xs text-muted-foreground">Sales revenue</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
-                  <span className="text-xs text-muted-foreground">
-                    Sales revenue
-                  </span>
+                  <div className="h-3 w-3 rounded-full bg-muted-foreground/30" />
+                  <span className="text-xs text-muted-foreground">Sales revenue</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Source */}
-          <Card className="lg:col-span-2 bg-background">
+          <Card className="bg-background lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
                 <CardTitle className="text-base font-semibold">Source</CardTitle>
               </div>
               <Select defaultValue="contacts">
-                <SelectTrigger className="w-[100px] h-8 text-xs">
+                <SelectTrigger className="h-8 w-[100px] text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -334,12 +305,12 @@ export default function DashboardPage() {
               </Select>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4 mb-6">
+              <div className="mb-6 flex items-center gap-4">
                 <div>
                   <p className="text-3xl font-bold">12,450</p>
                   <p className="text-sm text-muted-foreground">Total source</p>
                 </div>
-                <div className="flex gap-1 flex-1">
+                <div className="flex flex-1 gap-1">
                   {sourceData.map((source) => (
                     <div
                       key={source.name}
@@ -352,7 +323,7 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 {sourceData.map((source) => (
                   <div key={source.name} className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 flex-1">
+                    <div className="flex flex-1 items-center gap-2">
                       {source.name === "Website" && (
                         <Globe className="h-4 w-4 text-muted-foreground" />
                       )}
@@ -367,16 +338,12 @@ export default function DashboardPage() {
                       )}
                       <span className="text-sm">{source.name}</span>
                     </div>
-                    <span className="text-sm font-medium">
-                      {source.value.toLocaleString()}
-                    </span>
-                    <span className="text-sm text-muted-foreground w-10">
-                      {source.percentage}%
-                    </span>
+                    <span className="text-sm font-medium">{source.value.toLocaleString()}</span>
+                    <span className="w-10 text-sm text-muted-foreground">{source.percentage}%</span>
                   </div>
                 ))}
               </div>
-              <Button variant="outline" className="w-full mt-4" size="sm">
+              <Button variant="outline" className="mt-4 w-full" size="sm">
                 View Details
               </Button>
             </CardContent>
@@ -386,22 +353,17 @@ export default function DashboardPage() {
         {/* Table */}
         <Card className="bg-background">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-semibold">
-              Table Data Sales
-            </CardTitle>
+            <CardTitle className="text-base font-semibold">Table Data Sales</CardTitle>
             <div className="flex items-center gap-2">
               <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search data"
-                  className="pl-8 h-9 w-[200px]"
-                />
+                <Search className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search data" className="h-9 w-[200px] pl-8" />
               </div>
               <Button variant="outline" size="sm">
                 Sort by
               </Button>
               <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
+                <Filter className="mr-2 h-4 w-4" />
                 Filter
               </Button>
             </div>
@@ -428,13 +390,11 @@ export default function DashboardPage() {
                     <TableCell>
                       <Checkbox />
                     </TableCell>
-                    <TableCell className="font-medium">
-                      {sale.dealName}
-                    </TableCell>
+                    <TableCell className="font-medium">{sale.dealName}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
-                          <AvatarFallback className="text-xs bg-muted">
+                          <AvatarFallback className="bg-muted text-xs">
                             {sale.companyLogo}
                           </AvatarFallback>
                         </Avatar>
@@ -442,13 +402,11 @@ export default function DashboardPage() {
                       </div>
                     </TableCell>
                     <TableCell>{sale.price}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {sale.dateCreated}
-                    </TableCell>
+                    <TableCell className="text-muted-foreground">{sale.dateCreated}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
-                          <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                          <AvatarFallback className="bg-primary/10 text-xs text-primary">
                             {sale.ownerAvatar}
                           </AvatarFallback>
                         </Avatar>
@@ -456,10 +414,7 @@ export default function DashboardPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant="secondary"
-                        className="bg-blue-100 text-blue-700"
-                      >
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                         {sale.stage}
                       </Badge>
                     </TableCell>

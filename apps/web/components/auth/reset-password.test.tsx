@@ -2,7 +2,10 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-type Callbacks = { onSuccess?: () => void; onError?: (ctx: { error: { message: string } }) => void };
+type Callbacks = {
+  onSuccess?: () => void;
+  onError?: (ctx: { error: { message: string } }) => void;
+};
 
 const { resetPassword, sendVerificationOtp, push, toast } = vi.hoisted(() => ({
   resetPassword: vi.fn(),
@@ -127,7 +130,9 @@ describe("ResetPassword", () => {
     });
 
     it("resends a forget password code to the stored email", async () => {
-      sendVerificationOtp.mockImplementation(async (_body: unknown, cb: Callbacks) => cb.onSuccess?.());
+      sendVerificationOtp.mockImplementation(async (_body: unknown, cb: Callbacks) =>
+        cb.onSuccess?.(),
+      );
       const user = userEvent.setup();
       render(<ResetPassword />);
 

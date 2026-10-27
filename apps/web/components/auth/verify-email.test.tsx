@@ -2,7 +2,10 @@ import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-type Callbacks = { onSuccess?: () => void; onError?: (ctx: { error: { message: string } }) => void };
+type Callbacks = {
+  onSuccess?: () => void;
+  onError?: (ctx: { error: { message: string } }) => void;
+};
 
 const { verifyEmail, sendVerificationOtp, push, toast } = vi.hoisted(() => ({
   verifyEmail: vi.fn(),
@@ -91,7 +94,9 @@ describe("VerifyEmail", () => {
     });
 
     it("resends the code to the stored email and restarts the countdown", async () => {
-      sendVerificationOtp.mockImplementation(async (_body: unknown, cb: Callbacks) => cb.onSuccess?.());
+      sendVerificationOtp.mockImplementation(async (_body: unknown, cb: Callbacks) =>
+        cb.onSuccess?.(),
+      );
       render(<VerifyEmail />);
       tick(60);
       vi.useRealTimers();

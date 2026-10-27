@@ -53,7 +53,10 @@ describe("FormMessage", () => {
     await user.click(screen.getByRole("button", { name: "Submit" }));
 
     const alerts = await screen.findAllByRole("alert");
-    expect(alerts.map((alert) => alert.textContent)).toEqual(["Email is required", "Name is required"]);
+    expect(alerts.map((alert) => alert.textContent)).toEqual([
+      "Email is required",
+      "Name is required",
+    ]);
   });
 
   it("clears a field's error once that field becomes valid", async () => {

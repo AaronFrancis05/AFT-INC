@@ -44,7 +44,9 @@ describe("@aft/db client", () => {
   it("builds the Postgres adapter from DATABASE_URL and hands it to the client", async () => {
     vi.stubEnv("DATABASE_URL", "postgresql://user:pass@localhost:5432/aft_test");
     await loadClient();
-    expect(adapterArgs).toHaveBeenCalledWith({ connectionString: "postgresql://user:pass@localhost:5432/aft_test" });
+    expect(adapterArgs).toHaveBeenCalledWith({
+      connectionString: "postgresql://user:pass@localhost:5432/aft_test",
+    });
     expect(clientArgs).toHaveBeenCalledTimes(1);
     expect(clientArgs.mock.calls[0][0]).toHaveProperty("adapter");
   });

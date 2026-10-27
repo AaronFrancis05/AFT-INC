@@ -17,13 +17,7 @@ import { Input } from "@aft/ui/components/input";
 import { Button } from "@aft/ui/components/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@aft/ui/components/avatar";
 import { Textarea } from "@aft/ui/components/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@aft/ui/components/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@aft/ui/components/card";
 import { ArrowLeft, Upload, RefreshCw, Sun, Bell } from "lucide-react";
 import { toast } from "sonner";
 
@@ -72,8 +66,7 @@ export function Profile({ user }: ProfileProps) {
     },
   });
 
-  const initials =
-    `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "U";
+  const initials = `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "U";
 
   async function onSubmitPersonal(data: PersonalInfoInput) {
     setIsLoadingPersonal(true);
@@ -149,22 +142,16 @@ export function Profile({ user }: ProfileProps) {
               </CardHeader>
               <CardContent className="flex items-center gap-6">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage
-                    src={user?.image || ""}
-                    alt={user?.name || "User"}
-                  />
-                  <AvatarFallback className="text-2xl bg-muted">
-                    {initials}
-                  </AvatarFallback>
+                  <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
+                  <AvatarFallback className="bg-muted text-2xl">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="space-y-2">
                   <Button variant="outline" size="sm">
-                    <Upload className="h-4 w-4 mr-2" />
+                    <Upload className="mr-2 h-4 w-4" />
                     Upload New
                   </Button>
                   <p className="text-xs text-muted-foreground">
-                    Recommended: Square JPG, PNG, or GIF, at least 1000x1000
-                    pixels.
+                    Recommended: Square JPG, PNG, or GIF, at least 1000x1000 pixels.
                   </p>
                 </div>
               </CardContent>
@@ -174,22 +161,15 @@ export function Profile({ user }: ProfileProps) {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Account Settings</CardTitle>
-                <CardDescription>
-                  Manage your account credentials and verification.
-                </CardDescription>
+                <CardDescription>Manage your account credentials and verification.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Email Address</label>
-                  <Input
-                    type="email"
-                    value={user?.email || ""}
-                    disabled
-                    className="bg-muted/50"
-                  />
+                  <Input type="email" value={user?.email || ""} disabled className="bg-muted/50" />
                   <p className="text-xs text-muted-foreground">
-                    Email address cannot be changed directly. Please contact
-                    support if you need to update it.
+                    Email address cannot be changed directly. Please contact support if you need to
+                    update it.
                   </p>
                 </div>
                 <div className="pt-2">
@@ -209,9 +189,7 @@ export function Profile({ user }: ProfileProps) {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Personal Information</CardTitle>
-                <CardDescription>
-                  Update your personal details here.
-                </CardDescription>
+                <CardDescription>Update your personal details here.</CardDescription>
               </CardHeader>
               <CardContent>
                 <Form {...personalForm}>
@@ -264,12 +242,8 @@ export function Profile({ user }: ProfileProps) {
             {/* Professional Information Card */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">
-                  Professional Information
-                </CardTitle>
-                <CardDescription>
-                  Share your professional background and role.
-                </CardDescription>
+                <CardTitle className="text-base">Professional Information</CardTitle>
+                <CardDescription>Share your professional background and role.</CardDescription>
               </CardHeader>
               <CardContent>
                 <Form {...professionalForm}>
@@ -313,9 +287,7 @@ export function Profile({ user }: ProfileProps) {
                         disabled={isLoadingProfessional}
                         className="bg-violet-500 hover:bg-violet-600"
                       >
-                        {isLoadingProfessional
-                          ? "Saving..."
-                          : "Save Professional Info"}
+                        {isLoadingProfessional ? "Saving..." : "Save Professional Info"}
                       </Button>
                     </div>
                   </form>

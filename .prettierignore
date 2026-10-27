@@ -1,0 +1,10 @@
+# Written by skills and people as prose; never reformatted (spec 0009).
+**/*.md
+# Byte exact once applied (I18).
+packages/db/prisma/migrations/
+# Owned by tools, rewritten on their next run (I40).
+pnpm-lock.yaml
+skills-lock.json
+.claude/
+.idea/
+docs/.agent-cache/

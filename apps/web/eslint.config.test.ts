@@ -18,13 +18,17 @@ beforeAll(async () => {
 
 // Messages from the boundary rule only, so unrelated rules (unused vars and so on) never mask a result.
 async function restricted(code: string) {
-  const [result] = await eslint.lintText(code, { filePath: path.join(appDir, "components", "probe.tsx") });
+  const [result] = await eslint.lintText(code, {
+    filePath: path.join(appDir, "components", "probe.tsx"),
+  });
   return result.messages.filter((m) => m.ruleId === "no-restricted-imports");
 }
 
 describe("package boundary rule (spec 0008 AC-11)", () => {
   it("rejects a deep import into a package's src folder", async () => {
-    const messages = await restricted(`import { auth } from "@aft/auth/src/server/auth";\nexport { auth };\n`);
+    const messages = await restricted(
+      `import { auth } from "@aft/auth/src/server/auth";\nexport { auth };\n`,
+    );
     expect(messages).toHaveLength(1);
     expect(messages[0].severity).toBe(2);
     expect(messages[0].message).toContain("never its src folder");
@@ -36,7 +40,9 @@ describe("package boundary rule (spec 0008 AC-11)", () => {
   });
 
   it("rejects importing the app from anywhere", async () => {
-    const messages = await restricted(`import { Nav } from "@aft/app-web/components/nav/nav";\nexport { Nav };\n`);
+    const messages = await restricted(
+      `import { Nav } from "@aft/app-web/components/nav/nav";\nexport { Nav };\n`,
+    );
     expect(messages).toHaveLength(1);
     expect(messages[0].message).toContain("Nothing imports the app");
   });
@@ -62,7 +68,9 @@ describe("cn package guard (spec 0008 I29)", () => {
   });
 
   it("rejects a type only import of the cn package", async () => {
-    const messages = await restricted(`import type { ClassValue } from "cn";\nexport type { ClassValue };\n`);
+    const messages = await restricted(
+      `import type { ClassValue } from "cn";\nexport type { ClassValue };\n`,
+    );
     expect(messages).toHaveLength(1);
   });
 
