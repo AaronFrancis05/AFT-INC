@@ -21,5 +21,6 @@ runs:
       uses: actions/cache@v4
       with:
         path: .turbo
-        key: turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
-        restore-keys: turbo-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+        # github.job is the calling job, so each job saves and restores its own task results.
+        key: turbo-${{ runner.os }}-${{ github.job }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+        restore-keys: turbo-${{ runner.os }}-${{ github.job }}-${{ hashFiles('pnpm-lock.yaml') }}-

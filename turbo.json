@@ -20,7 +20,8 @@
     "PORT",
     "HOME",
     "PLAYWRIGHT_BROWSERS_PATH",
-    "NEXT_TELEMETRY_DISABLED"
+    "NEXT_TELEMETRY_DISABLED",
+    "VITEST_MAX_WORKERS"
   ],
   "tasks": {
     "transit": {
@@ -104,23 +105,41 @@
     "//#test:root": {
       "inputs": [
         "ci.test.ts",
+        "vitest.config.mts",
         ".github/**",
         "package.json",
         "apps/*/package.json",
         "pnpm-workspace.yaml",
         ".nvmrc",
-        "packages/**"
+        "turbo.json",
+        "package-lock.json",
+        "audit-ci.jsonc",
+        "packages/*/package.json",
+        "packages/**/*.{ts,tsx,mts,mjs,js}",
+        "!packages/**/node_modules/**",
+        "!packages/**/generated/**",
+        "!packages/**/coverage/**",
+        "!packages/**/.turbo/**"
       ]
     },
     "//#test:root:coverage": {
       "inputs": [
         "ci.test.ts",
+        "vitest.config.mts",
         ".github/**",
         "package.json",
         "apps/*/package.json",
         "pnpm-workspace.yaml",
         ".nvmrc",
-        "packages/**"
+        "turbo.json",
+        "package-lock.json",
+        "audit-ci.jsonc",
+        "packages/*/package.json",
+        "packages/**/*.{ts,tsx,mts,mjs,js}",
+        "!packages/**/node_modules/**",
+        "!packages/**/generated/**",
+        "!packages/**/coverage/**",
+        "!packages/**/.turbo/**"
       ]
     }
   }

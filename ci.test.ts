@@ -11,6 +11,7 @@ const setup = read(".github/actions/setup/action.yml");
 const pkg = JSON.parse(read("package.json"));
 const web = JSON.parse(read("apps/web/package.json"));
 const workspace = read("pnpm-workspace.yaml");
+const turbo = JSON.parse(read("turbo.json"));
 
 // Every source file under packages/, skipping installed, generated, and tool output folders.
 function packageSources(dir = "packages"): string[] {
@@ -88,6 +89,25 @@ describe("CI workflow", () => {
     expect(checkouts).toHaveLength(REQUIRED_CHECKS.length);
   });
 
+  it("covers 0008 AC-7: each job keeps its own Turborepo cache", () => {
+    expect(setup).toMatch(/^\s+key: turbo-.*\$\{\{ github\.job \}\}.*\$\{\{ github\.sha \}\}$/m);
+    expect(setup).toMatch(/^\s+restore-keys: turbo-.*\$\{\{ github\.job \}\}/m);
+    expect(ci).toMatch(/^\s+key: nextjs-.*'!\*\*\/node_modules\/\*\*'/m);
+  });
+
+  it("covers 0008 AC-20: test runs cap Turborepo concurrency and Vitest workers", () => {
+    expect(pkg.scripts.test).toContain("--concurrency=2");
+    expect(pkg.scripts["test:coverage"]).toContain("--concurrency=2");
+    expect(ci).toMatch(/^\s+run: pnpm turbo run test:coverage .*--concurrency=2$/m);
+    const testJob = ci.slice(ci.indexOf("\n  test:\n"), ci.indexOf("\n  typecheck:\n"));
+    expect(testJob).toContain('VITEST_MAX_WORKERS: "2"');
+    expect(testJob).toContain("TURBO_FORCE: ${{ github.run_attempt > 1 }}");
+    expect(turbo.globalPassThroughEnv).toContain("VITEST_MAX_WORKERS");
+    // No blind retry for the worker start timeout (I32); comment lines may mention it.
+    const code = ci.split("\n").filter((line) => !line.trim().startsWith("#"));
+    expect(code.filter((line) => line.includes("--retry"))).toEqual([]);
+  });
+
   it("covers AC-11: every job installs through the shared setup action", () => {
     const setupUses = ci.match(/uses: \.\/\.github\/actions\/setup$/gm) ?? [];
     expect(setupUses).toHaveLength(REQUIRED_CHECKS.length);
@@ -129,17 +149,24 @@ describe("Toolchain pins", () => {
     expect(pkg.devDependencies["audit-ci"]).toBeUndefined();
   });
 
+  it("covers 0008 AC-15: @next/env matches next in the catalog", () => {
+    const next = workspace.match(/^ {2}next: (\S+)$/m)?.[1];
+    expect(next).toBeDefined();
+    expect(workspace.match(/^ {2}"@next\/env": (\S+)$/m)?.[1]).toBe(next);
+    expect(web.dependencies["@next/env"]).toBe("catalog:");
+  });
+
   it("covers 0008 AC-11: no file under packages imports the @/ alias", () => {
     const offenders = packageSources().filter((file) => /["']@\//.test(read(file)));
     expect(offenders).toEqual([]);
   });
 
   it("covers AC-1: the test job runs turbo run test:coverage and the root contract test", () => {
-    expect(ci).toContain("run: pnpm turbo run test:coverage //#test:root:coverage");
+    expect(ci).toContain("run: pnpm turbo run test:coverage //#test:root:coverage --concurrency=2");
     expect(web.scripts.test).toBe("vitest run");
     expect(web.scripts["test:watch"]).toBe("vitest");
     // The root test script goes through Turborepo, so turbo run test can never recurse into itself.
-    expect(pkg.scripts.test).toBe("turbo run test");
+    expect(pkg.scripts.test).toBe("turbo run test --concurrency=2");
     expect(pkg.scripts["test:root"]).toBe("vitest run");
   });
 

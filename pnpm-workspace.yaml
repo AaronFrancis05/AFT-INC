@@ -3,11 +3,13 @@ packages:
   - packages/*
 
 # Every dependency used by more than one workspace, pinned once at the version
-# package-lock.json resolved before the move (spec 0008, AC-15, I25).
+# package-lock.json resolved before the move (spec 0008, AC-15, I25). @next/env is used
+# only by apps/web but sits here so it stays equal to next (ci.test.ts checks it).
 catalog:
   react: 19.2.4
   react-dom: 19.2.4
   next: 16.4.2
+  "@next/env": 16.4.2
   better-auth: 1.7.11
   zod: 4.6.7
   sonner: 2.0.7

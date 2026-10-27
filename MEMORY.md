@@ -330,3 +330,10 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - A Sonnet cross check found 7 gaps, all fixed. The main one: a CI rerun replays the cached test results, so the `test` job sets `TURBO_FORCE: ${{ github.run_attempt > 1 }}`. Also: the local proof is `pnpm turbo run test:coverage //#test:root:coverage --concurrency=2 --force` four times; new `ci.test.ts` checks for the cache keys and for `@next/env` equal to `next`.
 - Scope feature 4: `Build it` unticked, new milestone "Review fixes".
 - Next: `/clear`, then `/develop monorepo migration` (step 8c), then `/document monorepo migration` and `/sync`.
+
+### 2026-10-28 (/develop monorepo migration, step 8c review fixes)
+- Built step 8c: `--concurrency=2` on the root `test`/`test:coverage` scripts and the CI test command; CI `test` job env `VITEST_MAX_WORKERS: "2"` and `TURBO_FORCE: ${{ github.run_attempt > 1 }}`; `VITEST_MAX_WORKERS` in `globalPassThroughEnv`; per job `.turbo` cache key; narrowed `//#test:root` inputs (67 inputs, was 234, none under node_modules/coverage/generated/.turbo); `build-smoke` key exclusions; `@next/env` via `catalog:` (lockfile: only a `catalogs:` entry plus the importer specifier). Three new `ci.test.ts` checks; root contract test 22 of 22; lint and typecheck 12 of 12.
+- AC-20 local proof, without the worker cap: 3 of 4 passed. Run 4 failed on a different limit: the `beforeAll` hook timeout (60s, set in the test itself) in `apps/web/eslint.config.test.ts`, which takes about 5s alone; that run was 188s against about 75s for the others. No worker start timeout appeared.
+- Per AC-20's fallback, reran with `VITEST_MAX_WORKERS=2`: 4 of 4 passed (108, 81, 77, 81s).
+- Gotcha: in Git Bash, `//#test:root` is rewritten by MSYS path conversion; set `MSYS_NO_PATHCONV=1` for turbo root task commands.
+- Build plan step 8c and the scope milestone are left unticked: AC-20 routes back to `/architect` to choose between a documented local `VITEST_MAX_WORKERS` and `maxWorkers` in the configs (and whether to raise the eslint test's hook timeout). The CI proof (3 runs) is still owed on the PR.

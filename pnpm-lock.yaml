@@ -164,6 +164,9 @@ settings:
 
 catalogs:
   default:
+    '@next/env':
+      specifier: 16.4.2
+      version: 16.4.2
     '@phosphor-icons/react':
       specifier: 2.1.10
       version: 2.1.10
@@ -296,7 +299,7 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.71.2(react@19.2.4))
       '@next/env':
-        specifier: 16.4.2
+        specifier: 'catalog:'
         version: 16.4.2
       '@phosphor-icons/react':
         specifier: 'catalog:'

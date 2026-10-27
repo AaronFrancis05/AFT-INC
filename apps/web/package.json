@@ -19,7 +19,7 @@
     "@aft/email": "workspace:*",
     "@aft/ui": "workspace:*",
     "@hookform/resolvers": "^5.2.2",
-    "@next/env": "16.4.2",
+    "@next/env": "catalog:",
     "@phosphor-icons/react": "catalog:",
     "better-auth": "catalog:",
     "lucide-react": "catalog:",
