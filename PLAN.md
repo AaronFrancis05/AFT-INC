@@ -404,6 +404,8 @@ Each edge case has an ID and a required handling. How the IDs flow through the w
 - **I26** Tailwind skips classes that live in a package → `@source` in the shared ui CSS.
 - **I27** A non Next.js Node runtime loads `server-only` and crashes → alias it to the empty stub in `@aft/config`.
 - **I28** pnpm symlinks or long paths fail on Windows → junctions need no admin; enable long paths and reinstall.
+- **I29** shadcn's registry imports `cn` from the npm `cn` package → rewrite the import to `@aft/ui/lib/utils` and remove the package (if added) after each `add`, with a lint guard, until a feature adopts `cn` (spec 0008).
+- **I30** A dot in a parent folder name on Windows makes `shadcn add` write outside the repo → keep the checkout path free of dots (spec 0008).
 
 ## Core data model (seed for spec 0001 data child)
 

@@ -61,6 +61,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 27 | [Design system and AFT brand](foundation.md) | Foundation | planned |
 | 28 | [Internationalization foundation](foundation.md) | Foundation | planned |
 | 148 | [First production go live](foundation.md) | Foundation | in-progress |
+| 149 | [Adopt the cn class merger](foundation.md) | Foundation | planned |
 | 29 | [Organizations and personal workspaces](identity.md) | Slice 1 | planned |
 | 30 | [Route protection](identity.md) | Slice 1 | planned |
 | 31 | [Catalog data model](commerce.md) | Slice 1 | planned |

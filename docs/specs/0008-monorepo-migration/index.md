@@ -5,6 +5,8 @@
 
 > **Amended 2026-10-25** (during the build, at step 6): `@aft/auth` gains a light `./providers` subpath for `resolveSocialProviders` and its types, so the sign in and sign up pages no longer load Better Auth, Prisma, and Resend just to list providers. It is guarded with `server-only`. Client components import the `SocialProvider` type from it. The client boundary tests are split so each workspace scans its own files. Changed: AC-12, *Import rules*, *Package contents*, *Key invariants*, build plan step 6. Also corrected to match the build: `loadEnvConfig` passes `forceReload` (`true`), because Next.js has already loaded and cached env files from `apps/web` when `next.config.ts` runs (AC-13), and `server-only` is in the catalog (AC-15). Why: [rationale.md](rationale.md#amendment-2026-10-25-a-light-providers-entry).
 
+> **Amended 2026-10-27** (during the build, at step 8): since about 2026-10-16, shadcn's registry imports `cn` from the npm package `cn` and lists it as a dependency. This migration keeps `@aft/ui`'s own `cn` (`clsx` plus `tailwind-merge`) so behavior and versions stay unchanged (AC-1, AC-5). `shadcn add` now runs from `packages/ui`, and one documented rewrite follows each `add`. Adopting the `cn` package is left to a separate scope feature. Also recorded: on Windows, a dot in any parent folder name makes shadcn 4.22.1 resolve wildcard aliases outside the repo (I30). Changed: AC-16, *shadcn setup*, *Config files in detail* (ESLint guard for `cn`), *Value sourcing*, *Key invariants*, edge cases I29 and I30, the AC-16 test scenario, *Follow-up*. Why: [rationale.md](rationale.md#amendment-2026-10-27-shadcn-and-the-cn-package).
+
 ## Summary
 
 This spec moves today's single Next.js app into `apps/web` and pulls the shared code into five packages (`config`, `db`, `auth`, `ui`, `email`), with no change in what users see. It is step 1 of the path to live in spec 0007, and every later app (`apps/auth`, `apps/worker`) needs it first. The layout and tools were already chosen in spec 0005 child 0001 (pnpm workspaces plus Turborepo, packages shipped as TypeScript source); this spec settles how the move is done, what goes where, and how you prove nothing broke.
@@ -34,7 +36,7 @@ Scope feature 4 · GA · build approach Tracer Bullet · one PR with milestone c
 - **AC-13**: There is one `.env`, at the repo root (still gitignored), and `.env.example` stays at the root. `apps/web/next.config.ts` calls `loadEnvConfig(repoRoot, process.env.NODE_ENV !== "production", console, true)` from `@next/env`; `packages/db/prisma.config.ts` loads it with `dotenv` `config({ path })`. Both compute the root from `fileURLToPath(import.meta.url)`, and a missing `.env` is not an error. Running `pnpm dev` from the root or from `apps/web` both see the values.
 - **AC-14**: `turbo.json` runs in strict env mode with `globalEnv` listing the nine variables from `.env.example` (`DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`) plus `NODE_ENV`, `globalPassThroughEnv` listing `CI`, `PORT`, `HOME`, `PLAYWRIGHT_BROWSERS_PATH`, and `NEXT_TELEMETRY_DISABLED`, and `.env` in `globalDependencies`. Changing any listed variable in the shell, or any byte of `.env`, misses the cache for `build` (I22).
 - **AC-15**: Every dependency used by more than one workspace is pinned once through `catalog:` in `pnpm-workspace.yaml` (*Workspace file*), and every workspace references it as `catalog:`. `pnpm why react` shows a single version (I25).
-- **AC-16**: `packages/ui` follows shadcn's monorepo layout with the `components.json` aliases in *shadcn setup* (style `radix-lyra`, icon library `phosphor`, base color `neutral`, unchanged). Running `pnpm dlx shadcn@4.22.1 add <component>` in `apps/web` writes the primitive into `packages/ui/src/components/`, with imports that pass AC-11 without hand edits.
+- **AC-16**: `packages/ui` follows shadcn's monorepo layout with the `components.json` aliases in *shadcn setup* (style `radix-lyra`, icon library `phosphor`, base color `neutral`, unchanged). Running `pnpm exec shadcn add <component>` (the catalog pinned 4.22.1) in `packages/ui` writes the primitive into `packages/ui/src/components/` and nothing outside the repo, and any npm dependency it adds lands in `packages/ui/package.json`. After the post add rewrite in *shadcn setup* (and nothing else), the file passes AC-11, `lint`, and `typecheck`, it imports `cn` from `@aft/ui/lib/utils`, and no workspace lists the `cn` package as a dependency: `pnpm why cn -r` shows it only under `shadcn` (through `@shadcn/registry`, as on `main`) (I29).
 - **AC-17**: `apps/web/next.config.ts` sets `transpilePackages` to `["@aft/auth", "@aft/db", "@aft/email", "@aft/ui"]` and sets `turbopack.root` and `outputFileTracingRoot` to the same absolute repo root, so `next build` prints no workspace root or multiple lockfile warning, and feature 9's standalone output can trace package files.
 - **AC-18**: Before the first move commit, no branch other than `main` and this feature's branch has unmerged work and no other pull request is open (each was merged, rebased and merged, or closed by the engineer), and `ListAgents` plus `git reflog -5` show no other session working in the checkout (I24).
 - **AC-19**: Tailwind still produces every class used inside `packages/ui`: the built CSS from `next build` contains a rule for `size-9` (used only in `packages/ui/src/components/button.tsx`), and the dashboard sidebar renders with the same styles as on `main`.
@@ -120,7 +122,13 @@ Each workspace declares only what its files import (I19); `@aft/*` packages that
 | `aliases.hooks` | `@/hooks` | `@aft/ui/hooks` |
 | `aliases.lib` | `@/lib` | `@aft/ui/lib` |
 
-Inside `packages/ui`, the `@aft/ui/*` self imports that shadcn writes resolve through a `paths` entry in `packages/ui/tsconfig.json` (`"@aft/ui/*": ["./src/*"]`) and the same alias in `packages/ui/vitest.config.mts`. After `add`, the builder runs the relative rewrite from *Import rules* only if the generated file breaks AC-11; the `git grep` gate catches a miss.
+Inside `packages/ui`, the `@aft/ui/*` self imports that shadcn writes resolve through a `paths` entry in `packages/ui/tsconfig.json` (`"@aft/ui/*": ["./src/*"]`) and the same alias in `packages/ui/vitest.config.mts`. These `@aft/ui/*` self imports are allowed as shadcn writes them (they pass AC-11, whose lint pattern blocks only `@aft/*/src`). If a generated file still contains an `@/` import, the builder rewrites it to the relative path, as *Import rules* does for packages; the `git grep` gate catches a miss.
+
+**Running `add`.** Run `pnpm exec shadcn add <component>` from `packages/ui`, never from `apps/web`, and never `pnpm dlx` (the catalog pins the CLI, so it cannot drift). From `apps/web`, shadcn writes the file into `packages/ui` but adds its npm dependencies to `apps/web/package.json`, where `@aft/ui` cannot resolve them under pnpm's isolated linker (I19). Never pass `--overwrite`, and answer no to every overwrite prompt: items with registry dependencies (for example `sidebar`) would otherwise replace existing primitives, hooks, or `utils.ts`. After `add`, `git status` may show only new files under `packages/ui/src/components/`, `src/hooks/`, or `src/lib/`, `packages/ui/package.json`, `pnpm-lock.yaml`, and at most an additive hunk in `packages/ui/src/styles/globals.css` that the engineer reviews. Discard anything else with `git checkout` and `git clean`, then run `pnpm install --frozen-lockfile`. Any dependency `add` brings that another workspace also uses moves to `catalog:` at the version the catalog already pins (AC-15).
+
+**Post add rewrite (until the `cn` package is adopted, I29).** shadcn's registry writes `import { cn } from "cn"` and adds the `cn` package. After every `add`, change every import of `"cn"` (or `'cn'`) in each new file under `packages/ui/src/` to `"@aft/ui/lib/utils"`, whatever its quote style, form (`import type`, multi line), or folder depth. Then, if `packages/ui/package.json` lists `cn`, run `pnpm --filter @aft/ui remove cn`. `@aft/ui` keeps exactly one `cn`, the one in `src/lib/utils.ts`. This rewrite and the `@/` rewrite above are the only hand edits allowed after `add`. A leftover `cn` import fails lint (*Config files in detail*).
+
+On Windows, keep every folder name in the checkout path free of dots (I30).
 
 ### Tailwind
 
@@ -218,7 +226,7 @@ Un-anchor the build and tool entries so they apply in every workspace: `node_mod
 
 - `apps/web/next.config.ts`: `const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")`; `loadEnvConfig(repoRoot, process.env.NODE_ENV !== "production", console, true)`; `transpilePackages` (AC-17); `turbopack: { root: repoRoot }`; `outputFileTracingRoot: repoRoot`; `images` unchanged.
 - `packages/db/prisma.config.ts`: `config({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.env") })`, then today's `defineConfig` with `schema: "prisma/schema.prisma"` and `migrations.path: "prisma/migrations"` (relative to the config, run with `cwd` `packages/db`, which `pnpm --filter … exec` and turbo both set). It reads `process.env["DATABASE_URL"]` as today, not Prisma's strict `env()`, so `generate` works with the CI placeholder.
-- `apps/web/eslint.config.mjs` and each package's `eslint.config.mjs` spread `@aft/config/eslint`, which holds today's rules plus the `no-restricted-imports` patterns for `@aft/*/src/*` and its ignore list (`.next/**`, `out/**`, `build/**`, `next-env.d.ts`, `**/generated/**`, `coverage/**`, `playwright-report/**`, `test-results/**`).
+- `apps/web/eslint.config.mjs` and each package's `eslint.config.mjs` spread `@aft/config/eslint`, which holds today's rules plus the `no-restricted-imports` patterns for `@aft/*/src/*`, a `no-restricted-imports` `paths` entry for `cn` (message: import `cn` from `@aft/ui/lib/utils`; I29), and its ignore list (`.next/**`, `out/**`, `build/**`, `next-env.d.ts`, `**/generated/**`, `coverage/**`, `playwright-report/**`, `test-results/**`).
 
 ### Value sourcing
 
@@ -235,6 +243,9 @@ Un-anchor the build and tool entries so they apply in every workspace: `node_mod
 | route parity baseline | route table | `npm run build` on `main` before step 1, saved in the PR description (AC-6) |
 | lockfile version baseline | seven versions | `package-lock.json` at step 0 (AC-1) |
 | shadcn CLI version | `4.22.1` | root `devDependencies` on `main` |
+| `cn` used by every primitive | `cn()` (`clsx` plus `tailwind-merge`) | `packages/ui/src/lib/utils.ts`, moved unchanged from `lib/utils.ts` on `main` (I29) |
+| `shadcn add` working directory and CLI | `packages/ui`, `pnpm exec shadcn` (catalog `shadcn` 4.22.1) | amendment 2026-10-27 (AC-16) |
+| post add `cn` import target | `@aft/ui/lib/utils` | `utils` alias in `packages/ui/components.json` (*shadcn setup*) |
 | audit threshold | `high` | `audit-ci.jsonc` (`"high": true`, `"skip-dev": true`) |
 | repo root path | absolute path | `fileURLToPath(import.meta.url)` in each config |
 | Tailwind check class | `size-9` | `components/ui/button.tsx` on `main` |
@@ -247,6 +258,7 @@ Un-anchor the build and tool entries so they apply in every workspace: `node_mod
 - Only `apps/web` uses `@/`; packages use relative imports, plus `@aft/ui/*` self imports inside `packages/ui`.
 - Client entry points (`@aft/auth/client`, `@aft/auth/schemas`, `@aft/ui/*`, `@aft/email`) never import `@aft/db`, `@aft/auth/server`, or the values of `@aft/auth/providers` (app client components may import its types with `import type`).
 - `@aft/auth/providers` stays light: it never imports `./auth`, `@aft/db`, or `@aft/email`, so a page that only lists providers does not load the auth server.
+- `@aft/ui` has one `cn`, from `src/lib/utils.ts`; no workspace lists the `cn` package as a dependency until its own scope feature adopts it (the `cn@0.2.6` that `shadcn` pulls in through `@shadcn/registry` is the CLI's own and is never imported).
 
 ### Security model
 
@@ -269,6 +281,8 @@ No new variables. `.env` stays at the root with the same nine names.
 - **I26** Tailwind skips classes that live in a package → `@source` in the ui CSS (AC-19).
 - **I27** A non Next.js Node runtime loads `server-only` and crashes → it aliases `server-only` to the empty stub (AC-12).
 - **I28** On Windows, pnpm's symlinked `node_modules` or long paths break an install → pnpm uses junctions on Windows, which need no admin rights; if a path is too long, enable Git `core.longpaths` and Windows long paths, then reinstall.
+- **I29** shadcn's registry imports `cn` from the npm `cn` package and adds it as a dependency, which would give `@aft/ui` a second class merger → the post add rewrite in *shadcn setup* points the import at `@aft/ui/lib/utils` and removes the package if it was added; a `no-restricted-imports` entry for `cn` fails lint on any leftover (AC-16).
+- **I30** On Windows, a dot in a parent folder name (like `remwa.com`) makes shadcn 4.22.1 (`@shadcn/registry` 0.2.0) cut wildcard alias paths at that dot, so `add` writes outside the repo → keep the checkout path free of dots (the checkout moved to `Desktop\remwa-com` on 2026-10-27). Linux CI is not affected.
 
 ### Critical test scenarios
 
@@ -280,7 +294,8 @@ No new variables. `.env` stays at the root with the same nine names.
 - A throwaway `'use client'` file with `import type { SocialProvider } from "@aft/auth/providers"` passes `next build` (not committed), verifies **AC-12** does not block type imports
 - Edit a file in `packages/auth`, rerun `pnpm turbo run test`: `@aft/app-web#test` misses the cache. If it replays from cache instead, add a `transit` task (`"transit": { "dependsOn": ["^transit"] }`) and put `"transit"` in the `dependsOn` of `test`, `test:coverage`, `typecheck`, and `lint`, so a package change reruns every app that uses it, verifies **AC-3**
 - A throwaway import of `@aft/db/src/index` fails lint (not committed), verifies **AC-11**
-- `pnpm dlx shadcn@4.22.1 add accordion` from `apps/web` writes into `packages/ui` and passes lint (then discarded), verifies **AC-16**
+- `pnpm exec shadcn add accordion` from `packages/ui` writes only `packages/ui/src/components/accordion.tsx` (plus `package.json` and the lockfile; nothing outside the repo); after the post add rewrite it passes `lint` and `typecheck`, imports `cn` from `@aft/ui/lib/utils`, and `pnpm why cn -r` shows `cn` only under `shadcn`. Then discard it (`git checkout`, `git clean`, `pnpm install --frozen-lockfile`), verifies **AC-16**, **I29**
+- A throwaway `import { cn } from "cn"` in `packages/ui` fails `lint` (not committed), verifies **I29**
 - The built CSS contains `size-9`; the sidebar looks the same, verifies **AC-19**
 - Edit `RESEND_FROM_EMAIL` in `.env` and rerun `pnpm turbo run build`: cache miss, verifies **AC-14**
 - `pnpm why react` shows one version; the seven lockfile versions match step 0, verifies **AC-1**, **AC-15**
@@ -343,4 +358,8 @@ Reasoning, options, and the cross check record: see [rationale.md](rationale.md)
 - [x] I18 to I28 added to the PLAN.md edge case catalog (2026-10-24).
 - [ ] Feature 5 (workspace tooling) builds on `@aft/config` for Prettier and commit hooks, and may replace the deep import rule with `turbo boundaries`; feature 6 adds zod env helpers to `@aft/config` and checks `turbo.json` `globalEnv` against each app's schema.
 - [ ] Feature 9 (container images) relies on `outputFileTracingRoot` from AC-17 for the standalone build.
+- [x] Enrolled as scope feature 149 (2026-10-27): "adopt the `cn` class merger in `@aft/ui`" (replace `utils.ts` with `export { cn } from "cn"`, drop `clsx` and `tailwind-merge`, prove class merge parity on every primitive and app call). It needs its own `/architect` pass, because `cn` is before 1.0. Once it ships, the post add rewrite and I29 go away.
+- [ ] `/sync` after merge: the `AGENTS.md` Rules line for shadcn says to run `add` from `packages/ui` and apply the post add rewrite; Gotchas gets I30 (no dots in the checkout path on Windows).
+- [ ] Engineer (optional): report the `@shadcn/registry` 0.2.0 extension strip regex (`/\.[^/]+$/` on Windows paths, I30) upstream to shadcn-ui/ui.
+- [x] I29 and I30 added to the PLAN.md edge case catalog (2026-10-27).
 - [ ] Spec 0004 child 0002 says "copy the existing auth pages into `apps/auth`"; after this feature, `apps/auth` imports `@aft/auth` and copies only `components/auth` pages.

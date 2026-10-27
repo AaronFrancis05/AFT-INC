@@ -95,6 +95,27 @@ Decided while writing (no engineer input needed): pnpm 12.15.0 and Turborepo 2.1
 
 **Cross check of the amendment (Sonnet, 2026-10-25).** Nothing blocking; six gaps, all fixed at the engineer's request: the test split now names its describes and file sets; the types only scans match the new specifiers and reject a mixed `import { type X }`; the AC-11 client and schemas test is named; the invariant now forbids only values of `@aft/auth/providers` in client code; `./server` re-exports from the same file; and two checks were added (a type import must still build, and a package edit must miss the app's test cache, with the `transit` task as the named fallback).
 
+## Amendment 2026-10-27: shadcn and the cn package
+
+**What happened.** At build step 8, the AC-16 check (`pnpm dlx shadcn@4.22.1 add accordion` from `apps/web`) failed in two separate ways.
+- **Wrong place on Windows.** The file landed outside the repo, in `Desktop\remwa`. `/debug` traced this to `@shadcn/registry` 0.2.0. After matching a wildcard export, it strips the file extension with `path.replace(/\.[^/]+$/, "")`, which assumes `/` separators. On Windows the match starts at the first dot anywhere in the path, here the one in `remwa.com`. Proof: from a dotless `subst` drive every alias resolved. The engineer renamed the folder to `Desktop\remwa-com`, and the file now lands in `packages/ui/src/components/` (I30).
+- **An unexpected `cn` dependency.** The file imported `{ cn } from "cn"`, and `cn` was added to `apps/web/package.json`. This is intended upstream behavior, not a bug. Since about 2026-10-16, every shadcn registry style checked (`radix-lyra`, `radix-nova`, `new-york-v4`) ships that import and lists `cn` as a dependency. `cn` is an npm package by shadcn and aidenybai (0.5.0, zero dependencies, Node 22 or newer), a drop in replacement for `clsx` plus `tailwind-merge` that claims full parity and is faster. Running `add` from `packages/ui` gave the same import, with the dependency in `packages/ui/package.json` instead.
+
+**Options considered for `cn`.**
+- **Option A: keep `lib/utils`, rewrite after each `add`, adopt later (chosen).** The migration stays behavior neutral, as AC-1 (dependency versions unchanged) and AC-5 (behavior unchanged) require. The cost is one documented hand edit per `add` until adoption.
+- **Option B: adopt now through a re-export.** `utils.ts` becomes `export { cn } from "cn"`, and `clsx` and `tailwind-merge` leave `@aft/ui`. AC-16 would hold with no hand edit. Rejected for this PR: it changes a runtime dependency inside a move meant to change nothing. `cn` is 11 days old and before 1.0, and its parity claim has not been checked against this app's class strings.
+- **Option C: adopt now and migrate every import** (`shadcn migrate cn`). Same objections as B, with the largest diff.
+
+**Options considered for where `add` runs.**
+- **`packages/ui` (chosen).** The file and its npm dependencies land in the same workspace, as shown on 2026-10-27.
+- **`apps/web` (the original spec).** shadcn writes the file into `packages/ui` but puts the dependencies in the app, where `@aft/ui` cannot resolve them under the isolated linker (I19). They would need moving by hand every time.
+
+**Engineer's picks (both recommended).** Option A, with `add` run from `packages/ui`. Adopting `cn` gets its own scope feature and `/architect` pass, with a class merge parity check.
+
+**Not taken: a pnpm `overrides` alias.** Pointing the `cn` package at a local shim (for example `link:` to `src/lib/utils.ts`) would avoid the per `add` rewrite, but it is untested with the isolated linker and leaves a misleading `cn` entry that the adoption feature would have to unpick.
+
+**Cross check of the amendment (Sonnet, 2026-10-27).** Eight findings, all fixed at the engineer's request. The plain lockfile check could not pass: `shadcn` already depends on `cn@0.2.6` through `@shadcn/registry`, as `main`'s npm lockfile did, so AC-16 now checks that no workspace lists `cn` (`pnpm why cn -r`). The rewrite now targets `@aft/ui/lib/utils` for any import form and depth, and an ESLint `paths` entry fails on leftovers. The remove step runs only if `cn` was added. `add` never overwrites, and `git status` limits what it may change, including an additive `globals.css` hunk the engineer reviews. Added dependencies follow `catalog:`. The discard steps are spelled out. `pnpm exec shadcn` replaces `pnpm dlx`. The self import sentence is clarified.
+
 ## Cross check record
 
 On 2026-10-24 a read only Sonnet cross check reviewed the first draft and reported 6 blockers, 25 gaps, and 4 nits. The engineer chose to apply every recommended fix:

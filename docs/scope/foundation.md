@@ -289,6 +289,11 @@ The visual language for every screen, written into `design.md`, replacing the pl
 **Done when:** `design.md` defines type, color, spacing, and components; the "Better Auth" and "My App" placeholders are gone; base components meet WCAG 2.2 AA for focus, keyboard, and contrast.
 - [ ] Design it (spec): `/architect design system and aft brand`
 
+### 149. Adopt the cn class merger · needs a decision · from spec 0008
+Switch `@aft/ui` from its own `cn` (`clsx` plus `tailwind-merge`) to shadcn's `cn` package, so new shadcn components need no post add rewrite.
+**Done when:** `packages/ui/src/lib/utils.ts` re-exports `cn` from `cn`; `clsx` and `tailwind-merge` are gone; class merge output matches on every primitive and app call; the post add rewrite, its lint guard, and edge case I29 are retired.
+- [ ] Design it (spec): `/architect adopt the cn class merger`
+
 ### 28. Internationalization foundation · needs a decision
 Every user facing string is translatable from day one, so languages never need a retrofit.
 **Done when:** UI strings come from message files, the locale is detected and switchable, and dates, numbers, and money format per locale (X10).
