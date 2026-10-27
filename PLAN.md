@@ -406,6 +406,7 @@ Each edge case has an ID and a required handling. How the IDs flow through the w
 - **I28** pnpm symlinks or long paths fail on Windows → junctions need no admin; enable long paths and reinstall.
 - **I29** shadcn's registry imports `cn` from the npm `cn` package → rewrite the import to `@aft/ui/lib/utils` and remove the package (if added) after each `add`, with a lint guard, until a feature adopts `cn` (spec 0008).
 - **I30** A dot in a parent folder name on Windows makes `shadcn add` write outside the repo → keep the checkout path free of dots (spec 0008).
+- **I31** A build only tool lands in a workspace's runtime dependencies (declared there, like `shadcn`, or an unmirrored peer that `autoInstallPeers` records as runtime, like `eslint` in `@aft/config`) and drags its whole tree into `pnpm audit --prod`, failing the `audit` job → keep such tools in `devDependencies` and mirror every peer there; two `ci.test.ts` checks scan every workspace (spec 0008, AC-9).
 
 ## Core data model (seed for spec 0001 data child)
 
