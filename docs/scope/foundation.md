@@ -52,18 +52,21 @@ Spec [0005](../specs/0005-platform-architecture/index.md) (accepted 2026-10-22: 
 Move the current app into `apps/web` and pull shared code into packages, with no change in behavior.
 **Done when:** the app runs from `apps/web` and behaves exactly as before (auth flows, dashboard); `packages/db`, `packages/auth`, `packages/ui`, `packages/email`, `packages/config` exist; the existing migration is preserved; edge cases I18 to I28 hold.
 - [x] Design it (spec): `/architect monorepo migration`
-- [ ] Build it: `/develop monorepo migration`
-   - [ ] Preflight and toolchain switch: open branches closed, baselines saved, pnpm 12.15.0 plus Turborepo, CI and `ci.test.ts` on pnpm, `pnpm audit` (AC-1, AC-7, AC-8, AC-9, AC-10, AC-18)
-   - [ ] App moved to `apps/web` with root `.env` loading and the workspace root set (AC-2, AC-6, AC-13, AC-17)
-   - [ ] `packages/config` and `packages/db`: shared configs, catalog, generated Prisma client, `server-only`, strict env (AC-3, AC-4, AC-11, AC-12, AC-14, AC-15)
-   - [ ] `packages/email`, `packages/auth`, `packages/ui`: code, tests, shadcn and Tailwind setup (AC-2, AC-11, AC-12, AC-16, AC-19)
-   - [ ] Parity pass: tests, routes, lockfile versions, manual auth run on the dev database (AC-5, AC-6)
-- [ ] Verify it: `/check verify monorepo migration`
-- [ ] Test it: `/test monorepo migration`
-- [ ] Review it (fresh model): `/check review monorepo migration`
-- [ ] Document it: `/document monorepo migration`
+- [x] Build it: `/develop monorepo migration`
+   - [x] Preflight and toolchain switch: open branches closed, baselines saved, pnpm 12.15.0 plus Turborepo, CI and `ci.test.ts` on pnpm, `pnpm audit` (AC-1, AC-7, AC-8, AC-9, AC-10, AC-18)
+   - [x] App moved to `apps/web` with root `.env` loading and the workspace root set (AC-2, AC-6, AC-13, AC-17)
+   - [x] `packages/config` and `packages/db`: shared configs, catalog, generated Prisma client, `server-only`, strict env (AC-3, AC-4, AC-11, AC-12, AC-14, AC-15)
+   - [x] `packages/email`, `packages/auth`, `packages/ui`: code, tests, shadcn and Tailwind setup (AC-2, AC-11, AC-12, AC-16, AC-19)
+   - [x] Parity pass: tests, routes, lockfile versions, manual auth run on the dev database (AC-5, AC-6)
+   - [x] Audit fix: build only tools and `@aft/config`'s peers back to dev dependencies, two every workspace CI checks, `pnpm audit --prod` passes (AC-9, I31)
+   - [x] Review fixes: test runs capped at two Turborepo tasks and two Vitest workers per config, a 120 second ESLint test hook, uncached CI reruns, per job cache keys, narrow root test inputs, `@next/env` in the catalog, proven by four local and three CI runs (AC-14, AC-15, AC-20, I32)
+- [x] Verify it: `/check verify monorepo migration`
+- [x] Test it: `/test monorepo migration`
+- [x] Review it (fresh model): `/check review monorepo migration`
+- [x] Document it: `/document monorepo migration`
 - [ ] Ship it: squash merge the pull request with all six checks green
 Spec [0008](../specs/0008-monorepo-migration/index.md)
+code in `apps/web/`, `packages/config/`, `packages/db/`, `packages/email/`, `packages/auth/`, `packages/ui/`
 
 ### 5. Workspace tooling · needs a decision
 Shared lint, format, type settings, and commit hooks for every workspace.
@@ -288,6 +291,11 @@ Protect every public endpoint from abuse and bad input.
 The visual language for every screen, written into `design.md`, replacing the placeholder branding.
 **Done when:** `design.md` defines type, color, spacing, and components; the "Better Auth" and "My App" placeholders are gone; base components meet WCAG 2.2 AA for focus, keyboard, and contrast.
 - [ ] Design it (spec): `/architect design system and aft brand`
+
+### 149. Adopt the cn class merger · needs a decision · from spec 0008
+Switch `@aft/ui` from its own `cn` (`clsx` plus `tailwind-merge`) to shadcn's `cn` package, so new shadcn components need no post add rewrite.
+**Done when:** `packages/ui/src/lib/utils.ts` re-exports `cn` from `cn`; `clsx` and `tailwind-merge` are gone; class merge output matches on every primitive and app call; the post add rewrite, its lint guard, and edge case I29 are retired.
+- [ ] Design it (spec): `/architect adopt the cn class merger`
 
 ### 28. Internationalization foundation · needs a decision
 Every user facing string is translatable from day one, so languages never need a retrofit.

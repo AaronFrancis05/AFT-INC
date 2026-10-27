@@ -404,6 +404,10 @@ Each edge case has an ID and a required handling. How the IDs flow through the w
 - **I26** Tailwind skips classes that live in a package → `@source` in the shared ui CSS.
 - **I27** A non Next.js Node runtime loads `server-only` and crashes → alias it to the empty stub in `@aft/config`.
 - **I28** pnpm symlinks or long paths fail on Windows → junctions need no admin; enable long paths and reinstall.
+- **I29** shadcn's registry imports `cn` from the npm `cn` package → rewrite the import to `@aft/ui/lib/utils` and remove the package (if added) after each `add`, with a lint guard, until a feature adopts `cn` (spec 0008).
+- **I30** A dot in a parent folder name on Windows makes `shadcn add` write outside the repo → keep the checkout path free of dots (spec 0008).
+- **I31** A build only tool lands in a workspace's runtime dependencies (declared there, like `shadcn`, or an unmirrored peer that `autoInstallPeers` records as runtime, like `eslint` in `@aft/config`) and drags its whole tree into `pnpm audit --prod`, failing the `audit` job → keep such tools in `devDependencies` and mirror every peer there; two `ci.test.ts` checks scan every workspace (spec 0008, AC-9).
+- **I32** Too many Vitest workers start at once under Turborepo, and one misses Vitest 5.0.5's hard coded 60 second worker start limit, failing a whole workspace with no test result (a rerun passes, so it looks like noise) → test runs use `--concurrency=2` and CI sets `VITEST_MAX_WORKERS=2`; never a blind retry (spec 0008, AC-20).
 
 ## Core data model (seed for spec 0001 data child)
 

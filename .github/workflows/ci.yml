@@ -14,24 +14,40 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# Placeholders only; nothing here is a secret (I6). One value per variable across all
+# jobs keeps Turborepo hashes stable (spec 0008, CI placeholders). TURBO_FORCE lives in the
+# test job on purpose: Turborepo's own variables never enter task hashes, so it does not
+# break that rule (AC-20).
+env:
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aft_ci
+  BETTER_AUTH_SECRET: ci-only-not-a-secret-0123456789abcdef
+  BETTER_AUTH_URL: http://localhost:3000
+  RESEND_API_KEY: re_ci_placeholder
+  NEXT_TELEMETRY_DISABLED: "1"
+
 jobs:
   test:
     name: test
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      # A rerun bypasses the Turborepo cache, so it really runs Vitest again.
+      TURBO_FORCE: ${{ github.run_attempt > 1 }}
     steps:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Run tests with coverage
-        run: npm run test:coverage
+        run: pnpm turbo run test:coverage //#test:root:coverage --concurrency=2
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v5
         with:
           name: coverage
-          path: coverage/
+          path: |
+            apps/*/coverage/
+            packages/*/coverage/
           if-no-files-found: ignore
 
   typecheck:
@@ -44,7 +60,7 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Typecheck
-        run: npm run typecheck
+        run: pnpm turbo run typecheck
 
   lint:
     name: lint
@@ -56,33 +72,22 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Lint
-        run: npm run lint
+        run: pnpm turbo run lint
 
   prisma:
     name: prisma
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      # prisma.config.ts reads it; validate and generate never connect.
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
     steps:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Validate schema
-        run: npx prisma validate
-      - name: Regenerate client
-        run: npx prisma generate
-      - name: Committed client matches the schema
-        run: |
-          drift="$(git status --porcelain lib/generated/prisma)"
-          if [ -n "$drift" ]; then
-            echo "The committed Prisma client is stale. Run npx prisma generate and commit lib/generated/prisma."
-            echo "$drift"
-            git diff --stat lib/generated/prisma
-            exit 1
-          fi
+        run: pnpm --filter @aft/db exec prisma validate
+      # The client is generated, not committed (spec 0008, AC-4), so generating it is the check.
+      - name: Generate client
+        run: pnpm turbo run db:generate
 
   build-smoke:
     name: build-smoke
@@ -101,12 +106,6 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-    env:
-      # Placeholders only; nothing here is a secret (I6).
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aft_ci
-      BETTER_AUTH_SECRET: ci-only-not-a-secret-0123456789abcdef
-      BETTER_AUTH_URL: http://localhost:3000
-      RESEND_API_KEY: re_ci_placeholder
     steps:
       - uses: actions/checkout@v5
         with:
@@ -115,29 +114,28 @@ jobs:
       - name: Restore Next.js build cache
         uses: actions/cache@v4
         with:
-          path: .next/cache
-          key: nextjs-${{ hashFiles('package-lock.json') }}-${{ hashFiles('app/**', 'components/**', 'lib/**', 'hooks/**') }}
-          restore-keys: nextjs-${{ hashFiles('package-lock.json') }}-
-      - name: Build
-        run: npm run build
+          path: apps/web/.next/cache
+          key: nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/**', 'packages/**', '!**/node_modules/**', '!**/.next/**', '!**/coverage/**', '!**/.turbo/**', '!**/generated/**', '!**/playwright-report/**', '!**/test-results/**') }}
+          restore-keys: nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
       - name: Read Playwright version
         id: playwright
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(pnpm --filter @aft/app-web exec node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ steps.playwright.outputs.version }}
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - name: Smoke test
-        run: npm run test:e2e
+        run: pnpm --filter @aft/app-web exec playwright install --with-deps chromium
+      # test:e2e depends on build, so Turborepo builds the app first.
+      - name: Build and smoke test
+        run: pnpm turbo run test:e2e --filter=@aft/app-web
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v5
         with:
           name: playwright-report
-          path: playwright-report/
+          path: apps/web/playwright-report/
 
   audit:
     name: audit
@@ -149,4 +147,4 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup
       - name: Audit runtime dependencies
-        run: npx audit-ci --config audit-ci.jsonc
+        run: pnpm audit --prod --audit-level high

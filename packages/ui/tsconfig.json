@@ -1,0 +1,10 @@
+{
+  "extends": "@aft/config/tsconfig/library.json",
+  "compilerOptions": {
+    // jest-dom matchers for the tests; the runtime side loads through @aft/config/vitest/setup.
+    "types": ["node", "@testing-library/jest-dom/vitest"],
+    // Self imports that shadcn writes into this package (spec 0008, shadcn setup).
+    "paths": { "@aft/ui/*": ["./src/*"] }
+  },
+  "include": ["src", "*.ts", "*.mts"]
+}

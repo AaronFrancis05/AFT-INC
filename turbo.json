@@ -1,0 +1,147 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "globalDependencies": [
+    ".env"
+  ],
+  "globalEnv": [
+    "DATABASE_URL",
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "RESEND_API_KEY",
+    "RESEND_FROM_EMAIL",
+    "NODE_ENV"
+  ],
+  "globalPassThroughEnv": [
+    "CI",
+    "PORT",
+    "HOME",
+    "PLAYWRIGHT_BROWSERS_PATH",
+    "NEXT_TELEMETRY_DISABLED"
+  ],
+  "tasks": {
+    "transit": {
+      "dependsOn": [
+        "^transit"
+      ]
+    },
+    "db:generate": {
+      "inputs": [
+        "prisma/**",
+        "prisma.config.ts"
+      ],
+      "outputs": [
+        "src/generated/**"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "transit",
+        "db:generate",
+        "^db:generate"
+      ]
+    },
+    "lint": {
+      "dependsOn": [
+        "transit"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "transit",
+        "db:generate",
+        "^db:generate"
+      ],
+      "outputs": [
+        "coverage/**"
+      ]
+    },
+    "test:coverage": {
+      "dependsOn": [
+        "transit",
+        "db:generate",
+        "^db:generate"
+      ],
+      "outputs": [
+        "coverage/**"
+      ]
+    },
+    "build": {
+      "dependsOn": [
+        "db:generate",
+        "^db:generate",
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**"
+      ]
+    },
+    "test:e2e": {
+      "dependsOn": [
+        "build"
+      ],
+      "outputs": [
+        "playwright-report/**",
+        "test-results/**"
+      ],
+      "cache": false
+    },
+    "dev": {
+      "dependsOn": [
+        "db:generate",
+        "^db:generate"
+      ],
+      "cache": false,
+      "persistent": true
+    },
+    "//#test:root": {
+      "inputs": [
+        "ci.test.ts",
+        "vitest.config.mts",
+        ".github/**",
+        "package.json",
+        "apps/*/package.json",
+        "apps/*/vitest.config.mts",
+        "pnpm-workspace.yaml",
+        ".nvmrc",
+        "turbo.json",
+        "package-lock.json",
+        "audit-ci.jsonc",
+        "packages/*/package.json",
+        "packages/**/*.{ts,tsx,mts,mjs,js}",
+        "!packages/**/node_modules/**",
+        "!packages/**/generated/**",
+        "!packages/**/coverage/**",
+        "!packages/**/.turbo/**"
+      ]
+    },
+    "//#test:root:coverage": {
+      "inputs": [
+        "ci.test.ts",
+        "vitest.config.mts",
+        ".github/**",
+        "package.json",
+        "apps/*/package.json",
+        "apps/*/vitest.config.mts",
+        "pnpm-workspace.yaml",
+        ".nvmrc",
+        "turbo.json",
+        "package-lock.json",
+        "audit-ci.jsonc",
+        "packages/*/package.json",
+        "packages/**/*.{ts,tsx,mts,mjs,js}",
+        "!packages/**/node_modules/**",
+        "!packages/**/generated/**",
+        "!packages/**/coverage/**",
+        "!packages/**/.turbo/**"
+      ]
+    }
+  }
+}

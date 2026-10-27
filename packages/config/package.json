@@ -1,0 +1,30 @@
+{
+  "name": "@aft/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/nextjs.json": "./tsconfig/nextjs.json",
+    "./tsconfig/library.json": "./tsconfig/library.json",
+    "./eslint": "./eslint/index.mjs",
+    "./vitest/setup": "./vitest/setup.ts",
+    "./stubs/empty": "./stubs/empty.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings=0"
+  },
+  "peerDependencies": {
+    "@testing-library/jest-dom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "eslint": "catalog:",
+    "vitest": "catalog:"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "eslint": "catalog:",
+    "eslint-config-next": "catalog:",
+    "vitest": "catalog:"
+  }
+}

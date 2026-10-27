@@ -5,5 +5,5 @@
   "e2eTool": "playwright",
   "testDir": "beside the source",
   "filePattern": "*.test.ts / *.test.tsx (Playwright: e2e/*.spec.ts)",
-  "packageManager": "npm"
+  "packageManager": "pnpm"
 }

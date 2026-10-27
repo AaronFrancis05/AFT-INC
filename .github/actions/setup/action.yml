@@ -1,27 +1,26 @@
 name: Setup
-description: Node from .nvmrc, the pinned npm, a clean install, and the install script review check.
+description: pnpm from packageManager, Node from .nvmrc, a frozen install (fails on an unreviewed build script), and the Turborepo cache.
 
 runs:
   using: composite
   steps:
+    # No version input: the action reads the pinned packageManager from package.json.
+    - uses: pnpm/action-setup@v5
+
     - uses: actions/setup-node@v5
       with:
         node-version-file: .nvmrc
-        cache: npm
+        cache: pnpm
 
-    - name: Install pinned npm
-      shell: bash
-      run: |
-        npm install -g npm@11.19.1
-        test "$(npm -v)" = "11.19.1" || { echo "Expected npm 11.19.1, got $(npm -v)"; exit 1; }
-
+    # strictDepBuilds is on, so a build script missing from allowBuilds fails here (spec 0008, AC-8).
     - name: Install dependencies
       shell: bash
-      run: npm ci --no-audit --no-fund
+      run: pnpm install --frozen-lockfile
 
-    - name: Check install scripts are reviewed
-      shell: bash
-      run: |
-        out="$(npm install-scripts ls)"
-        echo "$out"
-        echo "$out" | grep -q "No packages with unreviewed install scripts" || { echo "Unreviewed install scripts found. Approve or deny them with npm install-scripts."; exit 1; }
+    - name: Restore Turborepo cache
+      uses: actions/cache@v4
+      with:
+        path: .turbo
+        # github.job is the calling job, so each job saves and restores its own task results.
+        key: turbo-${{ runner.os }}-${{ github.job }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+        restore-keys: turbo-${{ runner.os }}-${{ github.job }}-${{ hashFiles('pnpm-lock.yaml') }}-
