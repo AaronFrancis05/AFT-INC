@@ -5,16 +5,16 @@ Baselines (step 0 test names and count, route table, `npm ls --depth=0`, the sev
 
 ## UI / manual
 Run `next dev` on port 3000 against the dev database (Better Auth rejects any other port). Setting `RESEND_API_KEY=re_invalid_ac5` for that one process keeps real email from going out and makes the OTP print in the dev log.
-- [ ] Open `/auth/sign-up`: Google and GitHub buttons both show when all four provider values are set → AC-5 (A11)
-- [ ] Restart with `GITHUB_CLIENT_SECRET=` blank: only the Google button shows on `/auth/sign-in` and `/auth/sign-up` → AC-5 (A11)
-- [ ] Sign up a new test address → redirect to `/auth/verify-email`; the dev log prints `[DEV FALLBACK] OTP for <email>: <code>` → AC-5 (A3)
-- [ ] Enter the code → verify succeeds, lands on `/auth/sign-in` → AC-5
-- [ ] Sign in → `/dashboard` loads → AC-5
-- [ ] Logout → back on `/auth/sign-in`; opening `/dashboard` no longer shows the dashboard → AC-5
-- [ ] `/auth/forgot-password` → code in the dev log → reset on `/auth/reset-password` → old password then fails, new one signs in → AC-5
-- [ ] Click Google on `/auth/sign-in` → browser reaches `accounts.google.com` → AC-5
-- [ ] Under `next start` (after `next build`), a failed email send prints no OTP line → AC-5 (A3)
-- [ ] Compare the dashboard sidebar with `main` at the same viewport (screenshot or side by side): same colors, spacing, and icons → AC-19
+- [x] Open `/auth/sign-up`: Google and GitHub buttons both show when all four provider values are set → AC-5 (A11)
+- [x] Restart with `GITHUB_CLIENT_SECRET=` blank: only the Google button shows on `/auth/sign-in` and `/auth/sign-up` → AC-5 (A11)
+- [x] Sign up a new test address → redirect to `/auth/verify-email`; the dev log prints `[DEV FALLBACK] OTP for <email>: <code>` → AC-5 (A3)
+- [x] Enter the code → verify succeeds, lands on `/auth/sign-in` → AC-5
+- [x] Sign in → `/dashboard` loads → AC-5
+- [x] Logout → back on `/auth/sign-in`; opening `/dashboard` no longer shows the dashboard → AC-5
+- [x] `/auth/forgot-password` → code in the dev log → reset on `/auth/reset-password` → old password then fails, new one signs in → AC-5
+- [x] Click Google on `/auth/sign-in` → browser reaches `accounts.google.com` → AC-5
+- [x] Under `next start` (after `next build`), a failed email send prints no OTP line → AC-5 (A3)
+- [x] Compare the dashboard sidebar with `main` at the same viewport (screenshot or side by side): same colors, spacing, and icons → AC-19
 
 ## Commands
 - [x] `pnpm install --frozen-lockfile` with pnpm 12.15.0 → succeeds; no `package-lock.json` in the repo → AC-1
@@ -23,14 +23,14 @@ Run `next dev` on port 3000 against the dev database (Better Auth rejects any ot
 - [x] `ls apps packages` and the root listing → exactly `apps/web` plus the five packages; no app source at the root → AC-2
 - [x] Fresh clone, no `.env`, export only the CI placeholders, `pnpm install` then `pnpm turbo run lint typecheck test build` → all green → AC-3
 - [x] `git diff -M100% --stat main -- packages/db/prisma/migrations` → every migration listed as a rename → AC-4 (I18)
-- [ ] `pnpm --filter @aft/db exec prisma migrate status` on the dev database → two migrations applied, nothing pending → AC-4
+- [x] `pnpm --filter @aft/db exec prisma migrate status` on the dev database → two migrations applied, nothing pending → AC-4
 - [x] `git ls-files packages/db/src/generated lib/generated` → nothing tracked → AC-4 (I23)
 - [x] `pnpm turbo run test` plus `pnpm test:root` → count not below the baseline (106 at the last run), every baseline `it` name present except the planned `ci.test.ts` renames → AC-5
 - [x] `pnpm --filter @aft/app-web test:e2e` → smoke passes → AC-5
 - [x] `pnpm --filter @aft/app-web build` → route table matches the baseline; `/auth/sign-in` and `/auth/sign-up` are `ƒ`; no workspace root or lockfile warning → AC-6, AC-17
 - [x] `.github/workflows` → exactly `test`, `typecheck`, `lint`, `prisma`, `build-smoke`, `audit`; no `secrets.`; every checkout has `persist-credentials: false` → AC-7
 - [x] `pnpm-workspace.yaml` → `allowBuilds` as the spec lists; `strictDepBuilds` not turned off → AC-8
-- [ ] `pnpm audit --prod --audit-level high` → passes; `audit-ci` and `audit-ci.jsonc` gone → AC-9
+- [x] `pnpm audit --prod --audit-level high` → passes; `audit-ci` and `audit-ci.jsonc` gone → AC-9
 - [x] `MSYS_NO_PATHCONV=1 pnpm turbo run //#test:root` → `ci.test.ts` passes; deleting a required job from a scratch copy of the workflow makes it fail → AC-10
 - [x] A throwaway import of `@aft/auth/src/server/auth` in `apps/web` → `lint` fails; `git grep -n '"@/' -- packages` → empty → AC-11
 - [x] A throwaway `'use client'` file importing `@aft/db` or `@aft/auth/providers` → `next build` fails; an `import type` only version passes → AC-12 (I20)

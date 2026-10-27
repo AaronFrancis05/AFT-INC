@@ -59,7 +59,7 @@ Move the current app into `apps/web` and pull shared code into packages, with no
    - [x] `packages/email`, `packages/auth`, `packages/ui`: code, tests, shadcn and Tailwind setup (AC-2, AC-11, AC-12, AC-16, AC-19)
    - [x] Parity pass: tests, routes, lockfile versions, manual auth run on the dev database (AC-5, AC-6)
    - [x] Audit fix: build only tools and `@aft/config`'s peers back to dev dependencies, two every workspace CI checks, `pnpm audit --prod` passes (AC-9, I31)
-- [ ] Verify it: `/check verify monorepo migration`
+- [x] Verify it: `/check verify monorepo migration`
 - [ ] Test it: `/test monorepo migration`
 - [ ] Review it (fresh model): `/check review monorepo migration`
 - [ ] Document it: `/document monorepo migration`

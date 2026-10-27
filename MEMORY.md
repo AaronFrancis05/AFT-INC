@@ -296,3 +296,14 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Gotcha: pnpm 12 `pnpm exec` reinstalls when manifests drift, so a throwaway manifest edit rewrites the lockfile too (it put `eslint` back in runtime `dependencies`, which is I31 live). After reverting the manifest, run `pnpm install` and check `git diff pnpm-lock.yaml`.
 - Scope feature 4: audit fix milestone and `Build it` ticked; feature stays `in-progress` (GA). Spec 0008 stays `In Progress`.
 - Next: `/clear`, then `/check verify monorepo migration` on a stable connection. The database rule still allows a stale IP (212.88.111.227); the AC-4, AC-5, `next start` A3, and AC-19 steps need your go to swap it.
+
+### 2026-10-27 (/check verify monorepo migration: PASS)
+- Second verify run after the step 8b audit fix. All 40 `verify.md` steps now ticked; this run covered the 12 left open:
+  - AC-9: `pnpm audit --prod --audit-level high` exits 0 (3 low, 3 moderate).
+  - AC-4: `prisma migrate status`: 2 migrations, schema up to date.
+  - AC-5: the full auth flow on `next dev` with test user `aft-ac5-20261027b@example.com` (left in the dev database), 11 of 11 checks. A11 (`GITHUB_CLIENT_SECRET` blank → only Google, on both pages). A3 under `next start`: the send error logs, no `DEV FALLBACK` line.
+  - AC-19: branch dashboard against the earlier `main` screenshot (same app code); the sidebar strip differs only in rows 863 to 874 (the dev badge and the signed in email).
+- Reran AC-3 after step 8b: a fresh clone with CI placeholders gave 18 of 18 green uncached on the second run. The first run failed `@aft/ui#test` under load (third time this has happened; it passes alone). Raise it in review.
+- Dev database rule `sgr-09bf6237c10f892d2` swapped in place to `41.210.155.224/32` with the engineer's go. The rule description is now `engineer-ip`. TCP took about a minute to open after the swap.
+- Scope feature 4: `Verify it` ticked (GA, stays `in-progress`). Spec 0008 stays `In Progress`.
+- Next: `/clear`, then `/test monorepo migration`, then `/check review monorepo migration`.
