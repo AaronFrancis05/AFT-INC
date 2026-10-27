@@ -12,6 +12,13 @@ export default defineConfig([
       "no-restricted-imports": [
         "error",
         {
+          // shadcn's registry writes `from "cn"`; @aft/ui keeps one class merger (spec 0008, I29).
+          paths: [
+            {
+              name: "cn",
+              message: "Import cn from @aft/ui/lib/utils, not the cn package.",
+            },
+          ],
           patterns: [
             {
               group: ["@aft/*/src", "@aft/*/src/*"],
