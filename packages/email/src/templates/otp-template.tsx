@@ -1,13 +1,5 @@
 import * as React from "react";
-import {
-  Html,
-  Head,
-  Body,
-  Container,
-  Text,
-  Heading,
-  Section,
-} from "@react-email/components";
+import { Html, Head, Body, Container, Text, Heading, Section } from "@react-email/components";
 
 interface OTPTemplateProps {
   otp: string;

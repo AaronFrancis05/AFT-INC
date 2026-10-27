@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { signInSchema, type SignInInput } from '@aft/auth/schemas'
+import { useState } from "react";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signInSchema, type SignInInput } from "@aft/auth/schemas";
 import {
   Form,
   FormControl,
@@ -12,82 +12,104 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@aft/ui/components/form'
-import { Input } from '@aft/ui/components/input'
-import { Button } from '@aft/ui/components/button'
-import { SocialButtons } from '@/components/auth/social-buttons'
-import { authClient } from '@aft/auth/client'
-import type { SocialProvider } from '@aft/auth/providers'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { Eye, EyeOff } from 'lucide-react'
+} from "@aft/ui/components/form";
+import { Input } from "@aft/ui/components/input";
+import { Button } from "@aft/ui/components/button";
+import { SocialButtons } from "@/components/auth/social-buttons";
+import { authClient } from "@aft/auth/client";
+import type { SocialProvider } from "@aft/auth/providers";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 
 export function SignIn({ socialProviders }: { socialProviders: SocialProvider[] }) {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
-  })
+  });
 
   async function onSubmit(data: SignInInput) {
-    setIsLoading(true)
-    await authClient.signIn.email({
-      email: data.email,
-      password: data.password,
-    }, {
-      onRequest: () => {
-        // toast.info("Signing in...")
+    setIsLoading(true);
+    await authClient.signIn.email(
+      {
+        email: data.email,
+        password: data.password,
       },
-      onSuccess: () => {
-        toast.success("Signed in successfully!")
-        router.push("/dashboard")
+      {
+        onRequest: () => {
+          // toast.info("Signing in...")
+        },
+        onSuccess: () => {
+          toast.success("Signed in successfully!");
+          router.push("/dashboard");
+        },
+        onError: (ctx) => {
+          form.setError("root", {
+            message: ctx.error.message,
+          });
+          toast.error(ctx.error.message);
+          setIsLoading(false);
+        },
       },
-      onError: (ctx) => {
-        form.setError('root', {
-          message: ctx.error.message,
-        })
-        toast.error(ctx.error.message)
-        setIsLoading(false)
-      }
-    })
+    );
   }
 
   async function handleSocialSignIn(provider: SocialProvider) {
-    await authClient.signIn.social({
-      provider,
-      callbackURL: "/dashboard",
-    }, {
-      onSuccess: () => {
-        toast.success(`Signed in with ${provider} successfully!`)
+    await authClient.signIn.social(
+      {
+        provider,
+        callbackURL: "/dashboard",
       },
-      onError: (ctx) => {
-        toast.error(ctx.error.message)
-      }
-    })
+      {
+        onSuccess: () => {
+          toast.success(`Signed in with ${provider} successfully!`);
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error.message);
+        },
+      },
+    );
   }
 
   return (
     <section className="flex min-h-screen bg-zinc-50 px-4 py-16 md:py-32 dark:bg-transparent">
-      <div className="bg-card m-auto h-fit w-full max-w-md rounded-lg border p-0.5 shadow-md">
+      <div className="m-auto h-fit w-full max-w-md rounded-lg border bg-card p-0.5 shadow-md">
         <div className="p-8 pb-6">
           <Link href="/" aria-label="go home">
-            <Image className={"rounded-lg   object-fit"} src={"/assets/hero/robot.jpg"} alt={"Logo"} width={30} height={30} />
+            <Image
+              className={"object-fit rounded-lg"}
+              src={"/assets/hero/robot.jpg"}
+              alt={"Logo"}
+              width={30}
+              height={30}
+            />
           </Link>
-          <h1 className="mb-1 flex items-center gap-2 mt-4 text-xl font-semibold">Sign in to<> <div className={"flex gap-2 cursor-pointer items-center"}>
-            <h4 className={"font-bold font-sans text-lg"}>AFT INC</h4>
-          </div> </></h1>
+          <h1 className="mt-4 mb-1 flex items-center gap-2 text-xl font-semibold">
+            Sign in to
+            <>
+              {" "}
+              <div className={"flex cursor-pointer items-center gap-2"}>
+                <h4 className={"font-sans text-lg font-bold"}>AFT INC</h4>
+              </div>{" "}
+            </>
+          </h1>
           <p className="text-sm text-muted-foreground">Welcome back! Sign in to continue</p>
 
           {socialProviders.length > 0 && (
             <div className="mt-6">
-              <SocialButtons providers={socialProviders} disabled={isLoading} onSelect={handleSocialSignIn} />
+              <SocialButtons
+                providers={socialProviders}
+                disabled={isLoading}
+                onSelect={handleSocialSignIn}
+              />
               <hr className="my-4 border-dashed" />
             </div>
           )}
@@ -95,7 +117,7 @@ export function SignIn({ socialProviders }: { socialProviders: SocialProvider[] 
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className={socialProviders.length > 0 ? 'space-y-6' : 'mt-6 space-y-6'}
+              className={socialProviders.length > 0 ? "space-y-6" : "mt-6 space-y-6"}
             >
               <FormField
                 control={form.control}
@@ -127,7 +149,7 @@ export function SignIn({ socialProviders }: { socialProviders: SocialProvider[] 
                     <FormControl>
                       <div className="relative">
                         <Input
-                          type={showPassword ? 'text' : 'password'}
+                          type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
                           className="pr-10"
                           {...field}
@@ -136,7 +158,7 @@ export function SignIn({ socialProviders }: { socialProviders: SocialProvider[] 
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? (
@@ -145,7 +167,7 @@ export function SignIn({ socialProviders }: { socialProviders: SocialProvider[] 
                             <Eye className="h-4 w-4 text-muted-foreground" />
                           )}
                           <span className="sr-only">
-                            {showPassword ? 'Hide password' : 'Show password'}
+                            {showPassword ? "Hide password" : "Show password"}
                           </span>
                         </Button>
                       </div>
@@ -156,7 +178,7 @@ export function SignIn({ socialProviders }: { socialProviders: SocialProvider[] 
               />
 
               <Button className="w-full" type="submit" disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {isLoading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
           </Form>
@@ -172,5 +194,5 @@ export function SignIn({ socialProviders }: { socialProviders: SocialProvider[] 
         </div>
       </div>
     </section>
-  )
+  );
 }

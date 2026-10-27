@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { passwordChangeSchema, type PasswordChangeInput } from '@aft/auth/schemas'
+import { useState } from "react";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { passwordChangeSchema, type PasswordChangeInput } from "@aft/auth/schemas";
 import {
   Form,
   FormControl,
@@ -12,61 +12,66 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@aft/ui/components/form'
-import { Input } from '@aft/ui/components/input'
-import { Button } from '@aft/ui/components/button'
+} from "@aft/ui/components/form";
+import { Input } from "@aft/ui/components/input";
+import { Button } from "@aft/ui/components/button";
 
-import { AppLogoIcon } from '@/components/icons'
-import { authClient } from '@aft/auth/client'
-import { toast } from 'sonner'
-import { Eye, EyeOff } from 'lucide-react'
+import { AppLogoIcon } from "@/components/icons";
+import { authClient } from "@aft/auth/client";
+import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 
 export function ChangePassword() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<PasswordChangeInput>({
     resolver: zodResolver(passwordChangeSchema),
     defaultValues: {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
     },
-  })
+  });
 
   async function onSubmit(data: PasswordChangeInput) {
-    setIsLoading(true)
-    await authClient.changePassword({
+    setIsLoading(true);
+    await authClient.changePassword(
+      {
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
         revokeOtherSessions: true,
-    }, {
-         onSuccess: () => {
-            toast.success("Password changed successfully.")
-            form.reset()
-            setIsLoading(false)
-         },
-         onError: (ctx) => {
-             form.setError('root', {
-                message: ctx.error.message,
-             })
-             toast.error(ctx.error.message)
-             setIsLoading(false)
-         }
-    })
+      },
+      {
+        onSuccess: () => {
+          toast.success("Password changed successfully.");
+          form.reset();
+          setIsLoading(false);
+        },
+        onError: (ctx) => {
+          form.setError("root", {
+            message: ctx.error.message,
+          });
+          toast.error(ctx.error.message);
+          setIsLoading(false);
+        },
+      },
+    );
   }
 
   return (
     <section className="flex min-h-screen bg-zinc-50 px-4 py-16 md:py-32 dark:bg-transparent">
-      <div className="bg-card m-auto h-fit w-full max-w-md rounded-lg border p-0.5 shadow-md">
+      <div className="m-auto h-fit w-full max-w-md rounded-lg border bg-card p-0.5 shadow-md">
         <div className="p-8 pb-6">
           <Link href="/" aria-label="go home">
             <AppLogoIcon className="h-10 fill-current text-black sm:h-12" />
           </Link>
-          <h1 className="mb-1 mt-4 text-xl font-semibold">Change password</h1>
-          <p className="text-sm text-muted-foreground">Update your password to keep your account secure</p>
+          <h1 className="mt-4 mb-1 text-xl font-semibold">Change password</h1>
+          <p className="text-sm text-muted-foreground">
+            Update your password to keep your account secure
+          </p>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-6">
@@ -79,7 +84,7 @@ export function ChangePassword() {
                     <FormControl>
                       <div className="relative">
                         <Input
-                          type={showCurrentPassword ? 'text' : 'password'}
+                          type={showCurrentPassword ? "text" : "password"}
                           placeholder="••••••••"
                           className="pr-10"
                           {...field}
@@ -88,7 +93,7 @@ export function ChangePassword() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                         >
                           {showCurrentPassword ? (
@@ -97,7 +102,7 @@ export function ChangePassword() {
                             <Eye className="h-4 w-4 text-muted-foreground" />
                           )}
                           <span className="sr-only">
-                            {showCurrentPassword ? 'Hide password' : 'Show password'}
+                            {showCurrentPassword ? "Hide password" : "Show password"}
                           </span>
                         </Button>
                       </div>
@@ -116,7 +121,7 @@ export function ChangePassword() {
                     <FormControl>
                       <div className="relative">
                         <Input
-                          type={showNewPassword ? 'text' : 'password'}
+                          type={showNewPassword ? "text" : "password"}
                           placeholder="••••••••"
                           className="pr-10"
                           {...field}
@@ -125,7 +130,7 @@ export function ChangePassword() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowNewPassword(!showNewPassword)}
                         >
                           {showNewPassword ? (
@@ -134,7 +139,7 @@ export function ChangePassword() {
                             <Eye className="h-4 w-4 text-muted-foreground" />
                           )}
                           <span className="sr-only">
-                            {showNewPassword ? 'Hide password' : 'Show password'}
+                            {showNewPassword ? "Hide password" : "Show password"}
                           </span>
                         </Button>
                       </div>
@@ -153,7 +158,7 @@ export function ChangePassword() {
                     <FormControl>
                       <div className="relative">
                         <Input
-                          type={showConfirmPassword ? 'text' : 'password'}
+                          type={showConfirmPassword ? "text" : "password"}
                           placeholder="••••••••"
                           className="pr-10"
                           {...field}
@@ -162,7 +167,7 @@ export function ChangePassword() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         >
                           {showConfirmPassword ? (
@@ -171,7 +176,7 @@ export function ChangePassword() {
                             <Eye className="h-4 w-4 text-muted-foreground" />
                           )}
                           <span className="sr-only">
-                            {showConfirmPassword ? 'Hide password' : 'Show password'}
+                            {showConfirmPassword ? "Hide password" : "Show password"}
                           </span>
                         </Button>
                       </div>
@@ -182,7 +187,7 @@ export function ChangePassword() {
               />
 
               <Button className="w-full" type="submit" disabled={isLoading}>
-                {isLoading ? 'Updating...' : 'Update password'}
+                {isLoading ? "Updating..." : "Update password"}
               </Button>
             </form>
           </Form>
@@ -198,5 +203,5 @@ export function ChangePassword() {
         </div>
       </div>
     </section>
-  )
+  );
 }

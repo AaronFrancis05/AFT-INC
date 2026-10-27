@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
+import { useState } from "react";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -12,104 +12,108 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@aft/ui/components/form'
-import { Input } from '@aft/ui/components/input'
-import { Button } from '@aft/ui/components/button'
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@aft/ui/components/input-otp"
+} from "@aft/ui/components/form";
+import { Input } from "@aft/ui/components/input";
+import { Button } from "@aft/ui/components/button";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@aft/ui/components/input-otp";
 
-import { AppLogoIcon } from '@/components/icons'
-import { authClient } from '@aft/auth/client'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { Eye, EyeOff } from 'lucide-react'
-import { useSessionStorageValue } from '@/hooks/use-session-storage-value'
+import { AppLogoIcon } from "@/components/icons";
+import { authClient } from "@aft/auth/client";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
+import { useSessionStorageValue } from "@/hooks/use-session-storage-value";
 
-const resetPasswordOtpSchema = z.object({
-  otp: z.string().min(6, "Please enter the 6-digit code"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-})
+const resetPasswordOtpSchema = z
+  .object({
+    otp: z.string().min(6, "Please enter the 6-digit code"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
-type ResetPasswordOtpInput = z.infer<typeof resetPasswordOtpSchema>
+type ResetPasswordOtpInput = z.infer<typeof resetPasswordOtpSchema>;
 
 export function ResetPassword() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const email = useSessionStorageValue("reset_email")
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const email = useSessionStorageValue("reset_email");
 
   const form = useForm<ResetPasswordOtpInput>({
     resolver: zodResolver(resetPasswordOtpSchema),
     defaultValues: {
-      otp: '',
-      password: '',
-      confirmPassword: '',
+      otp: "",
+      password: "",
+      confirmPassword: "",
     },
-  })
+  });
 
   async function onSubmit(data: ResetPasswordOtpInput) {
     if (!email) {
-      toast.error("Email not found. Please go back and request a new reset code.")
-      return
+      toast.error("Email not found. Please go back and request a new reset code.");
+      return;
     }
 
-    setIsLoading(true)
-    await authClient.emailOtp.resetPassword({
-      email: email,
-      otp: data.otp,
-      password: data.password,
-    }, {
-      onSuccess: () => {
-        toast.success("Password reset successfully! Please log in.")
-        sessionStorage.removeItem("reset_email")
-        router.push("/auth/sign-in")
+    setIsLoading(true);
+    await authClient.emailOtp.resetPassword(
+      {
+        email: email,
+        otp: data.otp,
+        password: data.password,
       },
-      onError: (ctx) => {
-        form.setError('root', {
-          message: ctx.error.message,
-        })
-        toast.error(ctx.error.message)
-        setIsLoading(false)
-      }
-    })
-    setIsLoading(false)
+      {
+        onSuccess: () => {
+          toast.success("Password reset successfully! Please log in.");
+          sessionStorage.removeItem("reset_email");
+          router.push("/auth/sign-in");
+        },
+        onError: (ctx) => {
+          form.setError("root", {
+            message: ctx.error.message,
+          });
+          toast.error(ctx.error.message);
+          setIsLoading(false);
+        },
+      },
+    );
+    setIsLoading(false);
   }
 
   async function handleResendOtp() {
     if (!email) {
-      toast.error("Email not found. Please go back and request a new reset code.")
-      return
+      toast.error("Email not found. Please go back and request a new reset code.");
+      return;
     }
 
-    await authClient.emailOtp.sendVerificationOtp({
-      email: email,
-      type: "forget-password",
-    }, {
-      onSuccess: () => {
-        toast.success("A new reset code has been sent to your email.")
+    await authClient.emailOtp.sendVerificationOtp(
+      {
+        email: email,
+        type: "forget-password",
       },
-      onError: (ctx) => {
-        toast.error(ctx.error.message)
-      }
-    })
+      {
+        onSuccess: () => {
+          toast.success("A new reset code has been sent to your email.");
+        },
+        onError: (ctx) => {
+          toast.error(ctx.error.message);
+        },
+      },
+    );
   }
 
   if (!email) {
     return (
       <section className="flex min-h-screen bg-zinc-50 px-4 py-16 md:py-32 dark:bg-transparent">
-        <div className="bg-card m-auto h-fit w-full max-w-md rounded-lg border p-0.5 shadow-md">
+        <div className="m-auto h-fit w-full max-w-md rounded-lg border bg-card p-0.5 shadow-md">
           <div className="p-8 pb-6 text-center">
-            <AppLogoIcon className="h-10 mx-auto fill-current text-black sm:h-12" />
-            <h1 className="mb-1 mt-4 text-xl font-semibold">Session Expired</h1>
-            <p className="text-sm text-muted-foreground mb-6">
+            <AppLogoIcon className="mx-auto h-10 fill-current text-black sm:h-12" />
+            <h1 className="mt-4 mb-1 text-xl font-semibold">Session Expired</h1>
+            <p className="mb-6 text-sm text-muted-foreground">
               Please request a new password reset code.
             </p>
             <Button asChild className="w-full">
@@ -118,19 +122,20 @@ export function ResetPassword() {
           </div>
         </div>
       </section>
-    )
+    );
   }
 
   return (
     <section className="flex min-h-screen bg-zinc-50 px-4 py-16 md:py-32 dark:bg-transparent">
-      <div className="bg-card m-auto h-fit w-full max-w-md rounded-lg border p-0.5 shadow-md">
+      <div className="m-auto h-fit w-full max-w-md rounded-lg border bg-card p-0.5 shadow-md">
         <div className="p-8 pb-6">
           <Link href="/" aria-label="go home">
             <AppLogoIcon className="h-10 fill-current text-black sm:h-12" />
           </Link>
-          <h1 className="mb-1 mt-4 text-xl font-semibold">Reset your password</h1>
+          <h1 className="mt-4 mb-1 text-xl font-semibold">Reset your password</h1>
           <p className="text-sm text-muted-foreground">
-            Enter the 6-digit code sent to <span className="font-medium">{email}</span> and your new password.
+            Enter the 6-digit code sent to <span className="font-medium">{email}</span> and your new
+            password.
           </p>
 
           <Form {...form}>
@@ -143,7 +148,7 @@ export function ResetPassword() {
                     <FormLabel className="block text-sm">Verification Code</FormLabel>
                     <FormControl>
                       <InputOTP maxLength={6} {...field}>
-                        <InputOTPGroup className="w-full flex justify-between">
+                        <InputOTPGroup className="flex w-full justify-between">
                           <InputOTPSlot index={0} className="flex-1" />
                           <InputOTPSlot index={1} className="flex-1" />
                           <InputOTPSlot index={2} className="flex-1" />
@@ -167,7 +172,7 @@ export function ResetPassword() {
                     <FormControl>
                       <div className="relative">
                         <Input
-                          type={showPassword ? 'text' : 'password'}
+                          type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
                           className="pr-10"
                           {...field}
@@ -176,7 +181,7 @@ export function ResetPassword() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowPassword(!showPassword)}
                         >
                           {showPassword ? (
@@ -185,7 +190,7 @@ export function ResetPassword() {
                             <Eye className="h-4 w-4 text-muted-foreground" />
                           )}
                           <span className="sr-only">
-                            {showPassword ? 'Hide password' : 'Show password'}
+                            {showPassword ? "Hide password" : "Show password"}
                           </span>
                         </Button>
                       </div>
@@ -204,7 +209,7 @@ export function ResetPassword() {
                     <FormControl>
                       <div className="relative">
                         <Input
-                          type={showConfirmPassword ? 'text' : 'password'}
+                          type={showConfirmPassword ? "text" : "password"}
                           placeholder="••••••••"
                           className="pr-10"
                           {...field}
@@ -213,7 +218,7 @@ export function ResetPassword() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          className="absolute top-0 right-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         >
                           {showConfirmPassword ? (
@@ -222,7 +227,7 @@ export function ResetPassword() {
                             <Eye className="h-4 w-4 text-muted-foreground" />
                           )}
                           <span className="sr-only">
-                            {showConfirmPassword ? 'Hide password' : 'Show password'}
+                            {showConfirmPassword ? "Hide password" : "Show password"}
                           </span>
                         </Button>
                       </div>
@@ -233,7 +238,7 @@ export function ResetPassword() {
               />
 
               <Button className="w-full" type="submit" disabled={isLoading}>
-                {isLoading ? 'Updating...' : 'Reset Password'}
+                {isLoading ? "Updating..." : "Reset Password"}
               </Button>
             </form>
           </Form>
@@ -255,5 +260,5 @@ export function ResetPassword() {
         </div>
       </div>
     </section>
-  )
+  );
 }

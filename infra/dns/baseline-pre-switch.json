@@ -1,37 +1,29 @@
 [
-    {
-        "Name":  "aft.remwa.tech.",
-        "Type":  "MX",
-        "Values":  [
-                       "10 inbound-smtp.eu-west-1.amazonaws.com"
-                   ]
-    },
-    {
-        "Name":  "resend._domainkey.aft.remwa.tech.",
-        "Type":  "TXT",
-        "Values":  [
-                       "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2Pz265wS95HodMuDgVq/2QYMpuIC8aN6GGhbKW3LgzFajSciXso7DCngh832yE4+ZmmJW+geX31mMvzMI82cMNuG2f90bbpigZJy93nRaZH8otS/UF3XV183Y+ZuBcCW++VVLAv91XEfzmXSFj0FCdBiVNeptgw/qeJpSNdqH5QIDAQAB"
-                   ]
-    },
-    {
-        "Name":  "rsend.aft.remwa.tech.",
-        "Type":  "CNAME",
-        "Values":  [
-                       "rsend-euw1.forge.rmta.net"
-                   ]
-    },
-    {
-        "Name":  "send.aft.remwa.tech.",
-        "Type":  "CNAME",
-        "Values":  [
-                       "send.forge.rmta.net"
-                   ]
-    },
-    {
-        "Name":  "_dmarc.remwa.tech.",
-        "Type":  "TXT",
-        "Values":  [
-                       "v=DMARC1; p=none;"
-                   ]
-    }
+  {
+    "Name": "aft.remwa.tech.",
+    "Type": "MX",
+    "Values": ["10 inbound-smtp.eu-west-1.amazonaws.com"]
+  },
+  {
+    "Name": "resend._domainkey.aft.remwa.tech.",
+    "Type": "TXT",
+    "Values": [
+      "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC2Pz265wS95HodMuDgVq/2QYMpuIC8aN6GGhbKW3LgzFajSciXso7DCngh832yE4+ZmmJW+geX31mMvzMI82cMNuG2f90bbpigZJy93nRaZH8otS/UF3XV183Y+ZuBcCW++VVLAv91XEfzmXSFj0FCdBiVNeptgw/qeJpSNdqH5QIDAQAB"
+    ]
+  },
+  {
+    "Name": "rsend.aft.remwa.tech.",
+    "Type": "CNAME",
+    "Values": ["rsend-euw1.forge.rmta.net"]
+  },
+  {
+    "Name": "send.aft.remwa.tech.",
+    "Type": "CNAME",
+    "Values": ["send.forge.rmta.net"]
+  },
+  {
+    "Name": "_dmarc.remwa.tech.",
+    "Type": "TXT",
+    "Values": ["v=DMARC1; p=none;"]
+  }
 ]

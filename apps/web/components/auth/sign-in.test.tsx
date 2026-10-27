@@ -2,7 +2,10 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-type Callbacks = { onSuccess?: () => unknown; onError?: (ctx: { error: { message: string } }) => void };
+type Callbacks = {
+  onSuccess?: () => unknown;
+  onError?: (ctx: { error: { message: string } }) => void;
+};
 
 const { signInEmail, signInSocial, push, toast } = vi.hoisted(() => ({
   signInEmail: vi.fn(),

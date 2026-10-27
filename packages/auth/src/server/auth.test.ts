@@ -20,11 +20,20 @@ type AuthOptions = {
   plugins: { id: string; options: { sendVerificationOTP: unknown } }[];
 };
 
-function setOAuthEnv(values: Partial<Record<
-  "GOOGLE_CLIENT_ID" | "GOOGLE_CLIENT_SECRET" | "GITHUB_CLIENT_ID" | "GITHUB_CLIENT_SECRET",
-  string
->>) {
-  for (const name of ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"] as const) {
+function setOAuthEnv(
+  values: Partial<
+    Record<
+      "GOOGLE_CLIENT_ID" | "GOOGLE_CLIENT_SECRET" | "GITHUB_CLIENT_ID" | "GITHUB_CLIENT_SECRET",
+      string
+    >
+  >,
+) {
+  for (const name of [
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+  ] as const) {
     vi.stubEnv(name, values[name] ?? "");
   }
 }
@@ -67,7 +76,11 @@ describe("lib/auth.ts", () => {
   });
 
   it("A11: leaves a half configured provider out of socialProviders entirely (AC-2)", async () => {
-    setOAuthEnv({ GOOGLE_CLIENT_ID: "google-id", GOOGLE_CLIENT_SECRET: "google-secret", GITHUB_CLIENT_ID: "github-id" });
+    setOAuthEnv({
+      GOOGLE_CLIENT_ID: "google-id",
+      GOOGLE_CLIENT_SECRET: "google-secret",
+      GITHUB_CLIENT_ID: "github-id",
+    });
 
     const options = await loadAuthOptions();
 
@@ -111,6 +124,9 @@ describe("lib/auth.ts", () => {
 
     const options = await loadAuthOptions();
 
-    expect(options.emailAndPassword).toMatchObject({ enabled: true, requireEmailVerification: true });
+    expect(options.emailAndPassword).toMatchObject({
+      enabled: true,
+      requireEmailVerification: true,
+    });
   });
 });

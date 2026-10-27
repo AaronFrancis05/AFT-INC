@@ -2,7 +2,10 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-type Callbacks = { onSuccess?: () => unknown; onError?: (ctx: { error: { message: string } }) => void };
+type Callbacks = {
+  onSuccess?: () => unknown;
+  onError?: (ctx: { error: { message: string } }) => void;
+};
 
 const { signUpEmail, signInSocial, sendVerificationOtp, push, toast } = vi.hoisted(() => ({
   signUpEmail: vi.fn(),
@@ -62,7 +65,9 @@ describe("SignUp", () => {
   });
 
   it("creates the account, sends the code, and goes to verify email", async () => {
-    sendVerificationOtp.mockImplementation(async (_body: unknown, cb: Callbacks) => cb.onSuccess?.());
+    sendVerificationOtp.mockImplementation(async (_body: unknown, cb: Callbacks) =>
+      cb.onSuccess?.(),
+    );
     render(<SignUp socialProviders={["google", "github"]} />);
 
     await fillAndSubmit();

@@ -7,14 +7,20 @@ import { SocialButtons } from "./social-buttons";
 
 describe("SocialButtons", () => {
   it("A11: renders nothing when no provider is configured (AC-4)", () => {
-    const { container } = render(<SocialButtons providers={[]} disabled={false} onSelect={vi.fn()} />);
+    const { container } = render(
+      <SocialButtons providers={[]} disabled={false} onSelect={vi.fn()} />,
+    );
 
     expect(container).toBeEmptyDOMElement();
   });
 
   it("A11: ignores a provider name it has no button for", () => {
     const { container } = render(
-      <SocialButtons providers={["twitter" as SocialProvider]} disabled={false} onSelect={vi.fn()} />,
+      <SocialButtons
+        providers={["twitter" as SocialProvider]}
+        disabled={false}
+        onSelect={vi.fn()}
+      />,
     );
 
     expect(container).toBeEmptyDOMElement();
@@ -23,7 +29,10 @@ describe("SocialButtons", () => {
   it("A11: labels the buttons exactly Google and Github, in the order given (AC-4)", () => {
     render(<SocialButtons providers={["google", "github"]} disabled={false} onSelect={vi.fn()} />);
 
-    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual(["Google", "Github"]);
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
+      "Google",
+      "Github",
+    ]);
   });
 
   it("uses plain buttons, so a click never submits the surrounding form", () => {

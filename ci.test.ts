@@ -19,7 +19,9 @@ function packageSources(dir = "packages"): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const path = join(dir, entry.name);
     if (entry.isDirectory())
-      return ["node_modules", "generated", "coverage", ".turbo"].includes(entry.name) ? [] : packageSources(path);
+      return ["node_modules", "generated", "coverage", ".turbo"].includes(entry.name)
+        ? []
+        : packageSources(path);
     return /\.(ts|tsx|mts|mjs|js)$/.test(entry.name) ? [path] : [];
   });
 }
@@ -48,12 +50,19 @@ const REQUIRED_CHECKS = ["test", "typecheck", "lint", "prisma", "build-smoke", "
 // Each job under `jobs:` with its display name: a two space indented key, then its `name:` line.
 function jobs(workflow: string) {
   const body = workflow.slice(workflow.indexOf("\njobs:"));
-  return [...body.matchAll(/^ {2}([\w-]+):\n {4}name: (.+)$/gm)].map(([, id, name]) => ({ id, name: name.trim() }));
+  return [...body.matchAll(/^ {2}([\w-]+):\n {4}name: (.+)$/gm)].map(([, id, name]) => ({
+    id,
+    name: name.trim(),
+  }));
 }
 
 describe("CI workflow", () => {
   it("covers AC-13: has exactly the six required jobs", () => {
-    expect(jobs(ci).map((job) => job.id).sort()).toEqual([...REQUIRED_CHECKS].sort());
+    expect(
+      jobs(ci)
+        .map((job) => job.id)
+        .sort(),
+    ).toEqual([...REQUIRED_CHECKS].sort());
   });
 
   it("covers AC-13: each job's ID equals its display name, so check names stay stable", () => {
@@ -88,7 +97,8 @@ describe("CI workflow", () => {
   });
 
   it("covers AC-10 (I6): no checkout leaves the token in .git/config for pull request code", () => {
-    const checkouts = ci.match(/uses: actions\/checkout@\S+\n {8}with:\n {10}persist-credentials: false$/gm) ?? [];
+    const checkouts =
+      ci.match(/uses: actions\/checkout@\S+\n {8}with:\n {10}persist-credentials: false$/gm) ?? [];
     expect(checkouts).toHaveLength((ci.match(/uses: actions\/checkout@/g) ?? []).length);
     expect(checkouts).toHaveLength(REQUIRED_CHECKS.length);
   });
@@ -141,7 +151,13 @@ describe("Toolchain pins", () => {
   });
 
   it("covers AC-11: allowBuilds lists the reviewed packages and strictDepBuilds is not turned off", () => {
-    for (const approved of ['"@prisma/engines": true', "prisma: true", "esbuild: true", "sharp: true", "unrs-resolver: true"])
+    for (const approved of [
+      '"@prisma/engines": true',
+      "prisma: true",
+      "esbuild: true",
+      "sharp: true",
+      "unrs-resolver: true",
+    ])
       expect(workspace).toContain(approved);
     expect(workspace).toContain("msw: false");
     expect(workspace).not.toMatch(/strictDepBuilds:\s*false/);
@@ -189,7 +205,9 @@ describe("Toolchain pins", () => {
   it("covers 0008 AC-9: build only tools are dev dependencies in every workspace", () => {
     const manifests = workspaceManifests();
     // A glob typo must not let this pass with nothing checked.
-    expect(manifests.map((m) => m.name)).toEqual(expect.arrayContaining(["@aft/config", "@aft/ui"]));
+    expect(manifests.map((m) => m.name)).toEqual(
+      expect.arrayContaining(["@aft/config", "@aft/ui"]),
+    );
     const offenders = manifests.flatMap((m) =>
       BUILD_ONLY_TOOLS.filter((tool) => m.dependencies?.[tool]).map((tool) => `${m.name}: ${tool}`),
     );
@@ -198,7 +216,9 @@ describe("Toolchain pins", () => {
 
   it("covers 0008 AC-9: every workspace peer is also a dev dependency", () => {
     const manifests = workspaceManifests();
-    expect(manifests.map((m) => m.name)).toEqual(expect.arrayContaining(["@aft/config", "@aft/ui"]));
+    expect(manifests.map((m) => m.name)).toEqual(
+      expect.arrayContaining(["@aft/config", "@aft/ui"]),
+    );
     // pnpm's autoInstallPeers records an unmirrored peer as a runtime dependency, so pnpm audit --prod would audit it (I31).
     const offenders = manifests.flatMap((m) =>
       Object.keys(m.peerDependencies ?? {})

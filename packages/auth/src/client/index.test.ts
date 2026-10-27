@@ -37,7 +37,9 @@ describe("lib/auth-client.ts", () => {
   });
 
   it("no client auth file reads process.env (AC-1)", () => {
-    const offenders = clientSourceFiles().filter((file) => readFileSync(file, "utf8").includes("process.env"));
+    const offenders = clientSourceFiles().filter((file) =>
+      readFileSync(file, "utf8").includes("process.env"),
+    );
 
     expect(offenders.map((file) => path.relative(SRC, file))).toEqual([]);
   });

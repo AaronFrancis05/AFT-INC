@@ -18,17 +18,29 @@ describe("signUpSchema", () => {
   });
 
   it("rejects a password shorter than 8 characters", () => {
-    const result = signUpSchema.safeParse({ ...validSignUp, password: "Ab1", confirmPassword: "Ab1" });
+    const result = signUpSchema.safeParse({
+      ...validSignUp,
+      password: "Ab1",
+      confirmPassword: "Ab1",
+    });
     expect(messagesFor(result)).toContain("Password must be at least 8 characters");
   });
 
   it("rejects a password with no uppercase letter", () => {
-    const result = signUpSchema.safeParse({ ...validSignUp, password: "analytical1", confirmPassword: "analytical1" });
+    const result = signUpSchema.safeParse({
+      ...validSignUp,
+      password: "analytical1",
+      confirmPassword: "analytical1",
+    });
     expect(messagesFor(result)).toContain("Password must contain at least one uppercase letter");
   });
 
   it("rejects a password with no number", () => {
-    const result = signUpSchema.safeParse({ ...validSignUp, password: "Analytical", confirmPassword: "Analytical" });
+    const result = signUpSchema.safeParse({
+      ...validSignUp,
+      password: "Analytical",
+      confirmPassword: "Analytical",
+    });
     expect(messagesFor(result)).toContain("Password must contain at least one number");
   });
 
