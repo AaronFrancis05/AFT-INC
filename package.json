@@ -10,11 +10,14 @@
     "test": "turbo run test --concurrency=2",
     "test:coverage": "turbo run test:coverage --concurrency=2",
     "test:root": "vitest run",
-    "test:root:coverage": "vitest run --coverage"
+    "test:root:coverage": "vitest run --coverage",
+    "prepare": "husky || true"
   },
   "devDependencies": {
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "husky": "9.1.7",
+    "lint-staged": "17.6.0",
     "prettier": "3.9.10",
     "prettier-plugin-tailwindcss": "0.8.1",
     "shadcn": "catalog:",
