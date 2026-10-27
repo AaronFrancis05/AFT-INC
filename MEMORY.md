@@ -316,3 +316,10 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - 18 of 18 lint, typecheck, and test tasks green; 128 tests (108 before). `test-preferences.json` `packageManager` fixed from `npm` to `pnpm`.
 - Scope feature 4: `Test it` ticked (stays `in-progress`; review, document, and ship remain).
 - Next: `/clear`, then `/check review monorepo migration` (raise the Vitest worker timeout flake there).
+
+### 2026-10-27 (/check review monorepo migration: Changes requested)
+- Reviewed on Sonnet (author Opus), 347 files against `origin/main` (merge base 3e87f90; there is no local `main` branch). Findings: `docs/reviews/2026-10-27-feat-monorepo-migration.md`. All 12 recorded deviations judged sound.
+- One major: the Vitest worker start timeout flake will likely hit CI. Vitest 5.0.5 hard codes `START_TIMEOUT = 6e4` (confirmed in `dist/chunks/index.1TqnEahn.js`), so it can't be raised. Suggested fix: `--concurrency=2` on the CI turbo test command, cap `maxWorkers` when `CI` is set, maybe `pool: "threads"`, then run the CI test job 3 or 4 times; no blind retry.
+- 5 minors: turbo cache key needs `github.job`; `//#test:root` `packages/**` inputs pull in ignored output; the build-smoke cache key hashes `node_modules`; `@next/env` pinned by hand, not via the catalog; root `AGENTS.md` and `README.md` still say npm and `@/lib/*` (for `/sync`). 3 nits.
+- Scope feature 4: `Review it` ticked.
+- Next: fix the major (and the minors you want) via `/develop monorepo migration` (the CI settings may need a spec 0008 note via `/architect`), then `/document monorepo migration`, then `/sync`.

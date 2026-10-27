@@ -61,7 +61,7 @@ Move the current app into `apps/web` and pull shared code into packages, with no
    - [x] Audit fix: build only tools and `@aft/config`'s peers back to dev dependencies, two every workspace CI checks, `pnpm audit --prod` passes (AC-9, I31)
 - [x] Verify it: `/check verify monorepo migration`
 - [x] Test it: `/test monorepo migration`
-- [ ] Review it (fresh model): `/check review monorepo migration`
+- [x] Review it (fresh model): `/check review monorepo migration`
 - [ ] Document it: `/document monorepo migration`
 - [ ] Ship it: squash merge the pull request with all six checks green
 Spec [0008](../specs/0008-monorepo-migration/index.md)
