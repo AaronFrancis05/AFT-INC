@@ -63,7 +63,7 @@ Move the current app into `apps/web` and pull shared code into packages, with no
 - [x] Verify it: `/check verify monorepo migration`
 - [x] Test it: `/test monorepo migration`
 - [x] Review it (fresh model): `/check review monorepo migration`
-- [ ] Document it: `/document monorepo migration`
+- [x] Document it: `/document monorepo migration`
 - [ ] Ship it: squash merge the pull request with all six checks green
 Spec [0008](../specs/0008-monorepo-migration/index.md)
 code in `apps/web/`, `packages/config/`, `packages/db/`, `packages/email/`, `packages/auth/`, `packages/ui/`

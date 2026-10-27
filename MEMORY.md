@@ -349,3 +349,9 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Scope feature 4: the Review fixes milestone and `Build it` ticked; stays `in-progress` (GA). Spec 0008 stays `In Progress`.
 - Still owed: the CI proof (3 attempts of the same commit on the PR, reruns uncached through `TURBO_FORCE`), and each job's cache key showing its job ID.
 - Next: `/clear`, then open the PR (or push and let `/document monorepo migration` open it), rerun the `test` job twice, then `/sync`.
+
+### 2026-10-28 (/document monorepo migration)
+- PR body written from the commits, the diff, and the step 0 baselines (from the 2026-10-24 session scratchpad): 100 tests, the 15 route table, the seven lockfile versions, and 45 direct dependencies (only `audit-ci` and `tsx` dropped). Lists the 3 removed and 11 new `ci.test.ts` names, the review's accepted residual risks, and the recorded deviations.
+- With the engineer's go: pushed `feat/monorepo-migration` and opened PR #12 (https://github.com/AaronFrancis05/AFT-INC/pull/12).
+- Scope feature 4: `Document it` ticked; `Ship it` remains (GA, stays `in-progress`).
+- Next: watch PR #12 CI; rerun the `test` job twice on the same commit (reruns uncached through `TURBO_FORCE`) and check each job's cache key shows its job ID; then squash merge, then `/sync` right away (AGENTS.md and README.md are stale).
