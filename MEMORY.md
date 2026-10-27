@@ -323,3 +323,10 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - 5 minors: turbo cache key needs `github.job`; `//#test:root` `packages/**` inputs pull in ignored output; the build-smoke cache key hashes `node_modules`; `@next/env` pinned by hand, not via the catalog; root `AGENTS.md` and `README.md` still say npm and `@/lib/*` (for `/sync`). 3 nits.
 - Scope feature 4: `Review it` ticked.
 - Next: fix the major (and the minors you want) via `/develop monorepo migration` (the CI settings may need a spec 0008 note via `/architect`), then `/document monorepo migration`, then `/sync`.
+
+### 2026-10-27 (/architect: spec 0008 amendment for the review fixes)
+- `/develop monorepo migration` stopped at the spec gate (the fixes change values spec 0008 names); the engineer chose `/architect` first.
+- Spec 0008 amended in place (third 2026-10-27 amendment, accepted; status stays `In Progress`). New AC-20 and I32 (also in PLAN.md), build plan step 8c. Engineer's picks (all recommended): `--concurrency=2` on the root `test` and `test:coverage` scripts and the CI test command; `VITEST_MAX_WORKERS: "2"` in the CI `test` job only, passed through in `globalPassThroughEnv`; forks pool kept; no retry. Ride alongs: `github.job` in the `.turbo` cache key, narrow `//#test:root` inputs (plus `turbo.json`, `vitest.config.mts`, `package-lock.json`, `audit-ci.jsonc`), `build-smoke` key exclusions, `@next/env` in the catalog.
+- A Sonnet cross check found 7 gaps, all fixed. The main one: a CI rerun replays the cached test results, so the `test` job sets `TURBO_FORCE: ${{ github.run_attempt > 1 }}`. Also: the local proof is `pnpm turbo run test:coverage //#test:root:coverage --concurrency=2 --force` four times; new `ci.test.ts` checks for the cache keys and for `@next/env` equal to `next`.
+- Scope feature 4: `Build it` unticked, new milestone "Review fixes".
+- Next: `/clear`, then `/develop monorepo migration` (step 8c), then `/document monorepo migration` and `/sync`.
