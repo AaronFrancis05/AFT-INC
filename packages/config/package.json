@@ -12,7 +12,8 @@
     "./stubs/empty": "./stubs/empty.ts"
   },
   "scripts": {
-    "lint": "eslint . --max-warnings=0"
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0"
   },
   "peerDependencies": {
     "@testing-library/jest-dom": "catalog:",

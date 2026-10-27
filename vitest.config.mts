@@ -4,11 +4,11 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["ci.test.ts"],
+    include: ["ci.test.ts", "scripts/**/*.test.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "lcov"],
-      include: ["ci.test.ts"],
+      include: ["ci.test.ts", "scripts/**/*.test.ts"],
     },
   },
 });
