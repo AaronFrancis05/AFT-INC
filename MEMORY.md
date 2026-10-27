@@ -337,3 +337,8 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Per AC-20's fallback, reran with `VITEST_MAX_WORKERS=2`: 4 of 4 passed (108, 81, 77, 81s).
 - Gotcha: in Git Bash, `//#test:root` is rewritten by MSYS path conversion; set `MSYS_NO_PATHCONV=1` for turbo root task commands.
 - Build plan step 8c and the scope milestone are left unticked: AC-20 routes back to `/architect` to choose between a documented local `VITEST_MAX_WORKERS` and `maxWorkers` in the configs (and whether to raise the eslint test's hook timeout). The CI proof (3 runs) is still owed on the PR.
+
+### 2026-10-28 (/architect: spec 0008 amendment, worker cap into the configs)
+- Spec 0008 amended in place (2026-10-28, accepted; status stays `In Progress`). Engineer's picks (both recommended): `maxWorkers: 2` in the five workspace Vitest configs (root config none), `VITEST_MAX_WORKERS` dropped from the CI job and `globalPassThroughEnv`; the `beforeAll` in `apps/web/eslint.config.test.ts` gets `}, 120_000);`. New build plan step 8d; steps 8c and 8d are ticked together once the local proof (4 in a row, no `VITEST_MAX_WORKERS` in the shell) passes.
+- A Sonnet cross check found no design problem; its six wording gaps were fixed (the check uses a whole line match `/^\s+maxWorkers: 2,$/m`, exactly five configs, nothing in the root config, no mention anywhere in `ci.yml`; the AC-20 check keeps its name).
+- Next: `/clear`, then `/develop monorepo migration` (step 8d), then open the PR for the three CI runs, `/document monorepo migration`, and `/sync`.
