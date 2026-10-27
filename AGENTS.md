@@ -70,7 +70,9 @@ pnpm --filter @aft/app-web test:watch
 # CI contract test (ci.test.ts at the root)
 pnpm test:root
 
-# Browser smoke tests (Playwright); Turborepo builds the app first
+# Browser smoke tests (Playwright); install Chromium and its OS dependencies first
+pnpm --filter @aft/app-web exec playwright install --with-deps chromium
+# Turborepo builds the app before running the tests
 pnpm turbo run test:e2e --filter=@aft/app-web
 ```
 

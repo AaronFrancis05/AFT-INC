@@ -1,7 +1,7 @@
 # 0008. Move the app into a pnpm and Turborepo monorepo
 
 **Date**: 2026-10-24
-**Status**: Accepted
+**Status**: In Progress
 
 > **Amended 2026-10-25** (during the build, at step 6): `@aft/auth` gains a light `./providers` subpath for `resolveSocialProviders` and its types, so the sign in and sign up pages no longer load Better Auth, Prisma, and Resend just to list providers. It is guarded with `server-only`. Client components import the `SocialProvider` type from it. The client boundary tests are split so each workspace scans its own files. Changed: AC-12, *Import rules*, *Package contents*, *Key invariants*, build plan step 6. Also corrected to match the build: `loadEnvConfig` passes `forceReload` (`true`), because Next.js has already loaded and cached env files from `apps/web` when `next.config.ts` runs (AC-13), and `server-only` is in the catalog (AC-15). Why: [rationale.md](rationale.md#amendment-2026-10-25-a-light-providers-entry).
 

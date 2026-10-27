@@ -48,7 +48,7 @@ The umbrella decision for the whole platform: monorepo layout, AWS and Kubernete
 - [x] Decide the architecture (spec): `/architect platform architecture`
 Spec [0005](../specs/0005-platform-architecture/index.md) (accepted 2026-10-22: ECS Fargate instead of EKS), partly superseded by spec [0007](../specs/0007-lean-hosting-customer-delivery/index.md) (accepted 2026-10-24: one EC2 server, no customer hosting); Foundation now follows spec 0007's Path to live
 
-### 4. Monorepo migration · done · GA
+### 4. Monorepo migration · in-progress · GA
 Move the current app into `apps/web` and pull shared code into packages, with no change in behavior.
 **Done when:** the app runs from `apps/web` and behaves exactly as before (auth flows, dashboard); `packages/db`, `packages/auth`, `packages/ui`, `packages/email`, `packages/config` exist; the existing migration is preserved; edge cases I18 to I28 hold.
 - [x] Design it (spec): `/architect monorepo migration`
@@ -59,12 +59,12 @@ Move the current app into `apps/web` and pull shared code into packages, with no
    - [x] `packages/email`, `packages/auth`, `packages/ui`: code, tests, shadcn and Tailwind setup (AC-2, AC-11, AC-12, AC-16, AC-19)
    - [x] Parity pass: tests, routes, lockfile versions, manual auth run on the dev database (AC-5, AC-6)
    - [x] Audit fix: build only tools and `@aft/config`'s peers back to dev dependencies, two every workspace CI checks, `pnpm audit --prod` passes (AC-9, I31)
-   - [x] Review fixes: test runs capped at two Turborepo tasks and two Vitest workers per config, a 120 second ESLint test hook, uncached CI reruns, per job cache keys, narrow root test inputs, `@next/env` in the catalog, proven by four local and three CI runs (AC-14, AC-15, AC-20, I32)
+   - [x] Review fixes: test runs capped at two Turborepo tasks and two Vitest workers per config, a 120 second ESLint test hook, uncached CI reruns, per job cache keys, narrow root test inputs, `@next/env` in the catalog, proven by four local runs; three CI runs still owed (AC-14, AC-15, AC-20, I32)
 - [x] Verify it: `/check verify monorepo migration`
 - [x] Test it: `/test monorepo migration`
 - [x] Review it (fresh model): `/check review monorepo migration`
 - [x] Document it: `/document monorepo migration`
-- [x] Ship it: squash merge the pull request with all six checks green
+- [ ] Ship it: record all six checks green and three passing `test` job runs on the same commit (AC-20; reruns uncached through `TURBO_FORCE`). PR #12 is merged; CI proof remains outstanding.
 Spec [0008](../specs/0008-monorepo-migration/index.md)
 code in `apps/web/`, `packages/config/`, `packages/db/`, `packages/email/`, `packages/auth/`, `packages/ui/`
 

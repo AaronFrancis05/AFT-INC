@@ -10,14 +10,14 @@ This file holds the project's working memory, so any session or teammate can pic
 
 ## Current position
 
-- **Stage**: Scope feature 1 (CI repair and test harness) is `done`: PR #2 squash merged to `main` as fc11e16 on 2026-10-20; spec 0001 `Accepted`
-- **Done**: `/audit` gap-fill of `AGENTS.md`; `/scope` wrote [docs/scope/index.md](docs/scope/index.md) plus 8 epic files (132 features, plus 3 pre-existing items A to C)
-- **Spec 0001** ([CI repair and test harness](docs/specs/0001-ci-repair-test-harness.md)) `Accepted`; every build task (1 to 9, plus 7b) is done, and `/check verify` passed on 2026-10-20 (commit c0dacf9, CI run 39400720181 green on all six checks). `main` is protected (squash merges only). `/test`, `/check review` (sonnet, Approve with nits), and `/document` (PR body) all completed on 2026-10-20
+- **Stage**: Feature 5 (workspace tooling) is next and needs `/architect`; see [the foundation scope](docs/scope/foundation.md). Feature 4's merged implementation still needs the AC-20 CI proof before it can be closed.
+- **Done**: PR #12 (monorepo migration) squash merged to `main` as be85e39; `/sync` updated `AGENTS.md` for the pnpm and Turborepo layout.
+- **Spec 0008**: [Monorepo migration](docs/specs/0008-monorepo-migration/index.md); outstanding CI proof is tracked in [verify.md](docs/specs/0008-monorepo-migration/verify.md).
 - **Dev database**: AWS Aurora PostgreSQL 17 Serverless v2 cluster `aft-dev` in eu-west-1 (see Decisions log, 2026-10-20); both migrations applied; local `.env` points at it. Spec 0007 (2026-10-24) moves it into the `dev` database on the EC2 server and deletes `aft-dev` (feature 12)
 - **Architecture (2026-10-24)**: spec 0007 is current: one EC2 server for AFT only, purchases delivered to customers' own repos; see the Session log entry of that date
-- **Next command**: merge the `docs/close-feature-1` PR, then `/clear`. Then `/develop auth defect fixes` (feature 2), then `/architect platform architecture` (feature 3)
-- **Owed to `/sync`**: nothing (the 2026-10-21 run filled `## Build approach` and the test and toolchain notes)
-- **Blockers**: none
+- **Next command**: record all six checks green and three passing `test` job attempts on the same commit (AC-20; reruns uncached through `TURBO_FORCE`), then `/clear` and `/architect workspace tooling` (feature 5).
+- **Owed to `/sync`**: `README.md` still says `npm run dev` (recorded by the last `/sync`).
+- **Blockers**: feature 4 closure awaits the recorded AC-20 CI proof.
 
 ## Step 1 checklist
 
