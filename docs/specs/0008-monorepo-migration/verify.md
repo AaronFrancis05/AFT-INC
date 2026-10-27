@@ -51,10 +51,10 @@ Run `next dev` on port 3000 against the dev database (Better Auth rejects any ot
 - [x] Each config's repo root → computed with `fileURLToPath(import.meta.url)` → AC-13, AC-17
 
 ## Step 8c review fixes (amendment 2026-10-27, third)
-- [ ] `pnpm turbo run test:coverage //#test:root:coverage --concurrency=2 --force` (in Git Bash, with `MSYS_NO_PATHCONV=1`) → passes 4 times in a row with no `VITEST_MAX_WORKERS` in the shell → AC-20 (I32). 2026-10-28: 3 of 4 without the worker cap (run 4: `eslint.config.test.ts` `beforeAll` hook timeout); 4 of 4 with `VITEST_MAX_WORKERS=2`
+- [x] `pnpm turbo run test:coverage //#test:root:coverage --concurrency=2 --force` (in Git Bash, with `MSYS_NO_PATHCONV=1`) → passes 4 times in a row with no `VITEST_MAX_WORKERS` in the shell → AC-20 (I32). 2026-10-28: 3 of 4 without the worker cap (run 4: `eslint.config.test.ts` `beforeAll` hook timeout); 4 of 4 with `VITEST_MAX_WORKERS=2`; 2026-10-28 after step 8d (`maxWorkers: 2` in the configs, nothing in the shell): 4 of 4 (103, 81, 81, 76s)
 - [ ] PR `test` job → passes on 3 attempts of the same commit; reruns show Vitest output, not cache replays (`TURBO_FORCE` true on attempt 2 and up) → AC-20
 - [x] `pnpm turbo run //#test:root --dry=json` → no `inputs` key on `//#test:root` matches `node_modules|coverage|generated|\.turbo` (67 inputs, 2026-10-28) → AC-20, *Turborepo tasks*
-- [ ] Run `pnpm --filter @aft/ui test:coverage`, then `pnpm test:root` through turbo → the root contract test is a cache hit → *Turborepo tasks*
+- [x] Run `pnpm --filter @aft/ui test:coverage`, then `pnpm test:root` through turbo → the root contract test is a cache hit → *Turborepo tasks*
 - [ ] Each CI job's "Restore Turborepo cache" step → key contains its own job ID → *Setup action*
 - [x] `git diff pnpm-lock.yaml` after the catalog move → only a `catalogs:` entry for `@next/env` and the `apps/web` specifier, no `packages:` change → AC-1, AC-15
 - [x] Root contract test → 22 of 22, including the AC-7 cache key, AC-15 `@next/env`, and AC-20 checks → AC-10, AC-15, AC-20
