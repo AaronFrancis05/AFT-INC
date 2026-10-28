@@ -68,7 +68,7 @@ Move the current app into `apps/web` and pull shared code into packages, with no
 Spec [0008](../specs/0008-monorepo-migration/index.md)
 code in `apps/web/`, `packages/config/`, `packages/db/`, `packages/email/`, `packages/auth/`, `packages/ui/`
 
-### 5. Workspace tooling · in-progress
+### 5. Workspace tooling · done
 Shared lint, format, type settings, and commit hooks for every workspace.
 **Done when:** one command lints, formats, and typechecks every workspace, and commit hooks block unformatted code.
 Spec: [0009](../specs/0009-workspace-tooling/index.md). Ships as two PRs (format, then tooling), a one off exception so `git blame` can skip the reformat.
@@ -80,7 +80,7 @@ Spec: [0009](../specs/0009-workspace-tooling/index.md). Ships as two PRs (format
    - [x] Editor files, `.git-blame-ignore-revs`, and the `ci.test.ts` checks (AC-3, AC-13, AC-14, I40, I43, I45)
 - [x] Verify it: `/check verify workspace tooling`
 - [x] Test it: `/test workspace tooling`
-- [ ] Ship it: squash merge both pull requests with all six checks green, PR 1 first
+- [x] Ship it: squash merge both pull requests with all six checks green, PR 1 first
 
 ### 6. Typed environment config · needs a decision
 One validated config schema per app, so a missing or wrong secret stops the app at boot, not in production traffic.

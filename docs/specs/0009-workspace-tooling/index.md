@@ -1,7 +1,7 @@
 # 0009. Workspace tooling: one check command, Prettier, and commit hooks
 
 **Date**: 2026-10-28
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 

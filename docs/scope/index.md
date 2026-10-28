@@ -36,7 +36,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 2 | [Auth defect fixes](foundation.md) | Foundation | done |
 | 3 | [Platform architecture](foundation.md) | Foundation | done |
 | 4 | [Monorepo migration](foundation.md) | Foundation | done |
-| 5 | [Workspace tooling](foundation.md) | Foundation | in-progress |
+| 5 | [Workspace tooling](foundation.md) | Foundation | done |
 | 6 | [Typed environment config](foundation.md) | Foundation | planned |
 | 7 | [Engineering standards and shared helpers](foundation.md) | Foundation | planned |
 | 8 | [Local dev stack](foundation.md) | Foundation | planned |
