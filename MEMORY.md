@@ -388,3 +388,11 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Not done: the VS Code Source Control cases (AC-8) and save on format (AC-13) need you; they are in `verify.md`. Still open from PR 1: the DNS baseline `.prettierignore` question for `/architect`.
 - Scope feature 5: all milestones and `Build it` ticked; stays `in-progress` (Beta). Spec 0009 stays `In Progress`.
 - Next: `/clear`, then `/check verify workspace tooling` (run the VS Code cases), then `/test workspace tooling`, then push and open PR 2.
+
+### 2026-10-28 (/check verify workspace tooling: PASS)
+- All 29 `verify.md` steps run and ticked, evidence recorded there. PR 2 pushed and opened as #16 (engineer's go) so CI could prove AC-6: run 40605037845, six checks green, `Format` step ran. Not merged.
+- The engineer ran the VS Code cases by hand on a scratch branch: Source Control commits vs1 (formatted), vs2 (refused with `Unexpected any`), vs3 (partial stage kept, I33), vs4 (delete only); save on format for `.tsx` (ESLint fix plus Prettier) and `.md` (unchanged). VS Code's git found Node (no I36). Scratch branch and `zz-*` files removed.
+- Gotchas: `git worktree remove` on Windows fails on long `node_modules` paths; delete with PowerShell `Remove-Item -LiteralPath "\?\<path>"`, then `git worktree prune`. `vitest list` order varies; compare sorted. In VS Code's inline diff, "Stage Selected Ranges" with the whole file selected stages every hunk; put the cursor on one line (Ctrl+G) instead.
+- Scope feature 5: `Verify it` ticked; stays `in-progress` (Beta: `Test it` and `Ship it` remain). Spec 0009 stays `In Progress`.
+- Still open: the four build deviations and the DNS baseline `.prettierignore` question (for `/architect` or review).
+- Next: `/clear`, then `/test workspace tooling`, then `/document workspace tooling` (rewrite the PR #16 body), then squash merge #16 and `/sync`.
