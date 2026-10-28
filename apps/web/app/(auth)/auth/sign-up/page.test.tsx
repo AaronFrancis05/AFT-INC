@@ -14,6 +14,8 @@ describe("SignUpPage", () => {
   });
 
   it("A11: passes the providers configured in the environment", () => {
+    vi.stubEnv("BETTER_AUTH_SECRET", "test-only-secret-0123456789abcdefghij");
+    vi.stubEnv("BETTER_AUTH_URL", "http://localhost:3000");
     vi.stubEnv("GOOGLE_CLIENT_ID", "google-id");
     vi.stubEnv("GOOGLE_CLIENT_SECRET", "google-secret");
     vi.stubEnv("GITHUB_CLIENT_ID", "");

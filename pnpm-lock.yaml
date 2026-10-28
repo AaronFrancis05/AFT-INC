@@ -398,6 +398,9 @@ importers:
 
   packages/auth:
     dependencies:
+      '@aft/config':
+        specifier: workspace:*
+        version: link:../config
       '@aft/db':
         specifier: workspace:*
         version: link:../db
@@ -414,9 +417,6 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@aft/config':
-        specifier: workspace:*
-        version: link:../config
       '@testing-library/dom':
         specifier: 'catalog:'
         version: 10.4.2

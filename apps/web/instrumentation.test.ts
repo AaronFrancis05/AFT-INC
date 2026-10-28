@@ -11,6 +11,8 @@ beforeEach(() => {
   vi.stubEnv("NEXT_RUNTIME", "nodejs");
   vi.stubEnv("NEXT_PHASE", "");
   vi.stubEnv("DATABASE_URL", "postgresql://user:pass@localhost:5432/aft_test");
+  vi.stubEnv("BETTER_AUTH_SECRET", "test-only-secret-0123456789abcdefghij");
+  vi.stubEnv("BETTER_AUTH_URL", "http://localhost:3000");
 });
 
 afterEach(() => {

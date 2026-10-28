@@ -3,10 +3,16 @@ import "server-only";
 // Decides which social sign in providers are configured (edge case A11).
 // lib/auth.ts registers exactly these, and the sign in and sign up pages show
 // exactly these buttons, so the two can never disagree. Spec 0002.
+// The values come from authEnv() (spec 0010), which already refuses a half set pair (A12).
 
 export type SocialProvider = "google" | "github";
 
-type Env = Record<string, string | undefined>;
+type ProviderEnv = Partial<
+  Record<
+    "GOOGLE_CLIENT_ID" | "GOOGLE_CLIENT_SECRET" | "GITHUB_CLIENT_ID" | "GITHUB_CLIENT_SECRET",
+    string | undefined
+  >
+>;
 
 type ProviderCredentials = { clientId: string; clientSecret: string };
 
@@ -20,38 +26,20 @@ export type ResolvedSocialProviders = {
   config: Partial<Record<SocialProvider, ProviderCredentials>>;
   // Enabled providers in a fixed order (Google, then GitHub).
   enabled: SocialProvider[];
-  // Empty variable names of providers that have only one of their two values.
-  missing: string[];
 };
 
-export function resolveSocialProviders(env: Env = process.env): ResolvedSocialProviders {
-  const resolved: ResolvedSocialProviders = { config: {}, enabled: [], missing: [] };
+export function resolveSocialProviders(env: ProviderEnv): ResolvedSocialProviders {
+  const resolved: ResolvedSocialProviders = { config: {}, enabled: [] };
 
   for (const { id, idVar, secretVar } of PROVIDERS) {
-    const clientId = env[idVar]?.trim() ?? "";
-    const clientSecret = env[secretVar]?.trim() ?? "";
+    const clientId = env[idVar];
+    const clientSecret = env[secretVar];
 
     if (clientId && clientSecret) {
       resolved.config[id] = { clientId, clientSecret };
       resolved.enabled.push(id);
-    } else if (clientId || clientSecret) {
-      resolved.missing.push(clientId ? secretVar : idVar);
     }
   }
 
   return resolved;
-}
-
-export function warnMissingSocialProviders(
-  missing: string[],
-  log: (message: string) => void = console.warn,
-) {
-  for (const name of missing) {
-    const provider = PROVIDERS.find((p) => p.idVar === name || p.secretVar === name);
-    if (!provider) continue;
-    log(
-      `[auth] ${name} is not set, so the ${provider.id} provider is off. ` +
-        `Set both ${provider.idVar} and ${provider.secretVar} to enable it.`,
-    );
-  }
 }
