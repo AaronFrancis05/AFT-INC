@@ -9,12 +9,19 @@
     "./tsconfig/library.json": "./tsconfig/library.json",
     "./eslint": "./eslint/index.mjs",
     "./vitest/setup": "./vitest/setup.ts",
-    "./stubs/empty": "./stubs/empty.ts"
+    "./stubs/empty": "./stubs/empty.ts",
+    "./env": "./env/index.ts",
+    "./vitest/env": "./vitest/env.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix --max-warnings=0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "zod": "catalog:"
   },
   "peerDependencies": {
     "@testing-library/jest-dom": "catalog:",
@@ -26,6 +33,7 @@
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",
     "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
     "eslint-config-next": "catalog:",
     "eslint-config-prettier": "10.1.8",

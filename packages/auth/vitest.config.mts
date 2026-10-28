@@ -13,7 +13,7 @@ export default defineConfig({
     // jsdom as before the move, so the test counts hold.
     environment: "jsdom",
     globals: false,
-    setupFiles: ["@aft/config/vitest/setup"],
+    setupFiles: ["@aft/config/vitest/env", "@aft/config/vitest/setup"],
     include: ["**/*.test.{ts,tsx}"],
     exclude: ["node_modules/**", "**/generated/**"],
     coverage: {

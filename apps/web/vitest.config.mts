@@ -13,7 +13,7 @@ export default defineConfig({
     maxWorkers: 2,
     environment: "jsdom",
     globals: false,
-    setupFiles: ["./vitest.setup.ts"],
+    setupFiles: ["@aft/config/vitest/env", "./vitest.setup.ts"],
     include: ["**/*.test.{ts,tsx}"],
     exclude: ["e2e/**", "node_modules/**", "**/generated/**", ".next/**"],
     coverage: {

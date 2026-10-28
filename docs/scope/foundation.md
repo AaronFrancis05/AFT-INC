@@ -88,7 +88,7 @@ One validated config schema per app, so a missing or wrong secret stops the app 
 Spec: [0010](../specs/0010-typed-environment-config/index.md).
 - [x] Design it (spec): `/architect typed environment config`
 - [ ] Build it: `/develop typed environment config`
-   - [ ] Thread: `@aft/config/env`, the db slice, `apps/web/env.ts`, the start check in `instrumentation.ts`, `AFT_ENV` in `.env.example`, turbo, CI, and every Vitest setup (AC-1, AC-2, AC-3, AC-4, AC-9, AC-10, AC-14, I46 to I51)
+   - [x] Thread: `@aft/config/env`, the db slice, `apps/web/env.ts`, the start check in `instrumentation.ts`, `AFT_ENV` in `.env.example`, turbo, CI, and every Vitest setup (AC-1, AC-2, AC-3, AC-4, AC-9, AC-10, AC-14, I46 to I51)
    - [ ] Auth and email slices, the production rules, and the B13 helper (AC-5, AC-6, AC-7, AC-8, A12, A3, B13)
    - [ ] The `env-schema.json` exporter and the drift contract test (AC-11, AC-12, I52, I22)
    - [ ] The `process.env` lint ban (AC-13, I53)

@@ -1,5 +1,6 @@
 import "server-only";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { dbEnv } from "./env";
 import { PrismaClient } from "./generated/prisma/client";
 
 // Model types only; `export type` keeps the generated runtime out of anything that imports them.
@@ -10,7 +11,7 @@ const globalForPrisma = global as unknown as {
 };
 
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: dbEnv().DATABASE_URL,
 });
 
 const prisma =

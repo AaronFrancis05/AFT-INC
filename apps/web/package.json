@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@aft/auth": "workspace:*",
+    "@aft/config": "workspace:*",
     "@aft/db": "workspace:*",
     "@aft/email": "workspace:*",
     "@aft/ui": "workspace:*",
@@ -32,7 +33,6 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@aft/config": "workspace:*",
     "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "catalog:",
     "@testing-library/dom": "catalog:",

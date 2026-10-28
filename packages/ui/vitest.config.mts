@@ -16,7 +16,7 @@ export default defineConfig({
     maxWorkers: 2,
     environment: "jsdom",
     globals: false,
-    setupFiles: ["@aft/config/vitest/setup"],
+    setupFiles: ["@aft/config/vitest/env", "@aft/config/vitest/setup"],
     include: ["**/*.test.{ts,tsx}"],
     exclude: ["node_modules/**", "**/generated/**"],
     coverage: {

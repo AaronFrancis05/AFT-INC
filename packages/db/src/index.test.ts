@@ -33,6 +33,8 @@ async function loadClient() {
 beforeEach(() => {
   delete globalForPrisma.prisma;
   vi.clearAllMocks();
+  // The client reads DATABASE_URL through the validated accessor (spec 0010).
+  vi.stubEnv("DATABASE_URL", "postgresql://user:pass@localhost:5432/aft_test");
 });
 
 afterEach(() => {
@@ -41,6 +43,11 @@ afterEach(() => {
 });
 
 describe("@aft/db client", () => {
+  it("I51: covers 0010 AC-9, a missing DATABASE_URL fails the import with a names only error", async () => {
+    vi.stubEnv("DATABASE_URL", "");
+    await expect(loadClient()).rejects.toThrow("  - DATABASE_URL: required");
+  });
+
   it("builds the Postgres adapter from DATABASE_URL and hands it to the client", async () => {
     vi.stubEnv("DATABASE_URL", "postgresql://user:pass@localhost:5432/aft_test");
     await loadClient();

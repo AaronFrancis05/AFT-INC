@@ -121,7 +121,8 @@ describe("CI workflow", () => {
     const configs = workspaceDirs()
       .map((dir) => join(dir, "vitest.config.mts"))
       .filter((file) => existsSync(file));
-    expect(configs).toHaveLength(5);
+    // Six workspaces test, including @aft/config for the env helper (spec 0010).
+    expect(configs).toHaveLength(6);
     for (const file of configs) expect(read(file), file).toMatch(/^\s+maxWorkers: 2,$/m);
     expect(read("vitest.config.mts")).not.toContain("maxWorkers");
     expect(ci).not.toContain("VITEST_MAX_WORKERS");
@@ -323,5 +324,13 @@ describe("Workspace tooling (spec 0009)", () => {
     ])
       expect(compilerOptions[flag], flag).toBe(true);
     expect(JSON.parse(read("packages/config/package.json")).scripts.typecheck).toBe("tsc --noEmit");
+  });
+});
+
+describe("Typed environment (spec 0010)", () => {
+  it("I6: covers 0010 AC-14, every job gets AFT_ENV=test and the shared env block holds no secret", () => {
+    const block = ci.slice(ci.indexOf("\nenv:\n"), ci.indexOf("\njobs:\n"));
+    expect(block).toMatch(/^ {2}AFT_ENV: test$/m);
+    expect(block).not.toContain("secrets.");
   });
 });
