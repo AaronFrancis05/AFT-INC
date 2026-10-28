@@ -82,10 +82,19 @@ Spec: [0009](../specs/0009-workspace-tooling/index.md). Ships as two PRs (format
 - [x] Test it: `/test workspace tooling`
 - [x] Ship it: squash merge both pull requests with all six checks green, PR 1 first
 
-### 6. Typed environment config · needs a decision
+### 6. Typed environment config · in-progress
 One validated config schema per app, so a missing or wrong secret stops the app at boot, not in production traffic.
 **Done when:** a missing or malformed variable fails startup with a clear message; `.env.example` lists every variable; production refuses test mode payment keys (B13).
-- [ ] Design it (spec): `/architect typed environment config`
+Spec: [0010](../specs/0010-typed-environment-config/index.md).
+- [x] Design it (spec): `/architect typed environment config`
+- [ ] Build it: `/develop typed environment config`
+   - [ ] Thread: `@aft/config/env`, the db slice, `apps/web/env.ts`, the start check in `instrumentation.ts`, `AFT_ENV` in `.env.example`, turbo, CI, and every Vitest setup (AC-1, AC-2, AC-3, AC-4, AC-9, AC-10, AC-14, I46 to I51)
+   - [ ] Auth and email slices, the production rules, and the B13 helper (AC-5, AC-6, AC-7, AC-8, A12, A3, B13)
+   - [ ] The `env-schema.json` exporter and the drift contract test (AC-11, AC-12, I52, I22)
+   - [ ] The `process.env` lint ban (AC-13, I53)
+- [ ] Verify it: `/check verify typed environment config`
+- [ ] Test it: `/test typed environment config`
+- [ ] Ship it: squash merge the pull request with all six checks green
 
 ### 7. Engineering standards and shared helpers · needs a decision · GA
 One standard spec: one way to do errors, logging, validation, idempotency, tenant scoping, and API style, shipped as shared helpers.

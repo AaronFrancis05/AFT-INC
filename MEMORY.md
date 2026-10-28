@@ -416,3 +416,13 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Scope feature 5: `Ship it` ticked, status `done` (foundation.md and index.md). Spec 0009 → `Accepted`.
 - Still open: the four build deviations and the two findings (`NODE_PATH` fallback, DNS baseline `.prettierignore`) for `/architect`; spec 0009 follow ups (root typecheck and lint, `HUSKY=0` in the Dockerfile for feature 9, README still says npm).
 - Next: merge the sync PR, then `/clear` and pick the next feature (6 typed environment config, 7 engineering standards, or 8 local dev stack each need `/architect`).
+
+### 2026-10-28 (/architect typed environment config: spec 0010)
+- Spec 0010 written and accepted (status `Proposed`; feature linked, `/develop` advances it). Directory spec: `index.md` plus `rationale.md`.
+- Engineer's picks (all recommended): plain zod 4 (no new dependency); each package owns its slice at `@aft/<pkg>/env`, composed in `apps/web/env.ts`; whole check at server start in `apps/web/instrumentation.ts`, skipped during `next build`; new required `AFT_ENV` (`development` | `test` | `production`, no default); Resend required in production only; a half OAuth pair fails start in every tier (A12, closes the spec 0002 follow up); B13 shipped as a reusable `liveKeyInProduction` rule with a fixture test (Stripe vars come with feature 35); every problem listed at once, names only, exit 1; drift contract test (schema vs `.env.example` vs `globalEnv`); ESLint ban on direct `process.env`; `env-schema.json` exporter built now, run with Node 24 type stripping (no tsx); OAuth stays optional in production.
+- A Sonnet cross check found 22 gaps, all fixed: checks that need the tier, accessors validate `AFT_ENV` with no cache, `AFT_ENV=test` assigned in all six Vitest configs, the keyless email path returns `null` so the A3 OTP line still prints, exact package exports and dependencies, `NEXT_PHASE` build guard plus dynamic imports in `register()`, exact rule texts, workspace relative lint globs, `pnpm --silent` for the exporter, both `//#test:root` input lists.
+- Accepted tradeoff: a build without `DATABASE_URL` and the auth values now fails (feature 9 must give placeholders); every existing `.env` needs `AFT_ENV` after merge.
+- New edge cases A12 and I46 to I53 in PLAN.md. No skills or MCP search (no new tool).
+- Scope feature 6: `Design it` ticked, `in-progress`, four milestones, Verify, Test, Ship (Beta).
+- Uncommitted on branch `docs/sync-workspace-tooling` (the unmerged sync PR branch). Move these files to their own branch before committing.
+- Next: merge the sync PR, then `/clear`, then `/develop typed environment config` (step 1, the thread).

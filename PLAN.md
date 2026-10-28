@@ -274,6 +274,7 @@ Each edge case has an ID and a required handling. How the IDs flow through the w
 - **A9** A user belongs to many orgs → the active org lives in the session, and a URL with a different org switches explicitly. Individual customers get an implicit personal org.
 - **A10** An API key leaks → hashed at rest, shown once, with a visible prefix, scopes, expiry, instant revoke and last-used tracking.
 - **A11** Social provider env vars are missing → the provider is not registered, and its button is hidden. (Today they register with an empty string.)
+- **A12** A social provider has only its ID or only its secret set → the app refuses to start in every tier and names both variables (spec 0010).
 
 ### C: Catalog
 - **C1** A project is unpublished or deprecated while customers are subscribed → hide it from the catalog, keep existing subscribers running, and give notice before end of life.
@@ -421,6 +422,14 @@ Each edge case has an ID and a required handling. How the IDs flow through the w
 - **I43** A Windows checkout writes CRLF and fails the LF check → `.gitattributes` `eol=lf`, Prettier, and `.editorconfig` agree (spec 0009).
 - **I44** A commit skips the hook → the CI `lint` job's Format step catches it (spec 0009).
 - **I45** The editor runs ESLint or Prettier from the wrong folder → `eslint.workingDirectories` auto, `prettier.requireConfig`, and `AFT-INC` opened as the VS Code folder (spec 0009).
+- **I46** `AFT_ENV` is missing or unknown → the app refuses to start; there is no default (spec 0010).
+- **I47** `AFT_ENV=production` while `NODE_ENV` is not `production` (for example `next dev`) → refused (spec 0010).
+- **I48** A variable is empty or only whitespace → treated as unset; other values are trimmed (spec 0010).
+- **I49** The env error message would echo a secret → messages name the variable and the rule only, never a value (spec 0010).
+- **I50** `next build` would run the start check → `register()` returns when `NEXT_PHASE` is `phase-production-build` (spec 0010).
+- **I51** A package is used outside Next.js (Vitest, scripts, a worker) → its accessor validates `AFT_ENV` plus its slice on every call (spec 0010).
+- **I52** A variable is in a schema but not in `.env.example` or `globalEnv`, or the reverse → a contract test fails (spec 0010).
+- **I53** New code reads `process.env` directly → `pnpm lint` fails outside the env modules, config files, scripts, and tests (spec 0010).
 
 ## Core data model (seed for spec 0001 data child)
 
