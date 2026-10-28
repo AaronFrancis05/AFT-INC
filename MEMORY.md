@@ -396,3 +396,10 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Scope feature 5: `Verify it` ticked; stays `in-progress` (Beta: `Test it` and `Ship it` remain). Spec 0009 stays `In Progress`.
 - Still open: the four build deviations and the DNS baseline `.prettierignore` question (for `/architect` or review).
 - Next: `/clear`, then `/test workspace tooling`, then `/document workspace tooling` (rewrite the PR #16 body), then squash merge #16 and `/sync`.
+
+### 2026-10-28 (/test workspace tooling)
+- No uncommitted source, so the engineer picked the two hook helpers. 12 new tests (root suite 36 → 48): `scripts/lint-staged/eslint.test.ts` gains 8 main entry cases (per workspace `cwd` and flags incl. `--no-warn-ignored` I38, one run per workspace, a failing workspace still runs the rest, exit 2 blocks, missing ESLint blocks, root files not linted, no files, odd path characters with no shell I34); new `prisma-format.test.ts` (4: `cwd` packages/db with `format`, file args ignored, failure blocks, missing Prisma blocks). Shared `scripts/lint-staged/fake-repo.ts` copies a helper into a temp repo with stub `eslint`/`prisma` binaries.
+- Proof: 9 hand mutations of the helpers (exit code ignored, flag dropped, shell, wrong `cwd`, missing ESLint ignored, only first workspace, wrong Prisma args, Prisma failure ignored, Prisma `cwd`), each caught. Process launching groups get a 30 second limit (the first cold run took 42 s).
+- Finding for review: pnpm's `.bin` shims set `NODE_PATH` to the hoisted `.pnpm/node_modules`, so in the real hook a workspace without its own ESLint would fall back to the hoisted copy instead of failing (softens AC-9 "that workspace's own ESLint"; harmless today, every workspace declares it). The tests remove `NODE_PATH` to model the contract.
+- Scope feature 5: `Test it` ticked; `Ship it` remains (merge PR #16). Spec 0009 stays `In Progress`.
+- Next: `/clear`, then `/document workspace tooling` (rewrite the PR #16 body, push), squash merge #16, then `/sync`.

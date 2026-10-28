@@ -79,7 +79,7 @@ Spec: [0009](../specs/0009-workspace-tooling/index.md). Ships as two PRs (format
    - [x] Stricter rules: `noUncheckedIndexedAccess` and two more flags, the promise lint rules, `eslint-config-prettier`, the `@aft/config` tsconfig, and the fixes (AC-11, AC-12, I41)
    - [x] Editor files, `.git-blame-ignore-revs`, and the `ci.test.ts` checks (AC-3, AC-13, AC-14, I40, I43, I45)
 - [x] Verify it: `/check verify workspace tooling`
-- [ ] Test it: `/test workspace tooling`
+- [x] Test it: `/test workspace tooling`
 - [ ] Ship it: squash merge both pull requests with all six checks green, PR 1 first
 
 ### 6. Typed environment config · needs a decision
