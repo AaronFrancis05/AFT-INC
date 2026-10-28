@@ -12,7 +12,19 @@ let eslint: ESLint;
 // The first lint loads the whole Next.js config (about 5 seconds alone), so do it once here. The
 // 120 second limit leaves room for a loaded machine; it is a limit, not a retry (spec 0008, AC-20).
 beforeAll(async () => {
-  eslint = new ESLint({ cwd: appDir });
+  eslint = new ESLint({
+    cwd: appDir,
+    // The probe file is not on disk, so no tsconfig includes it (I41). The boundary rule needs no
+    // type information, so the type aware rules from spec 0009 are off for this probe only.
+    overrideConfig: {
+      files: ["components/probe.tsx"],
+      languageOptions: { parserOptions: { projectService: false } },
+      rules: {
+        "@typescript-eslint/no-floating-promises": "off",
+        "@typescript-eslint/no-misused-promises": "off",
+      },
+    },
+  });
   await eslint.lintText("export {};\n", { filePath: path.join(appDir, "components", "probe.tsx") });
 }, 120_000);
 
@@ -21,6 +33,7 @@ async function restricted(code: string) {
   const [result] = await eslint.lintText(code, {
     filePath: path.join(appDir, "components", "probe.tsx"),
   });
+  if (!result) throw new Error("ESLint returned no result for the snippet");
   return result.messages.filter((m) => m.ruleId === "no-restricted-imports");
 }
 
@@ -30,8 +43,8 @@ describe("package boundary rule (spec 0008 AC-11)", () => {
       `import { auth } from "@aft/auth/src/server/auth";\nexport { auth };\n`,
     );
     expect(messages).toHaveLength(1);
-    expect(messages[0].severity).toBe(2);
-    expect(messages[0].message).toContain("never its src folder");
+    expect(messages[0]?.severity).toBe(2);
+    expect(messages[0]?.message).toContain("never its src folder");
   });
 
   it("rejects an import of a package's bare src folder", async () => {
@@ -44,7 +57,7 @@ describe("package boundary rule (spec 0008 AC-11)", () => {
       `import { Nav } from "@aft/app-web/components/nav/nav";\nexport { Nav };\n`,
     );
     expect(messages).toHaveLength(1);
-    expect(messages[0].message).toContain("Nothing imports the app");
+    expect(messages[0]?.message).toContain("Nothing imports the app");
   });
 
   it("allows imports through each package's exports map", async () => {
@@ -64,7 +77,7 @@ describe("cn package guard (spec 0008 I29)", () => {
   it("rejects a value import of the cn package and points to @aft/ui/lib/utils", async () => {
     const messages = await restricted(`import { cn } from "cn";\nexport { cn };\n`);
     expect(messages).toHaveLength(1);
-    expect(messages[0].message).toContain("@aft/ui/lib/utils");
+    expect(messages[0]?.message).toContain("@aft/ui/lib/utils");
   });
 
   it("rejects a type only import of the cn package", async () => {

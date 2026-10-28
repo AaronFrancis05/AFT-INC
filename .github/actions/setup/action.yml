@@ -16,6 +16,9 @@ runs:
     - name: Install dependencies
       shell: bash
       run: pnpm install --frozen-lockfile
+      # CI never installs git hooks (spec 0009, AC-10).
+      env:
+        HUSKY: "0"
 
     - name: Restore Turborepo cache
       uses: actions/cache@v4

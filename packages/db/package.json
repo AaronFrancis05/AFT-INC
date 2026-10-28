@@ -12,9 +12,12 @@
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "test:coverage": "vitest run --coverage --passWithNoTests"
+    "test:coverage": "vitest run --coverage --passWithNoTests",
+    "format": "prisma format",
+    "format:check": "prisma format --check"
   },
   "dependencies": {
     "@prisma/adapter-pg": "catalog:",

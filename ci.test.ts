@@ -3,6 +3,7 @@
 // check or expose a secret.
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 
 const read = (path: string) => readFileSync(path, "utf8");
@@ -28,7 +29,9 @@ function packageSources(dir = "packages"): string[] {
 
 // Each workspace folder the pnpm-workspace.yaml globs (apps/*, packages/*) match.
 function workspaceDirs() {
-  const globs = [...workspace.matchAll(/^ {2}- ([\w-]+)\/\*$/gm)].map(([, dir]) => dir);
+  const globs = [...workspace.matchAll(/^ {2}- ([\w-]+)\/\*$/gm)].flatMap(([, dir]) =>
+    dir ? [dir] : [],
+  );
   return globs.flatMap((dir) =>
     readdirSync(dir, { withFileTypes: true })
       .filter((entry) => entry.isDirectory() && existsSync(join(dir, entry.name, "package.json")))
@@ -50,10 +53,9 @@ const REQUIRED_CHECKS = ["test", "typecheck", "lint", "prisma", "build-smoke", "
 // Each job under `jobs:` with its display name: a two space indented key, then its `name:` line.
 function jobs(workflow: string) {
   const body = workflow.slice(workflow.indexOf("\njobs:"));
-  return [...body.matchAll(/^ {2}([\w-]+):\n {4}name: (.+)$/gm)].map(([, id, name]) => ({
-    id,
-    name: name.trim(),
-  }));
+  return [...body.matchAll(/^ {2}([\w-]+):\n {4}name: (.+)$/gm)].flatMap(([, id, name]) =>
+    id && name ? [{ id, name: name.trim() }] : [],
+  );
 }
 
 describe("CI workflow", () => {
@@ -226,5 +228,100 @@ describe("Toolchain pins", () => {
         .map((peer) => `${m.name}: ${peer}`),
     );
     expect(offenders).toEqual([]);
+  });
+});
+
+// A job in ci.yml: from its `  <job>:` line to the next line with two space indentation.
+function jobSlice(job: string) {
+  const start = ci.indexOf(`\n  ${job}:\n`);
+  const next = ci.slice(start + 1).search(/\n {2}\S/);
+  return next === -1 ? ci.slice(start) : ci.slice(start, start + 1 + next);
+}
+
+describe("Workspace tooling (spec 0009)", () => {
+  it("I44: covers 0009 AC-6, the lint job checks formatting", () => {
+    expect(jobSlice("lint")).toMatch(
+      /- name: Format\n\s+run: pnpm turbo run format:check \/\/#format:root:check$/m,
+    );
+  });
+
+  it("I35: covers 0009 AC-10, CI installs without git hooks", () => {
+    const start = setup.indexOf("- name: Install dependencies");
+    const end = setup.indexOf("- ", start + 2);
+    expect(start).toBeGreaterThan(-1);
+    expect(setup.slice(start, end)).toContain('HUSKY: "0"');
+  });
+
+  it("I35: covers 0009 AC-4, AC-7, root scripts for check, format, and hooks", () => {
+    expect(pkg.scripts).toMatchObject({
+      check: "turbo run lint typecheck format:check //#format:root:check --continue",
+      format: "turbo run format //#format:root",
+      "format:root": "prettier --write .",
+      "format:root:check": "prettier --check .",
+      "lint:fix": "turbo run lint:fix",
+      prepare: "husky || true",
+    });
+  });
+
+  it("I34: covers 0009 AC-7, the commit hook calls no package manager", () => {
+    const hook = read(".husky/pre-commit");
+    expect(hook).not.toMatch(/\bpnpm\b/);
+    expect(hook).not.toMatch(/\bnpx\b/);
+    expect(existsSync(".husky/pre-push")).toBe(false);
+    expect(existsSync(".husky/commit-msg")).toBe(false);
+  });
+
+  it("I37, I39: covers 0009 AC-8, lint staged globs are disjoint and Prettier runs last", async () => {
+    // A computed specifier, so the plain .mjs config needs no type declarations.
+    const { default: config } = await import(pathToFileURL("lint-staged.config.mjs").href);
+    const code = "*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}";
+    expect(Object.keys(config)).toEqual([
+      code,
+      "*.{json,jsonc,yaml,yml,css}",
+      "packages/db/prisma/schema.prisma",
+    ]);
+    const extensions = Object.keys(config).flatMap((glob) => {
+      const braces = glob.match(/\{(.+)\}$/);
+      return braces ? braces[1]!.split(",") : [glob.slice(glob.lastIndexOf(".") + 1)];
+    });
+    expect(new Set(extensions).size).toBe(extensions.length);
+    expect(config[code][0]).toBe("node scripts/lint-staged/eslint.mjs");
+    expect(config[code].at(-1)).toMatch(/^prettier /);
+  });
+
+  it("I22: covers 0009 AC-4, format tasks never replay a stale result", () => {
+    for (const task of ["//#format:root:check", "//#format:root", "format", "lint:fix"])
+      expect(turbo.tasks[task]?.cache, task).toBe(false);
+    expect(turbo.tasks["format:check"].inputs).toEqual(["prisma/schema.prisma"]);
+  });
+
+  it("I18, I40: covers 0009 AC-1, Prettier skips markdown, migrations, and tool files, and its Tailwind stylesheet exists", () => {
+    const ignored = read(".prettierignore").split(/\r?\n/);
+    expect(ignored).toEqual(
+      expect.arrayContaining([
+        "**/*.md",
+        "packages/db/prisma/migrations/",
+        "pnpm-lock.yaml",
+        "skills-lock.json",
+        ".claude/",
+        ".idea/",
+        "docs/.agent-cache/",
+      ]),
+    );
+    const stylesheet = read("prettier.config.mjs").match(/tailwindStylesheet: "(.+)"/)?.[1];
+    expect(stylesheet).toBeDefined();
+    expect(existsSync(stylesheet!)).toBe(true);
+  });
+
+  it("I41: covers 0009 AC-11, the base tsconfig keeps the strict flags, and @aft/config is typechecked", () => {
+    const { compilerOptions } = JSON.parse(read("packages/config/tsconfig/base.json"));
+    for (const flag of [
+      "strict",
+      "noUncheckedIndexedAccess",
+      "noImplicitOverride",
+      "noFallthroughCasesInSwitch",
+    ])
+      expect(compilerOptions[flag], flag).toBe(true);
+    expect(JSON.parse(read("packages/config/package.json")).scripts.typecheck).toBe("tsc --noEmit");
   });
 });
