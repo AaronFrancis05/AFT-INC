@@ -3,6 +3,7 @@
   "globalDependencies": [".env"],
   "globalEnv": [
     "AFT_ENV",
+    "LOG_LEVEL",
     "DATABASE_URL",
     "BETTER_AUTH_SECRET",
     "BETTER_AUTH_URL",

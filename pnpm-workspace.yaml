@@ -37,6 +37,7 @@ catalog:
   shadcn: 4.22.1
   server-only: 0.0.1
   react-hook-form: 7.71.2
+  pino: 10.4.0
 
 # Dependency build scripts reviewed once, with the same decisions npm had in
 # package.json allowScripts (spec 0008, AC-8). strictDepBuilds stays on, so a new

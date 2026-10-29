@@ -18,6 +18,7 @@
   "dependencies": {
     "@aft/auth": "workspace:*",
     "@aft/config": "workspace:*",
+    "@aft/core": "workspace:*",
     "@aft/db": "workspace:*",
     "@aft/email": "workspace:*",
     "@aft/ui": "workspace:*",

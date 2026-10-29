@@ -122,8 +122,8 @@ describe("CI workflow", () => {
     const configs = workspaceDirs()
       .map((dir) => join(dir, "vitest.config.mts"))
       .filter((file) => existsSync(file));
-    // Six workspaces test, including @aft/config for the env helper (spec 0010).
-    expect(configs).toHaveLength(6);
+    // Seven workspaces test: @aft/config for the env helper (spec 0010), @aft/core (spec 0011).
+    expect(configs).toHaveLength(7);
     for (const file of configs) expect(read(file), file).toMatch(/^\s+maxWorkers: 2,$/m);
     expect(read("vitest.config.mts")).not.toContain("maxWorkers");
     expect(ci).not.toContain("VITEST_MAX_WORKERS");
