@@ -443,3 +443,10 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - For review: `next start` prints `✓ Ready` before the env check exits; root files are not linted; the `DATABASE_URL` description names the future SSM dev database, not Aurora.
 - Scope feature 6: `Verify it` ticked; stays `in-progress` (`Test it` and `Ship it` remain). Spec 0010 stays `In Progress`.
 - Next: `/clear`, then `/test typed environment config`.
+
+### 2026-10-29 (ship and /sync typed environment config)
+- `/test` skipped by the engineer's call (recorded on the scope `Test it` line). PR #18 opened and squash merged as d900de0 (six checks green on b2c3dba; `main` tree equals the verified branch).
+- `/sync` on `docs/sync-typed-environment-config`: root `AGENTS.md` gets the `env:schema` command, `AFT_ENV` in Environment plus the start check, the env accessor rule (I52, I53), corrected gotchas (half OAuth pair stops the app, whitespace only means unset for every variable, build needs placeholder env, `✓ Ready` before a failing check), and both `//#test:root` input lists in the `ci.test.ts` rule.
+- Scope feature 6: `Ship it` ticked, status `done` (heading and index; epic counts 4 done, 12 in progress). Spec 0010 → `Accepted`.
+- Open from spec 0010 Follow-up: Stripe vars via `liveKeyInProduction` (feature 35); seed `/aft/prod/web/AFT_ENV=production` and use `env:schema` in the deploy (features 10, 18); image build placeholders (feature 9); root ESLint config (spec 0009 follow up too). Reminder: add `AFT_ENV="development"` to your `.env`.
+- Next: push this branch and open the sync PR, merge it, then `/clear` and pick feature 7 (engineering standards, GA) or 8 (local dev stack); both need `/architect`.
