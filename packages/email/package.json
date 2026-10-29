@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./env": "./src/env.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings=0",
@@ -14,14 +15,15 @@
     "test:coverage": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
+    "@aft/config": "workspace:*",
     "@react-email/components": "^1.0.10",
-    "resend": "^6.9.4"
+    "resend": "^6.9.4",
+    "zod": "catalog:"
   },
   "peerDependencies": {
     "react": "catalog:"
   },
   "devDependencies": {
-    "@aft/config": "workspace:*",
     "@types/react": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",

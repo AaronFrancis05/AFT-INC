@@ -536,16 +536,19 @@ importers:
 
   packages/email:
     dependencies:
+      '@aft/config':
+        specifier: workspace:*
+        version: link:../config
       '@react-email/components':
         specifier: ^1.0.10
         version: 1.0.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       resend:
         specifier: ^6.9.4
         version: 6.9.4(@react-email/render@2.0.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
     devDependencies:
-      '@aft/config':
-        specifier: workspace:*
-        version: link:../config
       '@types/react':
         specifier: 'catalog:'
         version: 19.2.14
