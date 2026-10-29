@@ -1,7 +1,7 @@
 # 0010. Typed environment config: one validated schema per app, checked at server start
 
 **Date**: 2026-10-28
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 

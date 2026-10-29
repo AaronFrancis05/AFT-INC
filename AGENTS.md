@@ -79,11 +79,14 @@ pnpm test:root
 
 # Browser smoke tests (Playwright); Turborepo builds the app first
 pnpm turbo run test:e2e --filter=@aft/app-web
+
+# Print the web app's env-schema.json (variable names and metadata, never values; spec 0010)
+pnpm --silent --filter @aft/app-web env:schema
 ```
 
 ## Environment
 
-Set in `.env` (gitignored, copy `.env.example`): `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`. Client code may only read `NEXT_PUBLIC_*` variables. There is one `.env`, at the repo root, for every workspace. Turborepo runs in strict env mode, so a new variable must also be added to `turbo.json` `globalEnv`, or tasks cannot see it.
+Set in `.env` (gitignored, copy `.env.example`): `AFT_ENV` (`development`, `test`, or `production`; required, no default), `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`. Client code may only read `NEXT_PUBLIC_*` variables. There is one `.env`, at the repo root, for every workspace. Turborepo runs in strict env mode, so a new variable must also be added to `turbo.json` `globalEnv`, or tasks cannot see it. Every variable is validated when the server starts (`apps/web/instrumentation.ts`): a missing or wrong one stops it with a list of every problem, by name only (spec 0010). `AFT_ENV=production` turns on the strict rules (https auth URL, live Resend sender and key).
 
 ## Specs
 
@@ -99,11 +102,12 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md` (or a `NNNN-title/` 
 - UI primitives come from `@aft/ui` (`packages/ui/src/components`). Add one with `pnpm exec shadcn add <component>` run from `packages/ui` (never from `apps/web`, never `pnpm dlx`), then apply the post add rewrite in spec 0008 *shadcn setup*. Merge classes with `cn()` from `@aft/ui/lib/utils`; lint fails on any import of the npm `cn` package (I29).
 - Pages that read the session export `const dynamic = "force-dynamic"`.
 - Tests live beside the code as `*.test.ts(x)` (Vitest in each workspace, jsdom or node, Testing Library); Playwright smoke tests live in `apps/web/e2e/*.spec.ts`. Every workspace Vitest config sets `maxWorkers: 2` (spec 0008, AC-20). Preferences are in `test-preferences.json`.
-- `ci.test.ts` is a contract test over `.github/workflows/ci.yml`, the setup action, `.nvmrc`, `turbo.json`, `pnpm-workspace.yaml`, every workspace `package.json`, and the Vitest configs. Change it together with CI, never to silence it. When it starts reading a new file, add that file to the `//#test:root` inputs in `turbo.json`.
+- `ci.test.ts` is a contract test over `.github/workflows/ci.yml`, the setup action, `.nvmrc`, `turbo.json`, `pnpm-workspace.yaml`, every workspace `package.json`, and the Vitest configs. Change it together with CI, never to silence it. When it starts reading a new file, add that file to both the `//#test:root` and `//#test:root:coverage` inputs in `turbo.json`.
 - Prettier (root `prettier.config.mjs`, with the Tailwind class sorter) owns the layout of every code, config, and CSS file; Markdown is never formatted. ESLint style rules are off (`eslint-config-prettier` comes last in `@aft/config/eslint`), so never fix layout by hand or with a lint rule (spec 0009).
 - The shared tsconfig sets `noUncheckedIndexedAccess`, `noImplicitOverride`, and `noFallthroughCasesInSwitch`, and typed lint fails on a floating or misused promise. Guard an index lookup (`?.`, or a throw) rather than adding `!`; a promise you mean not to await gets `void` plus a comment saying why it is safe.
 - The `pre-commit` hook (Husky plus `lint-staged.config.mjs`) fixes and formats only the staged files and blocks the commit when ESLint can't fix something. It runs each workspace's own ESLint from that workspace (`scripts/lint-staged/`) and never calls pnpm or npx (I34). Tests are not run at commit; they stay in `pnpm test` and CI.
 - A dependency used by more than one workspace is pinned once in the `pnpm-workspace.yaml` catalog and referenced as `catalog:`. Build only tools (`shadcn`, `eslint-config-next`) and every declared peer stay in `devDependencies`, so `pnpm audit --prod` covers only runtime code (I31). A workspace declares every package it imports; never hoist (I19).
+- Read environment variables only through the owning package's env accessor (`dbEnv()` from `@aft/db/env`, `authEnv()` from `@aft/auth/env`, `emailEnv()` from `@aft/email/env`, `aftEnv()` from `@aft/config/env`); lint fails on other `process.env` reads outside env modules, config files, scripts, and tests, except `NODE_ENV`, `NEXT_RUNTIME`, `NEXT_PHASE` (I53). A new variable is declared once with `defineEnv` in its package's `src/env.ts`, composed into the app's `env.ts`, and listed in `.env.example` and `globalEnv`; a `ci.test.ts` check fails when the three disagree (I52). Env modules hold rules only, never import `server-only`, and stay plain erasable TypeScript with no relative imports, so the exporter runs them on bare Node (spec 0010).
 
 ## Git
 
@@ -116,9 +120,10 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md` (or a `NNNN-title/` 
 ## Gotchas
 
 - `@aft/auth/client` (`packages/auth/src/client/index.ts`) passes no `baseURL`: the browser calls `/api/auth` on the page's own origin. Never set `NEXT_PUBLIC_BETTER_AUTH_URL`, Better Auth would honor it first. `BETTER_AUTH_URL` is server only and must be set in every deployed environment (spec 0002).
-- A social provider turns on only when both its ID and secret are set. `resolveSocialProviders()` from `@aft/auth/providers` feeds both `@aft/auth/server` and the `force-dynamic` sign in and sign up pages; client files may import it for types only (A11).
+- A social provider turns on only when both its ID and secret are set; only one of the two stops the app at start (A12). `resolveSocialProviders(authEnv())` from `@aft/auth/providers` feeds both `@aft/auth/server` and the `force-dynamic` sign in and sign up pages; client files may import it for types only (A11).
 - The OTP fallback line prints only under `next dev` (A3), so testing `next start` locally needs a working `RESEND_API_KEY`.
-- On Windows an empty env var is deleted, so `.env` refills it. To blank an OAuth key for a local run, set it to a single space (the resolver trims it).
+- On Windows an empty env var is deleted, so `.env` refills it. To blank a variable for a local run, set it to a single space (the env schema treats a whitespace only value as unset). Inline variables win over `.env`.
+- `next build` imports `@aft/db` and `@aft/auth/server`, so their accessors run at build time: a build needs `AFT_ENV`, `DATABASE_URL`, and the auth values set, placeholders are fine (CI's are). The whole app check itself is skipped during the build. `next start` logs `✓ Ready` just before a failing env check exits; no request is served.
 - CI (`.github/workflows/ci.yml`) runs six required gates: test (`pnpm turbo run test:coverage //#test:root:coverage --concurrency=2`), typecheck, lint, prisma, build-smoke, and audit (`pnpm audit --prod --audit-level high`). Jobs use placeholder env values, never secrets (I6), and each job has its own `.turbo` cache. A rerun of the `test` job bypasses the Turborepo cache on purpose (`TURBO_FORCE`).
 - The CI `lint` job also runs the format check (`format:check` plus `//#format:root:check`), and CI installs with `HUSKY=0` so no hooks are set up there.
 - Hooks install on `pnpm install` (`prepare`). If `git config core.hooksPath` is not `.husky/_`, run `pnpm run prepare`. Run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once per clone, so `git blame` skips the one time Prettier reformat (`7c7c901`).

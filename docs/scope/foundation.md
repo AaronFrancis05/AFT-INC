@@ -82,7 +82,7 @@ Spec: [0009](../specs/0009-workspace-tooling/index.md). Ships as two PRs (format
 - [x] Test it: `/test workspace tooling`
 - [x] Ship it: squash merge both pull requests with all six checks green, PR 1 first
 
-### 6. Typed environment config · in-progress
+### 6. Typed environment config · done
 One validated config schema per app, so a missing or wrong secret stops the app at boot, not in production traffic.
 **Done when:** a missing or malformed variable fails startup with a clear message; `.env.example` lists every variable; production refuses test mode payment keys (B13).
 Spec: [0010](../specs/0010-typed-environment-config/index.md).
@@ -94,7 +94,7 @@ Spec: [0010](../specs/0010-typed-environment-config/index.md).
    - [x] The `process.env` lint ban (AC-13, I53)
 - [x] Verify it: `/check verify typed environment config`
 - [ ] Test it: `/test typed environment config` (skipped 2026-10-29, engineer's call: went straight to the PR after verify passed)
-- [ ] Ship it: squash merge the pull request with all six checks green
+- [x] Ship it: squash merge the pull request with all six checks green
 
 ### 7. Engineering standards and shared helpers · needs a decision · GA
 One standard spec: one way to do errors, logging, validation, idempotency, tenant scoping, and API style, shipped as shared helpers.
