@@ -458,3 +458,141 @@ describe("Engineering standards (spec 0011)", () => {
     }
   });
 });
+
+// Source files under a folder, skipping installed, generated, built, and tool output folders.
+function sourceFiles(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory())
+      return ["node_modules", "generated", "coverage", ".turbo", ".next"].includes(entry.name)
+        ? []
+        : sourceFiles(path);
+    return /\.(ts|tsx)$/.test(entry.name) ? [path] : [];
+  });
+}
+
+const HTTP_METHOD = "GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS";
+
+// The route's folder as a URL path: from app/, without route groups like (auth).
+function routeFolder(file: string): string {
+  const parts = file.replaceAll("\\", "/").split("/");
+  const segments = parts.slice(parts.indexOf("app") + 1, -1);
+  return `/${segments.filter((segment) => !/^\(.*\)$/.test(segment)).join("/")}`;
+}
+
+// The name of each defineRoute( or defineAction( call, read from its first `name: "..."`.
+function wrapperNames(source: string, factory: "defineRoute" | "defineAction"): string[] {
+  const call = new RegExp(String.raw`${factory}\(\s*\{[^]*?\bname:\s*"([^"]+)"`, "g");
+  return [...source.matchAll(call)].map(([, name]) => name!).filter(Boolean);
+}
+
+// AC-18: every exported HTTP method is `= defineRoute(`, and every declared path is the folder.
+function routeProblems(file: string, source: string): string[] {
+  const problems: string[] = [];
+  const declared = new RegExp(
+    String.raw`^export\s+(?:async\s+)?(?:const|let|var|function)\s+(${HTTP_METHOD})\b(.*)$`,
+    "gm",
+  );
+  for (const [, method, rest] of source.matchAll(declared))
+    if (!/^\s*=\s*defineRoute\(/.test(rest ?? ""))
+      problems.push(`${file}: ${method} is not defineRoute(`);
+  for (const [list] of source.matchAll(/^export\s*\{[^}]*\}/gm))
+    if (new RegExp(String.raw`\b(${HTTP_METHOD})\b`).test(list))
+      problems.push(`${file}: re-exports an HTTP method`);
+  if (/^export\s+default\b/m.test(source)) problems.push(`${file}: has a default export`);
+  const folder = routeFolder(file);
+  for (const [, path] of source.matchAll(/\bpath:\s*"([^"]*)"/g))
+    if (path !== folder) problems.push(`${file}: path "${path}" is not the folder "${folder}"`);
+  return problems;
+}
+
+// A file whose first statement, after comments, is the "use server" directive.
+function isUseServer(source: string): boolean {
+  const code = source.replace(/^(?:\s|\/\/[^\n]*|\/\*[^]*?\*\/)*/, "");
+  return /^["']use server["']/.test(code);
+}
+
+// AC-18: every export of a "use server" file is `export const <name> = defineAction(`. Type
+// exports are allowed, since they are erased.
+function actionProblems(file: string, source: string): string[] {
+  return [...source.matchAll(/^export\b(.*)$/gm)].flatMap(([line, rest]) =>
+    /^\s+const\s+\w+\s*=\s*defineAction\(/.test(rest ?? "") ||
+    /^\s+(?:type|interface)\s/.test(rest ?? "")
+      ? []
+      : [`${file}: "${line.trim()}" is not defineAction(`],
+  );
+}
+
+function duplicates(names: string[]): string[] {
+  return [...new Set(names.filter((name, index) => names.indexOf(name) !== index))];
+}
+
+// Every route.ts under apps/*/app/api/v1 and every "use server" file in apps/* and packages/*.
+function wrapperProblems(files: { file: string; source: string }[]): string[] {
+  const routes = files.filter(({ file }) =>
+    /(^|\/)apps\/[^/]+\/app\/api\/v1\/(?:.*\/)?route\.ts$/.test(file.replaceAll("\\", "/")),
+  );
+  const actions = files.filter(({ source }) => isUseServer(source));
+  const routeNames = routes.flatMap(({ source }) => wrapperNames(source, "defineRoute"));
+  const actionNames = actions.flatMap(({ source }) => wrapperNames(source, "defineAction"));
+  return [
+    ...routes.flatMap(({ file, source }) => routeProblems(file, source)),
+    ...actions.flatMap(({ file, source }) => actionProblems(file, source)),
+    ...duplicates(routeNames).map((name) => `two routes are named "${name}"`),
+    ...duplicates(actionNames).map((name) => `two actions are named "${name}"`),
+  ];
+}
+
+describe("Engineering standards: the wrappers (spec 0011)", () => {
+  it("covers 0011 AC-18: every /api/v1 route and server action goes through the wrappers", () => {
+    const files = [...sourceFiles("apps"), ...sourceFiles("packages")]
+      .filter((file) => !/\.test\.tsx?$/.test(file))
+      .map((file) => ({ file, source: read(file) }));
+    expect(wrapperProblems(files)).toEqual([]);
+  });
+
+  it("covers 0011 AC-18: the check itself flags each way around the wrappers", () => {
+    const route = (path: string, body: string) => ({
+      file: `apps/web/app/api/v1/${path}/route.ts`,
+      source: body,
+    });
+    const good = route(
+      "(public)/projects/[id]",
+      'export const GET = defineRoute({\n  name: "projects.get",\n  path: "/api/v1/projects/[id]",\n});\n',
+    );
+    expect(wrapperProblems([good])).toEqual([]);
+    for (const [label, fixture] of [
+      ["a plain function", route("a", "export async function GET() {}\n")],
+      ["another value", route("a", "export const POST = handler;\n")],
+      ["a re-export", route("a", 'export { GET } from "./other";\n')],
+      [
+        "a wrong path",
+        route("a", 'export const GET = defineRoute({ name: "a", path: "/api/v1/b" });\n'),
+      ],
+      [
+        "a use server function",
+        {
+          file: "apps/web/app/x/actions.ts",
+          source: '// c\n"use server";\nexport async function save() {}\n',
+        },
+      ],
+      [
+        "a use server default",
+        { file: "apps/web/lib/actions.ts", source: "'use server';\nexport default save;\n" },
+      ],
+    ] as const)
+      expect(wrapperProblems([fixture]), label).toHaveLength(1);
+
+    const action = (name: string) => ({
+      file: `apps/web/app/${name}/actions.ts`,
+      source: `"use server";\nexport type Result = { ok: boolean };\nexport const run = defineAction({ name: "${name}" });\n`,
+    });
+    expect(wrapperProblems([action("a"), action("b")])).toEqual([]);
+    expect(
+      wrapperProblems([action("a"), { ...action("a"), file: "apps/web/app/c/actions.ts" }]),
+    ).toEqual(['two actions are named "a"']);
+    // A comment that mentions the directive is not the directive.
+    expect(isUseServer('// every "use server" file\nexport const x = 1;\n')).toBe(false);
+  });
+});

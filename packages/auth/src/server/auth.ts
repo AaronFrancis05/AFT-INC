@@ -5,6 +5,7 @@ import { emailOTP } from "better-auth/plugins";
 import { sendResetPasswordEmail } from "@aft/email";
 import { authEnv } from "../env";
 import { sendVerificationOTP } from "./auth-otp";
+import { log } from "./log";
 import { resolveSocialProviders } from "./auth-providers";
 
 // Validated, trimmed values (spec 0010); Better Auth gets them explicitly instead of
@@ -25,7 +26,7 @@ export const auth = betterAuth({
       try {
         await sendResetPasswordEmail(data.user.email, data.url);
       } catch (error) {
-        console.error("Error sending reset password email:", error);
+        log.error({ err: error }, "reset password email failed");
       }
     },
   },

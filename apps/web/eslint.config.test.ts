@@ -17,7 +17,13 @@ beforeAll(async () => {
     // The probe file is not on disk, so no tsconfig includes it (I41). The boundary rule needs no
     // type information, so the type aware rules from spec 0009 are off for this probe only.
     overrideConfig: {
-      files: ["components/probe.tsx", "scripts/probe.ts"],
+      files: [
+        "components/probe.tsx",
+        "scripts/probe.ts",
+        "lib/probe.ts",
+        "lib/repositories/probe.ts",
+        "lib/probe.test.ts",
+      ],
       languageOptions: { parserOptions: { projectService: false } },
       rules: {
         "@typescript-eslint/no-floating-promises": "off",
@@ -137,5 +143,97 @@ describe("process.env rule (spec 0010 AC-13)", () => {
     const messages = await restricted(code, path.join("scripts", "probe.ts"));
     expect(messages).toHaveLength(1);
     expect(messages[0]?.message).toContain("never its src folder");
+  });
+});
+
+// Messages from one rule, for the spec 0011 rules.
+async function ruleMessages(rule: string, code: string, probe: string) {
+  const [result] = await eslint.lintText(code, { filePath: path.join(appDir, probe) });
+  if (!result) throw new Error("ESLint returned no result for the snippet");
+  return result.messages.filter((m) => m.ruleId === rule);
+}
+
+describe("no-console (spec 0011 AC-18)", () => {
+  it.each(["log", "warn", "error", "info", "debug"])(
+    "rejects console.%s in server code",
+    async (level) => {
+      const messages = await ruleMessages(
+        "no-console",
+        `console.${level}("x");
+`,
+        "lib/probe.ts",
+      );
+      expect(messages).toHaveLength(1);
+      expect(messages[0]?.severity).toBe(2);
+    },
+  );
+
+  it("components may use console.error only, until feature 23", async () => {
+    const probe = path.join("components", "probe.tsx");
+    expect(
+      await ruleMessages(
+        "no-console",
+        `console.error("x");
+`,
+        probe,
+      ),
+    ).toEqual([]);
+    expect(
+      await ruleMessages(
+        "no-console",
+        `console.log("x");
+`,
+        probe,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it.each([path.join("scripts", "probe.ts"), path.join("lib", "probe.test.ts")])(
+    "allows console in %s",
+    async (probe) => {
+      expect(
+        await ruleMessages(
+          "no-console",
+          `console.log("x");
+`,
+          probe,
+        ),
+      ).toEqual([]);
+    },
+  );
+});
+
+describe("raw Prisma client rule (spec 0011 AC-18)", () => {
+  const rawImport = `import prisma from "@aft/db";
+export { prisma };
+`;
+
+  it.each([path.join("lib", "probe.ts"), path.join("scripts", "probe.ts")])(
+    "rejects the default @aft/db import in %s",
+    async (probe) => {
+      const messages = await ruleMessages("no-restricted-imports", rawImport, probe);
+      expect(messages).toHaveLength(1);
+      expect(messages[0]?.message).toContain("repository");
+    },
+  );
+
+  it("allows it in repositories and tests", async () => {
+    for (const probe of [
+      path.join("lib", "repositories", "probe.ts"),
+      path.join("lib", "probe.test.ts"),
+    ])
+      expect(await ruleMessages("no-restricted-imports", rawImport, probe), probe).toEqual([]);
+  });
+
+  it("allows the type exports, and repositories keep the env rule", async () => {
+    const types = `import type { User } from "@aft/db";
+export type { User };
+`;
+    expect(await ruleMessages("no-restricted-imports", types, "lib/probe.ts")).toEqual([]);
+    const env = `import { env } from "node:process";
+export { env };
+`;
+    const probe = path.join("lib", "repositories", "probe.ts");
+    expect(await ruleMessages("no-restricted-imports", env, probe)).toHaveLength(1);
   });
 });

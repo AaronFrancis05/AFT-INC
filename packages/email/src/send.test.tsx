@@ -1,7 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// Resend is a boundary (a real client sends mail), so it is a stand in recording its calls.
-const { construct, sendEmail } = vi.hoisted(() => ({ construct: vi.fn(), sendEmail: vi.fn() }));
+// Resend is a boundary (a real client sends mail), so it is a stand in recording its calls. The
+// package logger is replaced, so its lines can be read back.
+const { construct, sendEmail, log } = vi.hoisted(() => ({
+  construct: vi.fn(),
+  sendEmail: vi.fn(),
+  log: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
+}));
+
+vi.mock("./log", () => ({ log }));
 
 vi.mock("resend", () => ({
   Resend: class {
@@ -16,8 +23,6 @@ import { sendResetPasswordEmail, sendVerificationEmail } from "./send";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.spyOn(console, "log").mockImplementation(() => {});
-  vi.spyOn(console, "error").mockImplementation(() => {});
   sendEmail.mockResolvedValue({ data: { id: "email-1" }, error: null });
 });
 
@@ -29,15 +34,15 @@ afterEach(() => {
 describe("send (spec 0010, AC-7)", () => {
   it("covers AC-7: without a key outside production, skips Resend, warns by name, returns null", async () => {
     vi.stubEnv("RESEND_API_KEY", "");
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
     expect(await sendVerificationEmail("ada@example.com", "493817")).toBeNull();
     expect(await sendResetPasswordEmail("ada@example.com", "https://x.test/reset")).toBeNull();
 
     expect(construct).not.toHaveBeenCalled();
     expect(sendEmail).not.toHaveBeenCalled();
-    expect(warn).toHaveBeenCalledWith(
-      "[email] RESEND_API_KEY is not set, so the OTP email was not sent.",
+    expect(log.warn).toHaveBeenCalledWith(
+      { label: "OTP" },
+      "RESEND_API_KEY is not set, so the email was not sent",
     );
   });
 
@@ -76,6 +81,17 @@ describe("send (spec 0010, AC-7)", () => {
     sendEmail.mockResolvedValue({ data: null, error: new Error("Resend down") });
 
     await expect(sendVerificationEmail("ada@example.com", "493817")).rejects.toThrow("Resend down");
+    // Thrown, not logged: the caller logs it once.
+    expect(log.error).not.toHaveBeenCalled();
+  });
+
+  it("covers 0011 AC-19: logs the label and the email id, never the recipient", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_test_value");
+    await sendVerificationEmail("ada@example.com", "493817");
+    expect(log.info).toHaveBeenCalledWith({ label: "OTP", emailId: "email-1" }, "email sent");
+    const logged = JSON.stringify(Object.values(log).map((level) => level.mock.calls));
+    expect(logged).not.toContain("ada@example.com");
+    expect(logged).not.toContain("493817");
   });
 
   it("in production without a key, fails with a names only env error instead of skipping", async () => {

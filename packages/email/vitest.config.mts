@@ -1,6 +1,10 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  resolve: {
+    // server-only throws outside Next.js; tests load the empty stub instead (spec 0008, AC-12).
+    alias: { "server-only": "@aft/config/stubs/empty" },
+  },
   test: {
     // Every run is the test tier (spec 0010).
     setupFiles: ["@aft/config/vitest/env"],
