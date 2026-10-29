@@ -435,3 +435,11 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Your local `.env` lacks `AFT_ENV`; add `AFT_ENV="development"` before running the app.
 - Scope feature 6: all four milestones and `Build it` ticked; stays `in-progress` (Beta). `verify.md` saved beside the spec.
 - Next: merge PR #17, `/clear`, then `/check verify typed environment config`.
+
+### 2026-10-29 (/check verify typed environment config: PASS)
+- All 29 `verify.md` steps run and ticked. PR #17 had merged, so `main` was merged into `feat/typed-environment-config` (conflicts only in two doc lines; main's tree equaled the original sync commit, so ours was kept; code tree unchanged). Branch pushed; CI dispatched by hand (branch pushes don't trigger CI): run 40808731162, all six checks green, `AFT_ENV: test` in the job env (AC-14).
+- Evidence (harness in the session scratchpad): `next start` and `next dev` refuse bad env with the sorted names only message and exit 1; every rule message matches the table; production valid env serves 200; OAuth half pairs refused in dev and prod, buttons match configured pairs; a root `.env.local` (created and deleted in one command; it is not gitignored) proved `loadEnvConfig` feeds the check; exporter identical via pnpm and plain Node; drift contract caught three mutations; lint probe files; uncached full test run.
+- Sign up steps run against aft-dev after an `aws sso login --profile aft-admin` and an engineer approved swap of `sgr-09bf6237c10f892d2` to 41.210.141.3/32 (was 41.210.155.224). The first TCP attempt timed out while Aurora resumed; retry worked. `next dev` with no Resend key: skip warning, `[DEV FALLBACK]` OTP, verify, sign in with padded `BETTER_AUTH_URL`, `/dashboard` 200. `next start`: skip warning, no OTP logged (A3). Sender default checked through `emailEnv()` under plain Node. Both test users (`verify-0010-*@example.com`) deleted.
+- For review: `next start` prints `✓ Ready` before the env check exits; root files are not linted; the `DATABASE_URL` description names the future SSM dev database, not Aurora.
+- Scope feature 6: `Verify it` ticked; stays `in-progress` (`Test it` and `Ship it` remain). Spec 0010 stays `In Progress`.
+- Next: `/clear`, then `/test typed environment config`.
