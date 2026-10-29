@@ -392,3 +392,69 @@ describe("Typed environment (spec 0010)", () => {
     expect(block).not.toContain("secrets.");
   });
 });
+
+// Workspaces holding a *.db.test.ts suite, found by walking their source (generated code skipped).
+function dbSuiteWorkspaces() {
+  const suites = (dir: string): boolean =>
+    readdirSync(dir, { withFileTypes: true }).some((entry) =>
+      entry.isDirectory()
+        ? !["node_modules", "generated", "coverage", ".turbo", ".next"].includes(entry.name) &&
+          suites(join(dir, entry.name))
+        : entry.name.endsWith(".db.test.ts"),
+    );
+  return workspaceDirs().filter((dir) => suites(dir));
+}
+
+describe("Engineering standards (spec 0011)", () => {
+  it("covers 0011 AC-20: the test job migrates its own Postgres 17, then runs the database suites", () => {
+    const job = jobSlice("test");
+    expect(job).toMatch(/^ {4}services:\n(?: {6}#.*\n)* {6}postgres:\n {8}image: postgres:17$/m);
+    expect(job).toMatch(
+      /^ {6}TEST_DATABASE_URL: postgresql:\/\/postgres:postgres@localhost:5432\/aft_ci$/m,
+    );
+    const steps = [...job.matchAll(/^ {6}- (?:name: .+\n {8})?(?:run|uses): (.+)$/gm)].map(
+      ([, command]) => command,
+    );
+    const coverage = steps.indexOf(
+      "pnpm turbo run test:coverage //#test:root:coverage --concurrency=2",
+    );
+    expect(coverage).toBeGreaterThan(-1);
+    expect(steps.slice(coverage + 1, coverage + 3)).toEqual([
+      "pnpm --filter @aft/db exec prisma migrate deploy",
+      "pnpm turbo run test:db --concurrency=2",
+    ]);
+    // The migration targets the test database, whatever DATABASE_URL says.
+    expect(job).toMatch(
+      /run: pnpm --filter @aft\/db exec prisma migrate deploy\n {8}env:\n {10}DATABASE_URL: \$\{\{ env\.TEST_DATABASE_URL \}\}$/m,
+    );
+  });
+
+  it("covers 0011 AC-20, AC-21: test:db always runs and is the only place TEST_DATABASE_URL is listed", () => {
+    expect(turbo.tasks["test:db"]).toEqual({
+      dependsOn: ["db:generate", "^db:generate"],
+      cache: false,
+      env: ["TEST_DATABASE_URL"],
+    });
+    const listed = Object.entries(turbo.tasks as Record<string, { env?: string[] }>)
+      .filter(([, task]) => task.env?.includes("TEST_DATABASE_URL"))
+      .map(([name]) => name);
+    expect(listed).toEqual(["test:db"]);
+    expect(turbo.globalEnv).not.toContain("TEST_DATABASE_URL");
+    expect(turbo.globalPassThroughEnv).not.toContain("TEST_DATABASE_URL");
+    expect(read(".env.example")).not.toContain("TEST_DATABASE_URL");
+  });
+
+  it("covers 0011 AC-20: each workspace with database suites runs them only under test:db", () => {
+    const dirs = dbSuiteWorkspaces();
+    expect(dirs.map((dir) => dir.replaceAll("\\", "/"))).toContain("packages/db");
+    for (const dir of dirs) {
+      const manifest = JSON.parse(read(join(dir, "package.json")));
+      expect(manifest.scripts["test:db"], dir).toBe("vitest run --config vitest.db.config.mts");
+      const dbConfig = read(join(dir, "vitest.db.config.mts"));
+      expect(dbConfig, dir).toMatch(/^\s+maxWorkers: 2,$/m);
+      expect(dbConfig, dir).toContain('include: testDatabaseUrl ? ["**/*.db.test.ts"] : []');
+      expect(dbConfig, dir).not.toContain("process.env.DATABASE_URL");
+      expect(read(join(dir, "vitest.config.mts")), dir).toContain('"**/*.db.test.ts"');
+    }
+  });
+});

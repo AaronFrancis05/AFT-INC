@@ -5,7 +5,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./env": "./src/env.ts"
+    "./env": "./src/env.ts",
+    "./tenant": "./src/tenant.ts",
+    "./errors": "./src/errors.ts"
   },
   "scripts": {
     "db:generate": "prisma generate",
@@ -17,11 +19,13 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --coverage --passWithNoTests",
+    "test:db": "vitest run --config vitest.db.config.mts",
     "format": "prisma format",
     "format:check": "prisma format --check"
   },
   "dependencies": {
     "@aft/config": "workspace:*",
+    "@aft/core": "workspace:*",
     "@prisma/adapter-pg": "catalog:",
     "@prisma/client": "catalog:",
     "pg": "^8.20.0",
