@@ -403,3 +403,16 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Finding for review: pnpm's `.bin` shims set `NODE_PATH` to the hoisted `.pnpm/node_modules`, so in the real hook a workspace without its own ESLint would fall back to the hoisted copy instead of failing (softens AC-9 "that workspace's own ESLint"; harmless today, every workspace declares it). The tests remove `NODE_PATH` to model the contract.
 - Scope feature 5: `Test it` ticked; `Ship it` remains (merge PR #16). Spec 0009 stays `In Progress`.
 - Next: `/clear`, then `/document workspace tooling` (rewrite the PR #16 body, push), squash merge #16, then `/sync`.
+
+### 2026-10-28 (/document workspace tooling)
+- PR #16 body and title rewritten from the commits and diff ("feat(tooling): add pnpm check, a commit hook, and stricter rules"). With the engineer's go, pushed c61d51b, 49cfdcf, 672293d; run 40658126644 on 672293d: all six checks green.
+- The body lists the four build deviations and the two open findings (`NODE_PATH` fallback, DNS baseline ignore) under Notes for reviewers.
+- This entry is uncommitted on purpose (a commit would rerun CI); carry it into the `/sync` branch.
+- Next: optional `/check review workspace tooling`; then squash merge #16 (ticks `Ship it`, feature 5 → `done`, spec 0009 → `Accepted`), then `/sync` right away.
+
+### 2026-10-28 (/sync workspace tooling)
+- PR #16 squash merged as d4b6948 (tree identical to 672293d, six checks green). Branch `docs/sync-workspace-tooling` off `main`, carrying the `/document` entry above.
+- Root `AGENTS.md`: `pnpm check`, `pnpm format`, `pnpm lint:fix` in Commands; Rules for Prettier ownership, the stricter TS and promise rules, and the commit hook (I34); Gotchas for the CI format step and `HUSKY=0`, hook install and `blame.ignoreRevsFile`, and opening `AFT-INC` as the VS Code folder (I45); the declined skills and `@eslint/mcp` line.
+- Scope feature 5: `Ship it` ticked, status `done` (foundation.md and index.md). Spec 0009 → `Accepted`.
+- Still open: the four build deviations and the two findings (`NODE_PATH` fallback, DNS baseline `.prettierignore`) for `/architect`; spec 0009 follow ups (root typecheck and lint, `HUSKY=0` in the Dockerfile for feature 9, README still says npm).
+- Next: merge the sync PR, then `/clear` and pick the next feature (6 typed environment config, 7 engineering standards, or 8 local dev stack each need `/architect`).

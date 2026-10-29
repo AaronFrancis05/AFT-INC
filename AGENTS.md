@@ -58,6 +58,13 @@ pnpm lint
 # Typecheck
 pnpm typecheck
 
+# Lint, typecheck, and both format checks in every workspace, writing nothing (same answer as CI)
+pnpm check
+
+# Fix what can be fixed: Prettier (plus prisma format) everywhere, or ESLint fixes everywhere
+pnpm format
+pnpm lint:fix
+
 # Unit and component tests (Vitest, every workspace, two at a time); test:coverage is what CI runs.
 # Use these root scripts: a bare `turbo run test` skips the concurrency cap
 pnpm test
@@ -93,6 +100,9 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md` (or a `NNNN-title/` 
 - Pages that read the session export `const dynamic = "force-dynamic"`.
 - Tests live beside the code as `*.test.ts(x)` (Vitest in each workspace, jsdom or node, Testing Library); Playwright smoke tests live in `apps/web/e2e/*.spec.ts`. Every workspace Vitest config sets `maxWorkers: 2` (spec 0008, AC-20). Preferences are in `test-preferences.json`.
 - `ci.test.ts` is a contract test over `.github/workflows/ci.yml`, the setup action, `.nvmrc`, `turbo.json`, `pnpm-workspace.yaml`, every workspace `package.json`, and the Vitest configs. Change it together with CI, never to silence it. When it starts reading a new file, add that file to the `//#test:root` inputs in `turbo.json`.
+- Prettier (root `prettier.config.mjs`, with the Tailwind class sorter) owns the layout of every code, config, and CSS file; Markdown is never formatted. ESLint style rules are off (`eslint-config-prettier` comes last in `@aft/config/eslint`), so never fix layout by hand or with a lint rule (spec 0009).
+- The shared tsconfig sets `noUncheckedIndexedAccess`, `noImplicitOverride`, and `noFallthroughCasesInSwitch`, and typed lint fails on a floating or misused promise. Guard an index lookup (`?.`, or a throw) rather than adding `!`; a promise you mean not to await gets `void` plus a comment saying why it is safe.
+- The `pre-commit` hook (Husky plus `lint-staged.config.mjs`) fixes and formats only the staged files and blocks the commit when ESLint can't fix something. It runs each workspace's own ESLint from that workspace (`scripts/lint-staged/`) and never calls pnpm or npx (I34). Tests are not run at commit; they stay in `pnpm test` and CI.
 - A dependency used by more than one workspace is pinned once in the `pnpm-workspace.yaml` catalog and referenced as `catalog:`. Build only tools (`shadcn`, `eslint-config-next`) and every declared peer stay in `devDependencies`, so `pnpm audit --prod` covers only runtime code (I31). A workspace declares every package it imports; never hoist (I19).
 
 ## Git
@@ -110,6 +120,9 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md` (or a `NNNN-title/` 
 - The OTP fallback line prints only under `next dev` (A3), so testing `next start` locally needs a working `RESEND_API_KEY`.
 - On Windows an empty env var is deleted, so `.env` refills it. To blank an OAuth key for a local run, set it to a single space (the resolver trims it).
 - CI (`.github/workflows/ci.yml`) runs six required gates: test (`pnpm turbo run test:coverage //#test:root:coverage --concurrency=2`), typecheck, lint, prisma, build-smoke, and audit (`pnpm audit --prod --audit-level high`). Jobs use placeholder env values, never secrets (I6), and each job has its own `.turbo` cache. A rerun of the `test` job bypasses the Turborepo cache on purpose (`TURBO_FORCE`).
+- The CI `lint` job also runs the format check (`format:check` plus `//#format:root:check`), and CI installs with `HUSKY=0` so no hooks are set up there.
+- Hooks install on `pnpm install` (`prepare`). If `git config core.hooksPath` is not `.husky/_`, run `pnpm run prepare`. Run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once per clone, so `git blame` skips the one time Prettier reformat (`7c7c901`).
+- Open `AFT-INC` itself as the VS Code folder, not a parent folder, or ESLint and Prettier run from the wrong place (I45). `.vscode/` turns on format and ESLint fix on save.
 - pnpm blocks dependency build scripts until reviewed. Approvals live in `pnpm-workspace.yaml` `allowBuilds`, and `strictDepBuilds` makes an unreviewed one fail `pnpm install` locally and in CI (I21).
 - Vitest 5.0.5 gives each worker a fixed 60 seconds to start; under load a whole workspace fails with "Timeout waiting for worker to respond" and a rerun passes (I32). The fix is the `--concurrency=2` and `maxWorkers: 2` caps, never a retry.
 - `pnpm exec` reinstalls when a manifest drifts from the lockfile, so a throwaway `package.json` edit also rewrites `pnpm-lock.yaml`. After reverting it, run `pnpm install` and check `git diff pnpm-lock.yaml`.
@@ -130,6 +143,7 @@ Installed per project in `.claude/skills/` (pinned in `skills-lock.json`; restor
 - [pnpm](.claude/skills/pnpm/): `antfu/skills`, pnpm workspaces, catalogs, overrides, and `pnpm-workspace.yaml`
 - [turborepo](.claude/skills/turborepo/): `vercel/turborepo`, `turbo.json` tasks, caching, env modes, filtering, and CI
 - MCP servers: `playwright` (`@playwright/mcp`, configured in `.mcp.json`; Claude Code asks you to approve it on first use)
+- Declined (2026-10-28, spec 0009 pins every config file): Prettier, Husky, lint-staged, ESLint, and EditorConfig skills (`mattpocock/skills` setup-pre-commit, `patricio0312rev/skills` eslint-prettier-config, `github/awesome-copilot` editorconfig), and the `@eslint/mcp` server
 
 ## AWS
 
