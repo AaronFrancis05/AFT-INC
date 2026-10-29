@@ -93,7 +93,7 @@ Spec: [0010](../specs/0010-typed-environment-config/index.md).
    - [x] The `env-schema.json` exporter and the drift contract test (AC-11, AC-12, I52, I22)
    - [x] The `process.env` lint ban (AC-13, I53)
 - [x] Verify it: `/check verify typed environment config`
-- [ ] Test it: `/test typed environment config`
+- [ ] Test it: `/test typed environment config` (skipped 2026-10-29, engineer's call: went straight to the PR after verify passed)
 - [ ] Ship it: squash merge the pull request with all six checks green
 
 ### 7. Engineering standards and shared helpers · needs a decision · GA
