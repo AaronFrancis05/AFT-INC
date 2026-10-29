@@ -2,6 +2,7 @@ import "server-only";
 import { aftEnv, type Tier } from "@aft/config/env";
 import { AppError } from "@aft/core/errors";
 import { createLogger, type Logger } from "@aft/core/log";
+import type { TransactionRunner } from "@aft/core/server";
 import type { Prisma, PrismaClient } from "./generated/prisma/client";
 
 // Tenant scoping (spec 0011, spec 0005 child 0003). Row level security does the filtering: a
@@ -100,6 +101,19 @@ export function createTenantDb(prisma: PrismaClient, options: TenantDbOptions = 
   }
 
   return { forOrg, withOrg, withSystem };
+}
+
+// The wrappers' one transaction per call: scoped with withOrg when the call has a workspace.
+export function createTransactionRunner(
+  prisma: PrismaClient,
+  tenant: TenantDb = createTenantDb(prisma),
+): TransactionRunner<OrgDb> {
+  return {
+    run: (organizationId, fn) =>
+      organizationId === undefined
+        ? prisma.$transaction(fn, TRANSACTION_OPTIONS)
+        : tenant.forOrg(organizationId).$transaction(fn),
+  };
 }
 
 // The same three on the shared client. It is imported on first use, so importing this module reads

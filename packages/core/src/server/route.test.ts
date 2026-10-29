@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AppError } from "../errors";
 import { createLogger } from "../log";
 import { input, text } from "../validate";
+import { fakeDatabase, fakeResolver } from "./fakes.test-support";
 import { createRouteWrapper } from "./route";
 
 // The thin thread (spec 0011 build step 1): a fixture route made with the real factory.
@@ -14,8 +15,12 @@ function setup() {
       write: (line: string) => void lines.push(JSON.parse(line) as Record<string, unknown>),
     },
   });
+  const { store, transactions } = fakeDatabase();
   const defineRoute = createRouteWrapper({
     logger,
+    resolver: fakeResolver(),
+    store,
+    transactions,
     errorMappers: [(error) => (error === "mapped" ? new AppError("conflict") : null)],
   });
   const handler = vi.fn(async ({ body }: { body: { title: string } }) => ({

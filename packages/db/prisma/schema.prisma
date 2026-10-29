@@ -66,3 +66,31 @@ model Verification {
 
   @@map("verification")
 }
+
+// Who sent an idempotent call (spec 0011).
+enum IdempotencyOwnerKind {
+  user
+  api_key
+
+  @@map("idempotency_owner_kind")
+}
+
+// One saved reply per caller, workspace, scope, and key, for 24 hours (spec 0011, AC-4). No row
+// level security: reached only through @aft/db/idempotency, which always filters by the full owner.
+model IdempotencyRecord {
+  id             String               @id @default(uuid(7)) @db.Uuid
+  ownerKind      IdempotencyOwnerKind
+  ownerId        String
+  organizationId String               @default("")
+  scope          String
+  key            String
+  fingerprint    String
+  responseStatus Int
+  responseBody   Json
+  createdAt      DateTime             @default(now()) @db.Timestamptz(3)
+  expiresAt      DateTime             @db.Timestamptz(3)
+
+  @@unique([ownerKind, ownerId, organizationId, scope, key])
+  @@index([expiresAt])
+  @@map("idempotency_record")
+}
