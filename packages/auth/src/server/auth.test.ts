@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Captures the options lib/auth.ts hands to Better Auth, so the server wiring
-// (spec 0002, AC-2, AC-3, AC-6) is checked without a database or network.
+// (spec 0002, AC-2, AC-3, AC-6; spec 0010, AC-6) is checked without a database or network.
 const { betterAuth } = vi.hoisted(() => ({
   betterAuth: vi.fn((options: unknown) => ({ options })),
 }));
@@ -15,10 +15,14 @@ vi.mock("@aft/db", () => ({ default: {} }));
 vi.mock("@aft/email", () => ({ sendResetPasswordEmail: vi.fn(), sendVerificationEmail: vi.fn() }));
 
 type AuthOptions = {
+  secret: string;
+  baseURL: string;
   socialProviders: Record<string, { clientId: string; clientSecret: string }>;
   emailAndPassword: { enabled: boolean; requireEmailVerification: boolean };
   plugins: { id: string; options: { sendVerificationOTP: unknown } }[];
 };
+
+const SECRET = "test-only-secret-0123456789abcdefghij";
 
 function setOAuthEnv(
   values: Partial<
@@ -46,16 +50,23 @@ async function loadAuthOptions() {
 }
 
 describe("lib/auth.ts", () => {
-  let warn: ReturnType<typeof vi.spyOn>;
-
   beforeEach(() => {
     betterAuth.mockClear();
-    warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubEnv("BETTER_AUTH_SECRET", ` ${SECRET} `);
+    vi.stubEnv("BETTER_AUTH_URL", "http://localhost:3000\n");
   });
 
   afterEach(() => {
     vi.unstubAllEnvs();
-    warn.mockRestore();
+  });
+
+  it("I48: hands Better Auth the trimmed, validated secret and base URL (0010 AC-4)", async () => {
+    setOAuthEnv({});
+
+    const options = await loadAuthOptions();
+
+    expect(options.secret).toBe(SECRET);
+    expect(options.baseURL).toBe("http://localhost:3000");
   });
 
   it("A11: registers both providers with trimmed values when all four are set (AC-2)", async () => {
@@ -72,41 +83,25 @@ describe("lib/auth.ts", () => {
       google: { clientId: "google-id", clientSecret: "google-secret" },
       github: { clientId: "github-id", clientSecret: "github-secret" },
     });
-    expect(warn).not.toHaveBeenCalled();
   });
 
-  it("A11: leaves a half configured provider out of socialProviders entirely (AC-2)", async () => {
-    setOAuthEnv({
-      GOOGLE_CLIENT_ID: "google-id",
-      GOOGLE_CLIENT_SECRET: "google-secret",
-      GITHUB_CLIENT_ID: "github-id",
-    });
+  it("A12: a half configured provider fails the module load, naming both variables and no value (0010 AC-6)", async () => {
+    setOAuthEnv({ GITHUB_CLIENT_ID: "github-id-value" });
 
-    const options = await loadAuthOptions();
+    const load = loadAuthOptions();
 
-    expect(Object.keys(options.socialProviders)).toEqual(["google"]);
-    expect(options.socialProviders).not.toHaveProperty("github");
+    await expect(load).rejects.toThrow(
+      "  - GITHUB_CLIENT_SECRET: set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET together, or neither",
+    );
+    await expect(load).rejects.not.toThrow("github-id-value");
   });
 
-  it("A11: registers no provider when every value is empty or whitespace, and stays silent (AC-2, AC-3)", async () => {
+  it("A11: registers no provider when every value is empty or whitespace (AC-2)", async () => {
     setOAuthEnv({ GOOGLE_CLIENT_ID: "   ", GITHUB_CLIENT_SECRET: "\n" });
 
     const options = await loadAuthOptions();
 
     expect(options.socialProviders).toEqual({});
-    expect(warn).not.toHaveBeenCalled();
-  });
-
-  it("A11: warns once at module load with the exact text and no value when a secret is missing (AC-3)", async () => {
-    setOAuthEnv({ GITHUB_CLIENT_ID: "github-id-value" });
-
-    await loadAuthOptions();
-
-    expect(warn).toHaveBeenCalledTimes(1);
-    expect(warn).toHaveBeenCalledWith(
-      "[auth] GITHUB_CLIENT_SECRET is not set, so the github provider is off. Set both GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET to enable it.",
-    );
-    expect(String(warn.mock.calls[0][0])).not.toContain("github-id-value");
   });
 
   it("A3: wires the gated OTP sender into the emailOTP plugin (AC-6)", async () => {

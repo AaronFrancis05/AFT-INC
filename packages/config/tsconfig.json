@@ -3,5 +3,5 @@
   "compilerOptions": {
     "types": ["node", "@testing-library/jest-dom/vitest"]
   },
-  "include": ["stubs", "vitest"]
+  "include": ["env", "stubs", "vitest", "vitest.config.mts"]
 }

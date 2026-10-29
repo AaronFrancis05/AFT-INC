@@ -3,13 +3,18 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "@aft/db";
 import { emailOTP } from "better-auth/plugins";
 import { sendResetPasswordEmail } from "@aft/email";
+import { authEnv } from "../env";
 import { sendVerificationOTP } from "./auth-otp";
-import { resolveSocialProviders, warnMissingSocialProviders } from "./auth-providers";
+import { resolveSocialProviders } from "./auth-providers";
 
-const socialProviders = resolveSocialProviders();
-warnMissingSocialProviders(socialProviders.missing);
+// Validated, trimmed values (spec 0010); Better Auth gets them explicitly instead of
+// reading the raw variables itself.
+const env = authEnv();
+const socialProviders = resolveSocialProviders(env);
 
 export const auth = betterAuth({
+  secret: env.BETTER_AUTH_SECRET,
+  baseURL: env.BETTER_AUTH_URL,
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),

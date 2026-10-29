@@ -23,11 +23,11 @@ describe("components/auth", () => {
     expect(offenders.map((file) => path.relative(DIR, file))).toEqual([]);
   });
 
-  it("client files import lib/auth-providers for types only, never its values", () => {
+  it("client files import @aft/auth providers, server, or env for types only, never their values", () => {
     // resolveSocialProviders and its types now come from @aft/auth/providers (A11). Only a whole
     // `import type` statement passes: Turbopack can keep `import { type X }` as a real import.
     const valueImports = clientSourceFiles().filter((file) =>
-      /^import\s+(?!type\b)(?:[^'"]*?from\s+)?["']@aft\/auth\/(?:providers|server)["']/m.test(
+      /^import\s+(?!type\b)(?:[^'"]*?from\s+)?["']@aft\/auth\/(?:env|providers|server)["']/m.test(
         readFileSync(file, "utf8"),
       ),
     );

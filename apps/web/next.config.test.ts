@@ -56,6 +56,7 @@ describe("next.config workspace settings (spec 0008 AC-17)", () => {
     const config = await loadConfig();
     expect([...(config.transpilePackages ?? [])].sort()).toEqual([
       "@aft/auth",
+      "@aft/config",
       "@aft/db",
       "@aft/email",
       "@aft/ui",

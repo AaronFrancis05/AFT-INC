@@ -17,7 +17,7 @@ beforeAll(async () => {
     // The probe file is not on disk, so no tsconfig includes it (I41). The boundary rule needs no
     // type information, so the type aware rules from spec 0009 are off for this probe only.
     overrideConfig: {
-      files: ["components/probe.tsx"],
+      files: ["components/probe.tsx", "scripts/probe.ts"],
       languageOptions: { parserOptions: { projectService: false } },
       rules: {
         "@typescript-eslint/no-floating-promises": "off",
@@ -28,13 +28,14 @@ beforeAll(async () => {
   await eslint.lintText("export {};\n", { filePath: path.join(appDir, "components", "probe.tsx") });
 }, 120_000);
 
-// Messages from the boundary rule only, so unrelated rules (unused vars and so on) never mask a result.
-async function restricted(code: string) {
-  const [result] = await eslint.lintText(code, {
-    filePath: path.join(appDir, "components", "probe.tsx"),
-  });
+// Messages from the boundary and env rules only, so unrelated rules (unused vars and so on) never
+// mask a result. The probe is a component file unless a path inside the app is given.
+async function restricted(code: string, probe = path.join("components", "probe.tsx")) {
+  const [result] = await eslint.lintText(code, { filePath: path.join(appDir, probe) });
   if (!result) throw new Error("ESLint returned no result for the snippet");
-  return result.messages.filter((m) => m.ruleId === "no-restricted-imports");
+  return result.messages.filter(
+    (m) => m.ruleId === "no-restricted-imports" || m.ruleId === "no-restricted-syntax",
+  );
 }
 
 describe("package boundary rule (spec 0008 AC-11)", () => {
@@ -100,5 +101,41 @@ describe("cn package guard (spec 0008 I29)", () => {
   it("does not catch packages whose names only start with cn", async () => {
     const messages = await restricted(`import { x } from "cnx";\nexport { x };\n`);
     expect(messages).toEqual([]);
+  });
+});
+
+describe("process.env rule (spec 0010 AC-13)", () => {
+  it.each([
+    ["a named read", "export const key = process.env.RESEND_API_KEY;\n"],
+    ["a computed read", 'export const key = process.env["RESEND_API_KEY"];\n'],
+    ["a dynamic read", 'const name = "X";\nexport const key = process.env[name];\n'],
+    ["the whole object", "export function read(env = process.env) {\n  return env;\n}\n"],
+    ["destructuring", "const { env } = process;\nexport { env };\n"],
+    ["importing env from node:process", 'import { env } from "node:process";\nexport { env };\n'],
+    ["importing env from process", 'import { env } from "process";\nexport { env };\n'],
+  ])("I53: rejects %s outside the env modules", async (_form, code) => {
+    const messages = await restricted(code);
+    expect(messages).toHaveLength(1);
+    expect(messages[0]?.severity).toBe(2);
+    expect(messages[0]?.message).toContain("@aft/<pkg>/env");
+  });
+
+  it.each(["NODE_ENV", "NEXT_RUNTIME", "NEXT_PHASE"])(
+    "allows process.env.%s, which Next.js sets itself",
+    async (name) => {
+      expect(await restricted(`export const value = process.env.${name};\n`)).toEqual([]);
+    },
+  );
+
+  it("allows any read in scripts, which run outside the app", async () => {
+    const code = "export const key = process.env.RESEND_API_KEY;\n";
+    expect(await restricted(code, path.join("scripts", "probe.ts"))).toEqual([]);
+  });
+
+  it("keeps the package boundary rule in the files that may read variables", async () => {
+    const code = `import { auth } from "@aft/auth/src/server/auth";\nexport { auth };\n`;
+    const messages = await restricted(code, path.join("scripts", "probe.ts"));
+    expect(messages).toHaveLength(1);
+    expect(messages[0]?.message).toContain("never its src folder");
   });
 });

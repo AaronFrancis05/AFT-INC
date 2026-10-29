@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./env": "./src/env.ts"
   },
   "scripts": {
     "db:generate": "prisma generate",
@@ -20,13 +21,14 @@
     "format:check": "prisma format --check"
   },
   "dependencies": {
+    "@aft/config": "workspace:*",
     "@prisma/adapter-pg": "catalog:",
     "@prisma/client": "catalog:",
     "pg": "^8.20.0",
-    "server-only": "catalog:"
+    "server-only": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@aft/config": "workspace:*",
     "@types/pg": "^8.18.0",
     "@vitest/coverage-v8": "catalog:",
     "dotenv": "^17.3.1",

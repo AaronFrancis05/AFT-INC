@@ -1,6 +1,7 @@
 // Contract checks for the CI pipeline in spec 0001, moved to pnpm and Turborepo by spec 0008.
 // They read the workflow files as text, so a later edit cannot silently drop a required
 // check or expose a secret.
+import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -121,7 +122,8 @@ describe("CI workflow", () => {
     const configs = workspaceDirs()
       .map((dir) => join(dir, "vitest.config.mts"))
       .filter((file) => existsSync(file));
-    expect(configs).toHaveLength(5);
+    // Six workspaces test, including @aft/config for the env helper (spec 0010).
+    expect(configs).toHaveLength(6);
     for (const file of configs) expect(read(file), file).toMatch(/^\s+maxWorkers: 2,$/m);
     expect(read("vitest.config.mts")).not.toContain("maxWorkers");
     expect(ci).not.toContain("VITEST_MAX_WORKERS");
@@ -323,5 +325,70 @@ describe("Workspace tooling (spec 0009)", () => {
     ])
       expect(compilerOptions[flag], flag).toBe(true);
     expect(JSON.parse(read("packages/config/package.json")).scripts.typecheck).toBe("tsc --noEmit");
+  });
+});
+
+// Names every app schema declares, read through the exporter the deploy uses (spec 0010).
+// The root workspace can not import @aft/* (I19), and running it also proves plain Node loads it.
+function schemaNames() {
+  const output = execFileSync(
+    process.execPath,
+    ["--disable-warning=MODULE_TYPELESS_PACKAGE_JSON", "apps/web/scripts/env-schema.mts"],
+    { encoding: "utf8" },
+  );
+  return (JSON.parse(output) as { variables: { name: string }[] }).variables.map((v) => v.name);
+}
+
+// Every way the three lists can disagree, as readable lines; empty when they match (AC-12).
+function envDrift(schema: string[], example: string[], globalEnv: string[]) {
+  const allowedExtra = new Set(["NODE_ENV"]);
+  return [
+    ...schema.filter((n) => !example.includes(n)).map((n) => `${n} missing from .env.example`),
+    ...schema.filter((n) => !globalEnv.includes(n)).map((n) => `${n} missing from globalEnv`),
+    ...example.filter((n) => !schema.includes(n)).map((n) => `${n} in .env.example, no schema`),
+    ...globalEnv
+      .filter((n) => !schema.includes(n) && !allowedExtra.has(n))
+      .map((n) => `${n} in globalEnv, no schema`),
+  ];
+}
+
+describe("Typed environment (spec 0010)", () => {
+  const schema = schemaNames();
+  const example = [...read(".env.example").matchAll(/^([A-Z][A-Z0-9_]*)=/gm)].map((m) => m[1]!);
+  const globalEnv = (JSON.parse(read("turbo.json")) as { globalEnv: string[] }).globalEnv;
+
+  it("I52, I22: covers 0010 AC-12, the schema, .env.example, and globalEnv list the same names", () => {
+    expect(schema.length).toBeGreaterThan(0);
+    expect(envDrift(schema, example, globalEnv)).toEqual([]);
+  });
+
+  it("I52: covers 0010 AC-12, a name dropped from or added to either list is caught", () => {
+    const [first] = schema;
+    expect(
+      envDrift(
+        schema,
+        example.filter((n) => n !== first),
+        globalEnv,
+      ),
+    ).toEqual([`${first} missing from .env.example`]);
+    expect(
+      envDrift(
+        schema,
+        example,
+        globalEnv.filter((n) => n !== first),
+      ),
+    ).toEqual([`${first} missing from globalEnv`]);
+    expect(envDrift(schema, [...example, "UNDECLARED"], globalEnv)).toEqual([
+      "UNDECLARED in .env.example, no schema",
+    ]);
+    expect(envDrift(schema, example, [...globalEnv, "UNDECLARED"])).toEqual([
+      "UNDECLARED in globalEnv, no schema",
+    ]);
+  });
+
+  it("I6: covers 0010 AC-14, every job gets AFT_ENV=test and the shared env block holds no secret", () => {
+    const block = ci.slice(ci.indexOf("\nenv:\n"), ci.indexOf("\njobs:\n"));
+    expect(block).toMatch(/^ {2}AFT_ENV: test$/m);
+    expect(block).not.toContain("secrets.");
   });
 });

@@ -19,6 +19,7 @@ concurrency:
 # test job on purpose: Turborepo's own variables never enter task hashes, so it does not
 # break that rule (AC-20).
 env:
+  AFT_ENV: test
   DATABASE_URL: postgresql://postgres:postgres@localhost:5432/aft_ci
   BETTER_AUTH_SECRET: ci-only-not-a-secret-0123456789abcdef
   BETTER_AUTH_URL: http://localhost:3000

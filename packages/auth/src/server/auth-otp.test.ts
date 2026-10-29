@@ -50,6 +50,30 @@ describe("sendVerificationOTP", () => {
     expect(consoleArgsContaining(spies, OTP)).toHaveLength(1);
   });
 
+  it("A3: covers 0010 AC-7, prints the OTP fallback under next dev when the email is skipped (no key)", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    const spies = spyOnConsole();
+    sendVerificationEmail.mockResolvedValue(null);
+
+    await sendVerificationOTP({ email: EMAIL, otp: OTP });
+
+    expect(console.log).toHaveBeenCalledWith(`[DEV FALLBACK] OTP for ${EMAIL}: ${OTP}`);
+    expect(consoleArgsContaining(spies, OTP)).toHaveLength(1);
+  });
+
+  it.each(["production", "test"])(
+    "A3: covers 0010 AC-7, never logs the OTP under NODE_ENV=%s when the email is skipped",
+    async (nodeEnv) => {
+      vi.stubEnv("NODE_ENV", nodeEnv);
+      const spies = spyOnConsole();
+      sendVerificationEmail.mockResolvedValue(null);
+
+      await sendVerificationOTP({ email: EMAIL, otp: OTP });
+
+      expect(consoleArgsContaining(spies, OTP)).toEqual([]);
+    },
+  );
+
   it.each(["production", "test"])(
     "A3: never logs the OTP at any level under NODE_ENV=%s when the email fails",
     async (nodeEnv) => {
