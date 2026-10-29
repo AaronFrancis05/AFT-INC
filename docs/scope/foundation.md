@@ -96,10 +96,21 @@ Spec: [0010](../specs/0010-typed-environment-config/index.md).
 - [ ] Test it: `/test typed environment config` (skipped 2026-10-29, engineer's call: went straight to the PR after verify passed)
 - [x] Ship it: squash merge the pull request with all six checks green
 
-### 7. Engineering standards and shared helpers · needs a decision · GA
+### 7. Engineering standards and shared helpers · in-progress · GA
 One standard spec: one way to do errors, logging, validation, idempotency, tenant scoping, and API style, shipped as shared helpers.
 **Done when:** shared helpers exist with tests for: idempotent mutations (X1), input validation and size limits (X8), money and time handling (X10), untrusted model output (X14), and tenant scoped data access that returns 404 across workspaces (X15).
-- [ ] Design it (spec): `/architect engineering standards and shared helpers`
+Spec: [0011](../specs/0011-engineering-standards/index.md).
+- [x] Design it (spec): `/architect engineering standards and shared helpers`
+- [ ] Build it: `/develop engineering standards and shared helpers`
+   - [ ] Thread: `@aft/core` with errors, the logger and `LOG_LEVEL`, the text and body helpers, and the route wrapper in public mode (AC-6, AC-7, AC-8, AC-12, AC-13, AC-21, X20 to X23, X29, X31)
+   - [ ] Database thread: `test:db` on Postgres in CI, `forOrg`, `withOrg`, `withSystem`, the row level security catalog test, and the bypass check (AC-1, AC-3, AC-20, AC-22, X15, X25, X30, X32)
+   - [ ] Idempotency, server actions, and auth: the `IdempotencyRecord` migration, advisory lock flow, action wrapper, session resolver, Origin check, `lib/server.ts` (AC-2, AC-4, AC-5, AC-8 to AC-11, X1, X17 to X19, X24, X26)
+   - [ ] Money, time, pagination, and untrusted content helpers, then the lint rules, the wrapper contract test, and the fixes to existing code (AC-14 to AC-19, X10, X14, X27, X28)
+- [ ] Verify it: `/check verify engineering standards and shared helpers`
+- [ ] Test it: `/test engineering standards and shared helpers`
+- [ ] Review it (fresh model): `/check review engineering standards and shared helpers`
+- [ ] Document it: `/document engineering standards and shared helpers`
+- [ ] Ship it: squash merge the pull request with all six checks green
 
 ### 8. Local dev stack · needs a decision
 One command runs the apps locally against the `dev` database on the EC2 server, with seed data.

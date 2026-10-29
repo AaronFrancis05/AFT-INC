@@ -19,6 +19,12 @@
       "skillPath": "skills/grafana-core/opentelemetry/SKILL.md",
       "computedHash": "772a52faf409e5ed3a353bde694aaa1df017d87d63f1fb6489c7c9c2ab3b22ee"
     },
+    "pino-logging": {
+      "source": "oakoss/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/pino-logging/SKILL.md",
+      "computedHash": "095954576d4fa9fb7d6569c4525db933691aef99a0c75b5a3aba7ba383def967"
+    },
     "playwright-best-practices": {
       "source": "currents-dev/playwright-best-practices-skill",
       "sourceType": "github",

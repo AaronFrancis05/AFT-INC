@@ -261,6 +261,22 @@ Each edge case has an ID and a required handling. How the IDs flow through the w
 - **X14** Prompt injection (user text, retrieved content, third-party MCP tool output) → treat it as data, never as instructions. Tools are allowlisted and model output is schema-validated before use.
 - **X15** Cross-tenant access → every query is scoped by `organizationId` in the repository layer, and a cross-org request returns 404, not 403 (no existence leak).
 - **X16** Account or org deletion (GDPR) while subscriptions or instances are active → block it until they are cancelled. Otherwise run an ordered teardown saga, keep invoices for the legal retention period, and anonymize the rest.
+- **X17** The same idempotency key arrives while the first request is still running, whatever its input → `idempotency_in_progress` (409) with `Retry-After: 1` (spec 0011).
+- **X18** The same idempotency key arrives with different input after the first finished → `idempotency_mismatch` (422) (spec 0011).
+- **X19** The server dies mid request holding an idempotency key → its transaction rolls back and the advisory lock frees itself, so a retry runs at once (spec 0011).
+- **X20** Input carries a key the schema does not know → `validation_failed` (400) naming the key (spec 0011).
+- **X21** Text with control characters, broken Unicode, or over its max → `validation_failed`; text is trimmed and NFC normalized first (spec 0011).
+- **X22** A body over the cap, with or without `Content-Length` → `payload_too_large` (413) before parsing (spec 0011).
+- **X23** A `/api/v1` body that is not JSON → `unsupported_media_type` (415) (spec 0011).
+- **X24** A session cookie write to `/api/v1` from another origin, or with no `Origin` → `forbidden` (403) (spec 0011).
+- **X25** An insert or update into another workspace trips the row level security check → `not_found` (404), no leak (spec 0011).
+- **X26** `redirect()` or `notFound()` thrown inside a wrapped handler → passed through, not logged as an error (spec 0011).
+- **X27** Money leaves the safe integer range or mixes currencies → throws; never rounds silently (spec 0011).
+- **X28** Model output is too large, not JSON, or has extra keys, or user text tries to close its fence → `model_output_invalid` (502) with no raw text logged; fake fences escaped (spec 0011).
+- **X29** A log call passes a secret or personal field → `[redacted]` at the top level and one level down (spec 0011).
+- **X30** A new tenant table ships without forced row level security → the CI catalog test fails (spec 0011).
+- **X31** An unexpected crash → `internal` with a generic message and the request id; the real message only in development; never a stack trace (spec 0011).
+- **X32** The app's database login is a superuser or has `BYPASSRLS`, so every policy is skipped → production refuses scoped calls, development warns (spec 0011).
 
 ### A: Identity & Organizations
 - **A1** OAuth sign-in with an email that already exists → link accounts only when the provider email is verified. Otherwise refuse and ask the user to sign in with the original method.
