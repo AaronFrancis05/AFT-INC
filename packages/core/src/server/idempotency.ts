@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import type { Tier } from "@aft/config/env";
 import { AppError, normalizeError, type ErrorCode, type ErrorMapper } from "../errors";
 import type { Logger } from "../log";
+import { controlFlowOf } from "./call";
 import type { IdempotencyId, IdempotencyStore, TransactionRunner } from "./types";
 
 // Safe retries (spec 0011, AC-4, X1, X17 to X19): one transaction takes an advisory lock on the key,
@@ -110,8 +111,9 @@ export async function runIdempotent<Tx>(call: IdempotentCall<Tx>): Promise<Idemp
     });
   } catch (caught) {
     // The handler's writes rolled back. A failure the same input would repeat is saved by a second
-    // short transaction that takes the lock again and inserts only if no row exists.
-    if (handlerFailed) {
+    // short transaction that takes the lock again and inserts only if no row exists. Next.js control
+    // flow is never saved; the wrapper reports it (AC-9).
+    if (handlerFailed && !controlFlowOf(caught)) {
       const error = normalizeError(caught, call.errorMappers);
       if (SAVED_CODES.has(error.code)) await saveFailure(call, error);
     }

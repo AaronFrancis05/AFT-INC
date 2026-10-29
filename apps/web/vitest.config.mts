@@ -15,7 +15,8 @@ export default defineConfig({
     globals: false,
     setupFiles: ["@aft/config/vitest/env", "./vitest.setup.ts"],
     include: ["**/*.test.{ts,tsx}"],
-    exclude: ["e2e/**", "node_modules/**", "**/generated/**", ".next/**"],
+    // The database suites run only under test:db (spec 0011, AC-20).
+    exclude: ["e2e/**", "node_modules/**", "**/generated/**", ".next/**", "**/*.db.test.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "lcov"],

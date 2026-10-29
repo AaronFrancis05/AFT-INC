@@ -57,6 +57,21 @@ describe("@aft/db/tenant shared client (AC-1)", () => {
     expect(queries.filter((query) => query.includes("pg_roles"))).toHaveLength(1);
   });
 
+  it("transactionRunner runs on the shared client, scoped only when given a workspace", async () => {
+    const { transactionRunner } = await import("./tenant");
+    expect(await transactionRunner.run(undefined, async (tx) => (tx as unknown) === fakeTx)).toBe(
+      true,
+    );
+    expect(queries).toEqual([]);
+    await transactionRunner.run("org_a", async () => undefined);
+    expect(queries.at(-1)).toBe("SELECT set_config('app.org_id', ?, true)");
+    const prisma = (await import("./index")).default;
+    expect(prisma.$transaction).toHaveBeenLastCalledWith(expect.any(Function), {
+      timeout: 20_000,
+      maxWait: 5_000,
+    });
+  });
+
   it("asks again after a failed login check", async () => {
     const { createTenantDb } = await import("./tenant");
     const prisma = (await import("./index")).default;

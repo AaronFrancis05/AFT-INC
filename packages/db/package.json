@@ -8,7 +8,8 @@
     "./env": "./src/env.ts",
     "./tenant": "./src/tenant.ts",
     "./errors": "./src/errors.ts",
-    "./idempotency": "./src/idempotency.ts"
+    "./idempotency": "./src/idempotency.ts",
+    "./testing": "./src/test-db.ts"
   },
   "scripts": {
     "db:generate": "prisma generate",

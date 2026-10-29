@@ -22,6 +22,7 @@ function setup() {
     store,
     transactions,
     errorMappers: [(error) => (error === "mapped" ? new AppError("conflict") : null)],
+    allowedOrigins: ["http://localhost"],
   });
   const handler = vi.fn(async ({ body }: { body: { title: string } }) => ({
     status: 201,

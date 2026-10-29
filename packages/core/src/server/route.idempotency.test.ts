@@ -29,6 +29,7 @@ function setup(context: ResolvedContext | null = member) {
     store: database.store,
     transactions: database.transactions,
     errorMappers: [(error) => (error === "unique" ? new AppError("conflict") : null)],
+    allowedOrigins: ["http://localhost"],
   });
   let created = 0;
   const handler = vi.fn(async ({ body, ctx }: { body: { title: string }; ctx: { db: FakeTx } }) => {
@@ -56,6 +57,7 @@ const post = (body: unknown, key: string | null = "key-1", method = "POST") =>
     body: JSON.stringify(body),
     headers: {
       "content-type": "application/json",
+      origin: "http://localhost",
       ...(key === null ? {} : { "idempotency-key": key }),
     },
   });

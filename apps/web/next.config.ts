@@ -15,6 +15,8 @@ const nextConfig: NextConfig = {
   // Both point at the repo root, so Next.js sees one workspace and traces package files (AC-17).
   turbopack: { root: repoRoot },
   outputFileTracingRoot: repoRoot,
+  // Next.js refuses a larger action body before our wrapper runs (spec 0011, AC-7).
+  experimental: { serverActions: { bodySizeLimit: "100kb" } },
   images: {
     remotePatterns: [
       {

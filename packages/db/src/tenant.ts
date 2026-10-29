@@ -116,14 +116,27 @@ export function createTransactionRunner(
   };
 }
 
-// The same three on the shared client. It is imported on first use, so importing this module reads
-// no env and opens nothing.
-let shared: Promise<TenantDb> | undefined;
+// The same three, and the wrappers' runner, on the shared client. It is imported on first use, so
+// importing this module reads no env and opens nothing.
+type Shared = { tenant: TenantDb; runner: TransactionRunner<OrgDb> };
+let shared: Promise<Shared> | undefined;
 
-function sharedTenantDb(): Promise<TenantDb> {
-  shared ??= import("./index").then(({ default: prisma }) => createTenantDb(prisma));
+function sharedDb(): Promise<Shared> {
+  shared ??= import("./index").then(({ default: prisma }) => {
+    const tenant = createTenantDb(prisma);
+    return { tenant, runner: createTransactionRunner(prisma, tenant) };
+  });
   return shared;
 }
+
+async function sharedTenantDb(): Promise<TenantDb> {
+  return (await sharedDb()).tenant;
+}
+
+// What each app's lib/server.ts passes to the wrapper factories.
+export const transactionRunner: TransactionRunner<OrgDb> = {
+  run: async (organizationId, fn) => (await sharedDb()).runner.run(organizationId, fn),
+};
 
 export function forOrg(organizationId: string): ScopedClient {
   assertOrganizationId(organizationId);

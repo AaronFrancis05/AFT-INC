@@ -43,6 +43,7 @@ function fixture(handler: (tx: OrgDb, title: string) => Promise<void> = insertPr
     store,
     transactions,
     errorMappers: [prismaErrorMapper],
+    allowedOrigins: ["http://localhost"],
   });
   const route = defineRoute({
     name: "projects.create",
@@ -61,7 +62,11 @@ function fixture(handler: (tx: OrgDb, title: string) => Promise<void> = insertPr
         new Request("http://localhost/api/v1/projects", {
           method: "POST",
           body: JSON.stringify({ title }),
-          headers: { "content-type": "application/json", "idempotency-key": key },
+          headers: {
+            "content-type": "application/json",
+            "idempotency-key": key,
+            origin: "http://localhost",
+          },
         }),
         { params: Promise.resolve({}) },
       ),

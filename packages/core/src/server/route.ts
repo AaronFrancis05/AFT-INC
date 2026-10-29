@@ -10,13 +10,21 @@ import {
   parseInput,
   readJsonBody,
 } from "../validate";
+import {
+  controlFlowOf,
+  controlFlowOutcome,
+  idempotentControlFlow,
+  ownerOf,
+  runCommitted,
+  userIdOf,
+} from "./call";
 import { fingerprintOf, isIdempotencyKey, runIdempotent, type Reply } from "./idempotency";
 import type {
   AuthMode,
   Caller,
   ContextResolver,
-  IdempotencyId,
   IdempotencyStore,
+  ResolvedContext,
   TransactionRunner,
 } from "./types";
 
@@ -41,6 +49,9 @@ export type RouteContext<Tx, A extends AuthMode> = A extends "public"
   : A extends "org"
     ? CallerContext<Tx> & { organizationId: string }
     : CallerContext<Tx>;
+
+// What authorize sees: the call's context before its transaction opens.
+export type AuthorizeContext<Tx, A extends AuthMode> = Omit<RouteContext<Tx, A>, "db">;
 
 export type RouteReply = {
   status: number;
@@ -68,6 +79,8 @@ export type RouteDefinition<
   params?: P;
   // Default 100 KB, at most 1 MB (AC-7).
   maxBodyBytes?: number;
+  // false gives forbidden (403); feature 41 adds role helpers.
+  authorize?: (ctx: AuthorizeContext<Tx, A>) => boolean | Promise<boolean>;
   handler: (args: {
     body: Out<B>;
     query: Out<Q>;
@@ -87,12 +100,20 @@ export type RouteWrapperOptions<Tx> = {
   store: IdempotencyStore<Tx>;
   transactions: TransactionRunner<Tx>;
   errorMappers?: readonly ErrorMapper[];
+  // Origins a signed in browser may write from (AC-10): the BETTER_AUTH_URL origin plus Better
+  // Auth's trustedOrigins. A function is called on the first write that needs it.
+  allowedOrigins: readonly string[] | (() => readonly string[] | Promise<readonly string[]>);
+  // Resolves an `Authorization: Bearer` call; feature 75 supplies it. Without it such calls get 401.
+  verifyApiKey?: ContextResolver;
 };
 
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 // Signed in writes that must carry an Idempotency-Key (AC-5). Public routes (webhooks) dedupe
 // through the webhook inbox instead.
 const IDEMPOTENT_METHODS = new Set(["POST", "PATCH", "DELETE"]);
+
+// An API key call is any request carrying a Bearer token; everything else is a session call (AC-10).
+const BEARER = /^bearer\s/i;
 
 // Query values are strings; a key given more than once becomes an array.
 function queryObject(url: URL): Record<string, string | string[]> {
@@ -109,19 +130,38 @@ const EMPTY = input({});
 
 const KEY_MESSAGE = "Send an Idempotency-Key header of 1 to 255 printable ASCII characters";
 
-function ownerOf(caller: Caller): Pick<IdempotencyId, "ownerKind" | "ownerId"> {
-  return caller.kind === "user"
-    ? { ownerKind: "user", ownerId: caller.userId }
-    : { ownerKind: "api_key", ownerId: caller.apiKeyId };
-}
-
 export function createRouteWrapper<Tx>({
   logger,
   resolver,
   store,
   transactions,
   errorMappers = [],
+  allowedOrigins,
+  verifyApiKey,
 }: RouteWrapperOptions<Tx>) {
+  let origins: Promise<ReadonlySet<string>> | undefined;
+  // Compared as URL origins, so a trailing slash or a path in the configured value does not matter.
+  function originsAllowed(): Promise<ReadonlySet<string>> {
+    origins ??= Promise.resolve(
+      typeof allowedOrigins === "function" ? allowedOrigins() : allowedOrigins,
+    ).then(
+      (list) => new Set(list.map((origin) => new URL(origin).origin)),
+      (error: unknown) => {
+        origins = undefined;
+        throw error;
+      },
+    );
+    return origins;
+  }
+
+  // A session write must come from one of our own pages (CSRF, X24). A missing Origin or
+  // `Origin: null` is refused too.
+  async function checkOrigin(headers: Headers): Promise<void> {
+    const origin = headers.get("origin");
+    if (!origin || origin === "null" || !(await originsAllowed()).has(origin))
+      throw new AppError("forbidden");
+  }
+
   return function defineRoute<
     A extends AuthMode,
     B extends Schema | undefined = undefined,
@@ -148,6 +188,7 @@ export function createRouteWrapper<Tx>({
       const exposeInternal = aftEnv() === "development";
       let log = logger.child({ requestId });
 
+      let idempotent = false;
       let status: number;
       let result: string;
       let replayed = false;
@@ -158,21 +199,27 @@ export function createRouteWrapper<Tx>({
       try {
         // The order of work (spec 0011): the first failure wins, so a caller with no session gets
         // 401 before anything reads the body.
-        const resolved =
-          auth === "public"
-            ? null
-            : await resolver.resolve({ headers: request.headers, mode: auth });
-        if (auth !== "public" && !resolved) throw new AppError("unauthenticated");
-        const userId =
-          resolved?.caller.kind === "user" ? resolved.caller.userId : resolved?.caller.userId;
-        const organizationId = resolved?.organizationId;
+        const apiKeyCall = BEARER.test(request.headers.get("authorization") ?? "");
+        let resolved: ResolvedContext | null = null;
+        if (auth !== "public") {
+          const via = apiKeyCall ? verifyApiKey : resolver;
+          resolved = via ? await via.resolve({ headers: request.headers, mode: auth }) : null;
+          if (!resolved) throw new AppError("unauthenticated");
+        }
+        const userId = resolved ? userIdOf(resolved.caller) : undefined;
+        // The workspace (and the role in it) belong to org mode only; user mode runs unscoped.
+        const organizationId = auth === "org" ? resolved?.organizationId : undefined;
+        const role = auth === "org" ? resolved?.role : undefined;
         if (resolved)
           log = log.child({
             ...(userId ? { userId } : {}),
             ...(organizationId ? { organizationId } : {}),
           });
 
-        const idempotent = auth !== "public" && IDEMPOTENT_METHODS.has(method);
+        if (resolved && !apiKeyCall && WRITE_METHODS.has(method))
+          await checkOrigin(request.headers);
+
+        idempotent = auth !== "public" && IDEMPOTENT_METHODS.has(method);
         const key = request.headers.get("idempotency-key");
         if (idempotent && !isIdempotencyKey(key)) throw new AppError("bad_request", KEY_MESSAGE);
 
@@ -184,12 +231,19 @@ export function createRouteWrapper<Tx>({
         // A caller outside the workspace sees the same 404 as a workspace that does not exist (X15).
         if (auth === "org" && !organizationId) throw new AppError("not_found");
 
+        const base = { requestId, now, log };
+        const callerContext = resolved
+          ? { ...base, caller: resolved.caller, userId, organizationId, role }
+          : base;
+        if (
+          definition.authorize &&
+          !(await definition.authorize(callerContext as AuthorizeContext<Tx, A>))
+        )
+          throw new AppError("forbidden");
+
         let replyHeaders: Record<string, string> = {};
         const run = async (db?: Tx): Promise<Reply> => {
-          const base = { requestId, now, log };
-          const ctx = resolved
-            ? { ...base, caller: resolved.caller, userId, organizationId, role: resolved.role, db }
-            : base;
+          const ctx = resolved ? { ...callerContext, db } : callerContext;
           const reply = await definition.handler({
             body: body as Out<B>,
             query: query as Out<Q>,
@@ -228,7 +282,7 @@ export function createRouteWrapper<Tx>({
           replayed = outcome.replayed;
           reply = outcome;
         } else {
-          reply = await transactions.run(organizationId, run);
+          reply = await runCommitted(transactions, organizationId, run);
         }
 
         status = reply.status;
@@ -250,10 +304,27 @@ export function createRouteWrapper<Tx>({
           response = new Response(JSON.stringify(reply.body), { status, headers });
         }
       } catch (caught) {
-        const error = normalizeError(caught, errorMappers);
+        // Next.js control flow first (AC-9): rethrown for Next.js to answer, never logged as an error.
+        const controlFlow = controlFlowOf(caught);
+        if (controlFlow && !idempotent) {
+          ({ status, result } = controlFlowOutcome(controlFlow.error));
+          writeAccessLine();
+          throw controlFlow.error;
+        }
+        let error: AppError;
+        try {
+          error = controlFlow
+            ? idempotentControlFlow(definition.name, aftEnv())
+            : normalizeError(caught, errorMappers);
+        } catch (programmingError) {
+          status = 500;
+          result = "internal";
+          writeAccessLine();
+          throw programmingError;
+        }
         // A crash is anything that was not an AppError and no mapper recognized (X31).
         if (!(caught instanceof AppError) && error.code === "internal")
-          log.error({ err: caught }, "request failed");
+          log.error({ err: controlFlow ? error.cause : caught }, "request failed");
         status = error.status;
         result = error.code;
         headers.set("Content-Type", "application/problem+json");
@@ -264,20 +335,25 @@ export function createRouteWrapper<Tx>({
         response = new Response(JSON.stringify(problem), { status, headers });
       }
 
-      log.info(
-        {
-          kind: "route",
-          route: definition.path,
-          method,
-          status,
-          result,
-          durationMs: Math.round(performance.now() - started),
-          replayed,
-          ...(clientRequestId ? { clientRequestId } : {}),
-        },
-        "request",
-      );
+      writeAccessLine();
       return response;
+
+      // One info line per call (AC-13).
+      function writeAccessLine() {
+        log.info(
+          {
+            kind: "route",
+            route: definition.path,
+            method,
+            status,
+            result,
+            durationMs: Math.round(performance.now() - started),
+            replayed,
+            ...(clientRequestId ? { clientRequestId } : {}),
+          },
+          "request",
+        );
+      }
     };
   };
 }
