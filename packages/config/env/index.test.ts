@@ -8,6 +8,7 @@ import {
   coreEnv,
   createEnvAccessor,
   defineEnv,
+  liveKeyInProduction,
   parseEnv,
   toEnvSchemaJson,
 } from "./index";
@@ -253,5 +254,46 @@ describe("toEnvSchemaJson", () => {
         },
       ],
     });
+  });
+});
+
+describe("liveKeyInProduction (B13)", () => {
+  const payments = composeEnv("payments-fixture", [
+    coreEnv,
+    defineEnv({
+      PAYMENT_KEY: {
+        description: "a payment provider key",
+        secret: true,
+        required: "always",
+        schema: z.string().min(1),
+        message: "must not be empty",
+        checks: [liveKeyInProduction(["sk_test_", "rk_test_", "pk_test_"])],
+      },
+    }),
+  ]);
+
+  function problemsFor(PAYMENT_KEY: string, tier: "development" | "production") {
+    const result = parseEnv(payments, { AFT_ENV: tier, PAYMENT_KEY }, tier);
+    return result.ok ? [] : result.problems;
+  }
+
+  it.each(["sk_test_123", "rk_test_123", "pk_test_123"])(
+    "B13: covers AC-8, refuses the test mode key %s in production",
+    (key) => {
+      expect(problemsFor(key, "production")).toEqual([
+        { name: "PAYMENT_KEY", rule: "test mode key, not allowed in production" },
+      ]);
+    },
+  );
+
+  it.each(["sk_test_123", "rk_test_123", "pk_test_123"])(
+    "B13: covers AC-8, allows the test mode key %s outside production",
+    (key) => {
+      expect(problemsFor(key, "development")).toEqual([]);
+    },
+  );
+
+  it("B13: covers AC-8, allows a live key in production", () => {
+    expect(problemsFor("sk_live_123", "production")).toEqual([]);
   });
 });
