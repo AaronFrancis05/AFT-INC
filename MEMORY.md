@@ -504,3 +504,4 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Gotcha again: Git Bash heredocs drop backslashes inside template strings; `String.raw` patterns survive, and Edit is safest.
 - Scope feature 7: the fourth milestone and `Build it` ticked; stays `in-progress` (GA). Spec 0011 stays `In Progress`.
 - Next: push and let CI run (race test, web db suite on `postgres:17`), then `/clear`, then `/check verify engineering standards and shared helpers`.
+- Pushed a4b4376 after a network change (the earlier failure was a Cyberoam firewall doing HTTPS inspection: certificate `Cyberoam SSL CA_C070000250`, untrusted; nothing was changed on the machine). CI run 40892762810: all six checks green; `test:db` on `postgres:17`: web 9 of 9, db 26 of 26 (X17 race included).
