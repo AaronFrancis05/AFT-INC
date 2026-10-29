@@ -7,6 +7,10 @@
     "./errors": "./src/errors.ts",
     "./log": "./src/log.ts",
     "./validate": "./src/validate.ts",
+    "./money": "./src/money.ts",
+    "./time": "./src/time.ts",
+    "./pagination": "./src/pagination.ts",
+    "./untrusted": "./src/untrusted.ts",
     "./server": "./src/server/index.ts",
     "./env": "./src/env.ts"
   },
