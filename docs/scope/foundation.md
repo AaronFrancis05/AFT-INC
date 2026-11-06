@@ -108,7 +108,7 @@ Spec: [0011](../specs/0011-engineering-standards/index.md).
    - [x] Money, time, pagination, and untrusted content helpers, then the lint rules, the wrapper contract test, and the fixes to existing code (AC-14 to AC-19, X10, X14, X27, X28)
 - [x] Verify it: `/check verify engineering standards and shared helpers`
 - [x] Test it: `/test engineering standards and shared helpers`
-- [ ] Review it (fresh model): `/check review engineering standards and shared helpers`
+- [x] Review it (fresh model): `/check review engineering standards and shared helpers`
 - [ ] Document it: `/document engineering standards and shared helpers`
 - [ ] Ship it: squash merge the pull request with all six checks green
 

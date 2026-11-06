@@ -93,3 +93,12 @@ Database steps need `TEST_DATABASE_URL` pointing at a Postgres you may create ro
 
 ## Acceptance-criteria coverage
 - AC-1 tenant suite · AC-2 thread test and policy insert · AC-3 catalog test · AC-4 idempotency section · AC-5 key rules · AC-6 and AC-7 input and bodies · AC-8 errors · AC-9 control flow · AC-10 Origin · AC-11 auth modes and order · AC-12 and AC-13 logs · AC-14 money · AC-15 time and column types · AC-16 untrusted · AC-17 pagination · AC-18 enforcement · AC-19 logging fixes and A3 · AC-20 CI and skip message · AC-21 `LOG_LEVEL` wiring and the drift contract · AC-22 bypass check
+
+## After review (2026-11-06)
+
+Steps for the fixes from [the review](../../reviews/2026-11-06-feat-engineering-standards.md). The earlier `forbidden()` and `unauthorized()` proof ran with the flag turned on only in a throwaway worktree, so run these on the shipped `apps/web/next.config.ts`, unchanged.
+
+- [ ] A fixture route that calls `forbidden()`, on the shipped config under `next start` → 403 from Next.js, access line `forbidden` 403, no `error` line → AC-9
+- [ ] A fixture route that calls `unauthorized()`, on the shipped config under `next start` → 401 from Next.js, access line `unauthenticated` 401, no `error` line → AC-9
+- [ ] A list route called with a cursor that decodes to `{"id":"x"}` → 400 `validation_failed` on `cursor`, no query reaches Postgres → AC-17
+- [ ] `parseModelOutput` with broken JSON, and with valid JSON of the wrong type → `model_output_invalid` whose message ends `failing paths: (root))` → AC-16

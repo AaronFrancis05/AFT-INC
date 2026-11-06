@@ -521,3 +521,9 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Tree was clean, so scope was gaps against spec 0011 (engineer's pick): behaviors verify proved by hand with no permanent test. Added 18 tests: core 127 to 138 (control flow log values, failed origin lookup fails closed then retries, failed failure save, 64 KB on actions, nested unknown key, default `formatInstant`), auth 48 to 49 (reset email failure log, AC-19), web 96 to 102 (new `components/auth/profile.test.tsx`, AC-19; new `lib/server.wiring.test.ts`, separate because its mocks would weaken `server.test.ts`). Five hand mutations all caught. No application code changed.
 - Finding, not fixed (older than this feature): `FormLabel` in `packages/ui/src/components/form.tsx` has no `htmlFor` and `FormControl` is a plain div, so no `@aft/ui` form label links to its input. Needs its own fix (`/debug` or a small feature).
 - Scope feature 7: `Test it` ticked. Next: `/clear`, then `/check review engineering standards and shared helpers`.
+
+### 2026-11-06 (/check review, then /develop review fixes)
+- `/check review` on Sonnet: Changes requested, 0 blockers, 1 major, 5 minor, 6 nits (`docs/reviews/2026-11-06-feat-engineering-standards.md`; some line numbers there come from the diff, not the file). `Review it` ticked.
+- Fixed: `experimental.authInterrupts` on (the major; AC-9 was only proved with the flag on in a throwaway worktree, and the unit test stubs it), cursor id must be `z.uuid()`, root failures in model output say `(root)`.
+- Not fixed, needs `/architect`: AC-5 wording (public routes are exempt, nothing throws, `PUT` has the Origin check but no key) and whether replays keep handler headers. Not fixed, small: `crypto.randomUUID` missing on plain http, six nits.
+- Next: rerun the unticked `After review` steps in verify.md with `/check verify` on the shipped config, then `/document`.
