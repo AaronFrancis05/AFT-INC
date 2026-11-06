@@ -9,7 +9,8 @@ export type Cursor = { id: string };
 export type Page<T> = { data: T[]; nextCursor: string | null };
 
 const CURSOR_MESSAGE = "Is not a valid cursor";
-const cursorShape = z.strictObject({ id: z.string().min(1).max(200) });
+// List ids are UUID v7, so a crafted id stops here and never reaches a uuid column in a query.
+const cursorShape = z.strictObject({ id: z.uuid() });
 
 function toBase64Url(value: string): string {
   let binary = "";

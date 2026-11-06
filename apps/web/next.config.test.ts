@@ -74,6 +74,13 @@ describe("next.config workspace settings (spec 0008 AC-17)", () => {
   });
 });
 
+describe("next.config control flow (spec 0011 AC-9)", () => {
+  it("turns on authInterrupts, or forbidden() and unauthorized() are plain errors", async () => {
+    const config = await loadConfig();
+    expect(config.experimental?.authInterrupts).toBe(true);
+  });
+});
+
 describe("next.config server actions (spec 0011 AC-7)", () => {
   it("caps an action body at 100 KB, like the /api/v1 routes", async () => {
     const config = await loadConfig();

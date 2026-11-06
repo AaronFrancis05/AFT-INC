@@ -56,7 +56,15 @@ describe("parseModelOutput (AC-16, X14)", () => {
   });
 
   it("broken JSON fails at the root", () => {
-    expect(failure(() => parseModelOutput(summary, "{nope")).message).toContain("failing paths: ");
+    expect(failure(() => parseModelOutput(summary, "{nope")).message).toBe(
+      "The model returned something unusable (5 bytes; failing paths: (root))",
+    );
+  });
+
+  it("valid JSON of the wrong type fails at the root too", () => {
+    expect(failure(() => parseModelOutput(summary, "[]")).message).toBe(
+      "The model returned something unusable (2 bytes; failing paths: (root))",
+    );
   });
 
   it("X28: text over 256 KB (in UTF 8 bytes) fails before parsing", () => {

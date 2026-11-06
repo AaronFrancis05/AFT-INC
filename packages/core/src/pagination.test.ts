@@ -9,13 +9,20 @@ describe("cursors (AC-17)", () => {
     const cursor = encodeCursor({ id });
     expect(cursor).toMatch(/^[A-Za-z0-9_-]+$/);
     expect(decodeCursor(cursor)).toEqual({ id });
-    expect(decodeCursor(encodeCursor({ id: "ü/+?" }))).toEqual({ id: "ü/+?" });
   });
 
   it("a cursor that does not decode is validation_failed on cursor", () => {
     const json = (value: unknown) =>
       btoa(JSON.stringify(value)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-    for (const bad of ["!!!", "abc", json({ id: 1 }), json({ id: id, extra: 1 }), json([id])])
+    const crafted = [json({ id: "x" }), json({ id: "1' OR '1'='1" }), encodeCursor({ id: "ü/+?" })];
+    for (const bad of [
+      "!!!",
+      "abc",
+      json({ id: 1 }),
+      json({ id, extra: 1 }),
+      json([id]),
+      ...crafted,
+    ])
       expect(() => decodeCursor(bad), bad).toThrow(
         expect.objectContaining({
           code: "validation_failed",
@@ -57,13 +64,14 @@ describe("pageInput (AC-17)", () => {
 });
 
 describe("toPage (AC-17)", () => {
+  const rowId = (n: number) => `019a3b4c-0000-7000-8000-00000000000${n}`;
   const rows = (count: number) =>
-    Array.from({ length: count }, (_, index) => ({ id: `id${count - index}`, n: index }));
+    Array.from({ length: count }, (_, index) => ({ id: rowId(count - index), n: index }));
 
   it("returns limit rows and a cursor for the last one when an extra row was fetched", () => {
     const page = toPage(rows(4), 3);
-    expect(page.data.map((row) => row.id)).toEqual(["id4", "id3", "id2"]);
-    expect(page.nextCursor && decodeCursor(page.nextCursor)).toEqual({ id: "id2" });
+    expect(page.data.map((row) => row.id)).toEqual([rowId(4), rowId(3), rowId(2)]);
+    expect(page.nextCursor && decodeCursor(page.nextCursor)).toEqual({ id: rowId(2) });
   });
 
   it("nextCursor is null on the last page", () => {

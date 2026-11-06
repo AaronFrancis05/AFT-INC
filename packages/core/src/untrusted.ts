@@ -13,6 +13,9 @@ export const MAX_MODEL_OUTPUT_BYTES = 256 * 1024;
 // a newline, the content, a newline, ```.
 const WHOLE_FENCE = /^```[a-z]*\n([\s\S]*)\n```$/;
 
+// The failing path when the whole reply is wrong: it is not JSON, or the schema fails at the top.
+const ROOT = "(root)";
+
 // The error holds only the size and the failing paths, never the raw text, and keeps no cause,
 // so nothing that logs it can leak the reply.
 function invalid(bytes: number, paths: readonly string[]): AppError {
@@ -33,7 +36,7 @@ export function parseModelOutput<S extends z.ZodType>(schema: S, raw: string): z
   try {
     value = JSON.parse(source);
   } catch {
-    throw invalid(bytes, [""]);
+    throw invalid(bytes, [ROOT]);
   }
   const result = schema.safeParse(value);
   if (result.success) return result.data;
@@ -42,7 +45,7 @@ export function parseModelOutput<S extends z.ZodType>(schema: S, raw: string): z
     const parent = issue.path.map(String).join(".");
     if (issue.code === "unrecognized_keys")
       for (const key of issue.keys) paths.add(parent ? `${parent}.${key}` : key);
-    else paths.add(parent);
+    else paths.add(parent || ROOT);
   }
   throw invalid(bytes, [...paths]);
 }

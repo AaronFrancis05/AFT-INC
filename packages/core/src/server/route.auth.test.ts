@@ -269,7 +269,8 @@ describe("Next.js control flow in routes (AC-9, X26)", () => {
 });
 
 describe("access line for control flow (AC-9, AC-13, spec Exceptions)", () => {
-  // Next.js refuses forbidden() and unauthorized() unless authInterrupts is on.
+  // Next.js refuses forbidden() and unauthorized() unless authInterrupts is on. Next.js sets this
+  // variable from the config, which a unit test never loads, so next.config.test.ts guards the flag.
   it.each([
     ["forbidden()", () => forbidden(), 403, "forbidden"],
     ["unauthorized()", () => unauthorized(), 401, "unauthenticated"],
