@@ -16,8 +16,10 @@
   },
   "dependencies": {
     "@aft/config": "workspace:*",
+    "@aft/core": "workspace:*",
     "@react-email/components": "^1.0.10",
     "resend": "^6.9.4",
+    "server-only": "catalog:",
     "zod": "catalog:"
   },
   "peerDependencies": {

@@ -42,6 +42,7 @@ describe("env-schema exporter (spec 0010, AC-11)", () => {
       "GITHUB_CLIENT_SECRET",
       "GOOGLE_CLIENT_ID",
       "GOOGLE_CLIENT_SECRET",
+      "LOG_LEVEL",
       "RESEND_API_KEY",
       "RESEND_FROM_EMAIL",
     ]);

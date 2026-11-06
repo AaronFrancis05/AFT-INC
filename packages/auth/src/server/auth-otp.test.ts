@@ -1,8 +1,14 @@
+import { inspect } from "node:util";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { sendVerificationEmail } = vi.hoisted(() => ({ sendVerificationEmail: vi.fn() }));
+const { sendVerificationEmail, log } = vi.hoisted(() => ({
+  sendVerificationEmail: vi.fn(),
+  log: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
+}));
 
 vi.mock("@aft/email", () => ({ sendVerificationEmail }));
+// The package logger (spec 0011) is replaced, so its lines can be read back.
+vi.mock("./log", () => ({ log }));
 
 import { sendVerificationOTP } from "./auth-otp";
 
@@ -14,8 +20,12 @@ function spyOnConsole() {
   return LEVELS.map((level) => vi.spyOn(console, level).mockImplementation(() => {}));
 }
 
+// Every console and logger argument holding the text, objects included.
 function consoleArgsContaining(spies: ReturnType<typeof spyOnConsole>, text: string) {
-  return spies.flatMap((spy) => spy.mock.calls.flat()).filter((arg) => String(arg).includes(text));
+  const loggerCalls = Object.values(log).flatMap((level) => level.mock.calls.flat());
+  return [...spies.flatMap((spy) => spy.mock.calls.flat()), ...loggerCalls].filter((arg) =>
+    (typeof arg === "string" ? arg : inspect(arg, { depth: 5 })).includes(text),
+  );
 }
 
 describe("sendVerificationOTP", () => {
@@ -46,7 +56,7 @@ describe("sendVerificationOTP", () => {
     await sendVerificationOTP({ email: EMAIL, otp: OTP });
 
     expect(console.log).toHaveBeenCalledWith(`[DEV FALLBACK] OTP for ${EMAIL}: ${OTP}`);
-    expect(console.error).toHaveBeenCalled();
+    expect(log.error).toHaveBeenCalledWith({ err: expect.any(Error) }, "verification email failed");
     expect(consoleArgsContaining(spies, OTP)).toHaveLength(1);
   });
 
@@ -83,7 +93,10 @@ describe("sendVerificationOTP", () => {
 
       await sendVerificationOTP({ email: EMAIL, otp: OTP });
 
-      expect(console.error).toHaveBeenCalled();
+      expect(log.error).toHaveBeenCalledWith(
+        { err: expect.any(Error) },
+        "verification email failed",
+      );
       expect(consoleArgsContaining(spies, OTP)).toEqual([]);
     },
   );

@@ -61,6 +61,26 @@ const envImports = ["node:process", "process"].map((name) => ({
   message: ENV_MESSAGE,
 }));
 
+// Tenant data goes through a repository with the call's OrgDb, never the raw client (spec 0011,
+// AC-18). Repositories, tests, and the files a workspace lists with allowRawPrisma() may import it.
+const rawPrisma = {
+  name: "@aft/db",
+  importNames: ["default"],
+  message:
+    "Use a repository (src/repositories/) that takes the call's OrgDb, not the raw Prisma client (spec 0011).",
+};
+
+// Logs go through @aft/core/log (spec 0011, AC-18). Scripts, tests, and config files print to
+// the terminal, and the env start check prints before a logger can exist.
+const CONSOLE_ALLOWED = [
+  "scripts/**",
+  "**/*.test.{ts,tsx}",
+  "e2e/**",
+  "vitest/**",
+  "**/*.config.{ts,mts,mjs}",
+  "env/**",
+];
+
 // Files that may read any variable: env modules, config files, scripts, and tests. Paths are
 // relative to the workspace, because every workspace runs ESLint from its own folder.
 const ENV_READERS = [
@@ -74,28 +94,56 @@ const ENV_READERS = [
   "e2e/**",
 ];
 
+// Flat config keeps the last setting per rule, so each block that sets no-restricted-imports
+// repeats every entry that should still apply there.
+const restrictedImports = ({ env, prisma }) => [
+  "error",
+  {
+    ...boundary,
+    paths: [...boundary.paths, ...(env ? envImports : []), ...(prisma ? [rawPrisma] : [])],
+  },
+];
+
+// For a workspace's own eslint.config.mjs: files there that may import the raw Prisma client.
+export function allowRawPrisma(files) {
+  return [
+    { files, rules: { "no-restricted-imports": restrictedImports({ env: true, prisma: false }) } },
+  ];
+}
+
 // Shared flat config for every workspace: today's rules, the package boundary rule, the env rule,
-// and the ignores.
+// the logging and raw Prisma rules, and the ignores.
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
   {
     rules: {
-      "no-restricted-imports": [
-        "error",
-        { ...boundary, paths: [...boundary.paths, ...envImports] },
-      ],
+      "no-restricted-imports": restrictedImports({ env: true, prisma: true }),
       "no-restricted-syntax": ["error", ...envSyntax],
+      "no-console": "error",
     },
   },
   {
     files: ENV_READERS,
     rules: {
-      // Flat config keeps the last setting per rule, so the boundary entries are repeated here.
-      "no-restricted-imports": ["error", boundary],
+      "no-restricted-imports": restrictedImports({ env: false, prisma: true }),
       "no-restricted-syntax": "off",
     },
   },
+  {
+    files: ["**/repositories/**"],
+    rules: { "no-restricted-imports": restrictedImports({ env: true, prisma: false }) },
+  },
+  {
+    files: ["**/*.test.{ts,tsx}"],
+    rules: { "no-restricted-imports": restrictedImports({ env: false, prisma: false }) },
+  },
+  // Client folders in the apps may report errors with console.error until Sentry (feature 23).
+  {
+    files: ["components/**", "hooks/**"],
+    rules: { "no-console": ["error", { allow: ["error"] }] },
+  },
+  { files: CONSOLE_ALLOWED, rules: { "no-console": "off" } },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

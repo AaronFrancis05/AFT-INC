@@ -12,7 +12,12 @@ vi.mock("better-auth/plugins", () => ({
   emailOTP: (options: unknown) => ({ id: "email-otp", options }),
 }));
 vi.mock("@aft/db", () => ({ default: {} }));
-vi.mock("@aft/email", () => ({ sendResetPasswordEmail: vi.fn(), sendVerificationEmail: vi.fn() }));
+const { sendResetPasswordEmail, log } = vi.hoisted(() => ({
+  sendResetPasswordEmail: vi.fn(),
+  log: { error: vi.fn() },
+}));
+vi.mock("@aft/email", () => ({ sendResetPasswordEmail, sendVerificationEmail: vi.fn() }));
+vi.mock("./log", () => ({ log }));
 
 type AuthOptions = {
   secret: string;
@@ -112,6 +117,25 @@ describe("lib/auth.ts", () => {
 
     const otpPlugin = options.plugins.find((plugin) => plugin.id === "email-otp");
     expect(otpPlugin?.options.sendVerificationOTP).toBe(sendVerificationOTP);
+  });
+
+  it("covers 0011 AC-19: a failed reset email is logged once with no address, and never thrown", async () => {
+    const options = await loadAuthOptions();
+    const { sendResetPassword } = options.emailAndPassword as unknown as {
+      sendResetPassword(data: { user: { email: string }; url: string }): Promise<void>;
+    };
+    sendResetPasswordEmail.mockRejectedValueOnce(new Error("Resend down"));
+    log.error.mockClear();
+
+    await sendResetPassword({ user: { email: "ada@example.com" }, url: "https://x.test/reset" });
+
+    expect(sendResetPasswordEmail).toHaveBeenCalledWith("ada@example.com", "https://x.test/reset");
+    expect(log.error).toHaveBeenCalledTimes(1);
+    expect(log.error).toHaveBeenCalledWith(
+      { err: expect.any(Error) },
+      "reset password email failed",
+    );
+    expect(JSON.stringify(log.error.mock.calls)).not.toContain("ada@example.com");
   });
 
   it("keeps email and password sign in with required email verification (AC-8)", async () => {

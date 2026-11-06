@@ -122,8 +122,8 @@ describe("CI workflow", () => {
     const configs = workspaceDirs()
       .map((dir) => join(dir, "vitest.config.mts"))
       .filter((file) => existsSync(file));
-    // Six workspaces test, including @aft/config for the env helper (spec 0010).
-    expect(configs).toHaveLength(6);
+    // Seven workspaces test: @aft/config for the env helper (spec 0010), @aft/core (spec 0011).
+    expect(configs).toHaveLength(7);
     for (const file of configs) expect(read(file), file).toMatch(/^\s+maxWorkers: 2,$/m);
     expect(read("vitest.config.mts")).not.toContain("maxWorkers");
     expect(ci).not.toContain("VITEST_MAX_WORKERS");
@@ -390,5 +390,209 @@ describe("Typed environment (spec 0010)", () => {
     const block = ci.slice(ci.indexOf("\nenv:\n"), ci.indexOf("\njobs:\n"));
     expect(block).toMatch(/^ {2}AFT_ENV: test$/m);
     expect(block).not.toContain("secrets.");
+  });
+});
+
+// Workspaces holding a *.db.test.ts suite, found by walking their source (generated code skipped).
+function dbSuiteWorkspaces() {
+  const suites = (dir: string): boolean =>
+    readdirSync(dir, { withFileTypes: true }).some((entry) =>
+      entry.isDirectory()
+        ? !["node_modules", "generated", "coverage", ".turbo", ".next"].includes(entry.name) &&
+          suites(join(dir, entry.name))
+        : entry.name.endsWith(".db.test.ts"),
+    );
+  return workspaceDirs().filter((dir) => suites(dir));
+}
+
+describe("Engineering standards (spec 0011)", () => {
+  it("covers 0011 AC-20: the test job migrates its own Postgres 17, then runs the database suites", () => {
+    const job = jobSlice("test");
+    expect(job).toMatch(/^ {4}services:\n(?: {6}#.*\n)* {6}postgres:\n {8}image: postgres:17$/m);
+    expect(job).toMatch(
+      /^ {6}TEST_DATABASE_URL: postgresql:\/\/postgres:postgres@localhost:5432\/aft_ci$/m,
+    );
+    const steps = [...job.matchAll(/^ {6}- (?:name: .+\n {8})?(?:run|uses): (.+)$/gm)].map(
+      ([, command]) => command,
+    );
+    const coverage = steps.indexOf(
+      "pnpm turbo run test:coverage //#test:root:coverage --concurrency=2",
+    );
+    expect(coverage).toBeGreaterThan(-1);
+    expect(steps.slice(coverage + 1, coverage + 3)).toEqual([
+      "pnpm --filter @aft/db exec prisma migrate deploy",
+      "pnpm turbo run test:db --concurrency=2",
+    ]);
+    // The migration targets the test database, whatever DATABASE_URL says.
+    expect(job).toMatch(
+      /run: pnpm --filter @aft\/db exec prisma migrate deploy\n {8}env:\n {10}DATABASE_URL: \$\{\{ env\.TEST_DATABASE_URL \}\}$/m,
+    );
+  });
+
+  it("covers 0011 AC-20, AC-21: test:db always runs and is the only place TEST_DATABASE_URL is listed", () => {
+    expect(turbo.tasks["test:db"]).toEqual({
+      dependsOn: ["db:generate", "^db:generate"],
+      cache: false,
+      env: ["TEST_DATABASE_URL"],
+    });
+    const listed = Object.entries(turbo.tasks as Record<string, { env?: string[] }>)
+      .filter(([, task]) => task.env?.includes("TEST_DATABASE_URL"))
+      .map(([name]) => name);
+    expect(listed).toEqual(["test:db"]);
+    expect(turbo.globalEnv).not.toContain("TEST_DATABASE_URL");
+    expect(turbo.globalPassThroughEnv).not.toContain("TEST_DATABASE_URL");
+    expect(read(".env.example")).not.toContain("TEST_DATABASE_URL");
+  });
+
+  it("covers 0011 AC-20: each workspace with database suites runs them only under test:db", () => {
+    const dirs = dbSuiteWorkspaces();
+    expect(dirs.map((dir) => dir.replaceAll("\\", "/"))).toContain("packages/db");
+    for (const dir of dirs) {
+      const manifest = JSON.parse(read(join(dir, "package.json")));
+      expect(manifest.scripts["test:db"], dir).toBe("vitest run --config vitest.db.config.mts");
+      const dbConfig = read(join(dir, "vitest.db.config.mts"));
+      expect(dbConfig, dir).toMatch(/^\s+maxWorkers: 2,$/m);
+      expect(dbConfig, dir).toContain('include: testDatabaseUrl ? ["**/*.db.test.ts"] : []');
+      expect(dbConfig, dir).not.toContain("process.env.DATABASE_URL");
+      expect(read(join(dir, "vitest.config.mts")), dir).toContain('"**/*.db.test.ts"');
+    }
+  });
+});
+
+// Source files under a folder, skipping installed, generated, built, and tool output folders.
+function sourceFiles(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(dir, entry.name);
+    if (entry.isDirectory())
+      return ["node_modules", "generated", "coverage", ".turbo", ".next"].includes(entry.name)
+        ? []
+        : sourceFiles(path);
+    return /\.(ts|tsx)$/.test(entry.name) ? [path] : [];
+  });
+}
+
+const HTTP_METHOD = "GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS";
+
+// The route's folder as a URL path: from app/, without route groups like (auth).
+function routeFolder(file: string): string {
+  const parts = file.replaceAll("\\", "/").split("/");
+  const segments = parts.slice(parts.indexOf("app") + 1, -1);
+  return `/${segments.filter((segment) => !/^\(.*\)$/.test(segment)).join("/")}`;
+}
+
+// The name of each defineRoute( or defineAction( call, read from its first `name: "..."`.
+function wrapperNames(source: string, factory: "defineRoute" | "defineAction"): string[] {
+  const call = new RegExp(String.raw`${factory}\(\s*\{[^]*?\bname:\s*"([^"]+)"`, "g");
+  return [...source.matchAll(call)].map(([, name]) => name!).filter(Boolean);
+}
+
+// AC-18: every exported HTTP method is `= defineRoute(`, and every declared path is the folder.
+function routeProblems(file: string, source: string): string[] {
+  const problems: string[] = [];
+  const declared = new RegExp(
+    String.raw`^export\s+(?:async\s+)?(?:const|let|var|function)\s+(${HTTP_METHOD})\b(.*)$`,
+    "gm",
+  );
+  for (const [, method, rest] of source.matchAll(declared))
+    if (!/^\s*=\s*defineRoute\(/.test(rest ?? ""))
+      problems.push(`${file}: ${method} is not defineRoute(`);
+  for (const [list] of source.matchAll(/^export\s*\{[^}]*\}/gm))
+    if (new RegExp(String.raw`\b(${HTTP_METHOD})\b`).test(list))
+      problems.push(`${file}: re-exports an HTTP method`);
+  if (/^export\s+default\b/m.test(source)) problems.push(`${file}: has a default export`);
+  const folder = routeFolder(file);
+  for (const [, path] of source.matchAll(/\bpath:\s*"([^"]*)"/g))
+    if (path !== folder) problems.push(`${file}: path "${path}" is not the folder "${folder}"`);
+  return problems;
+}
+
+// A file whose first statement, after comments, is the "use server" directive.
+function isUseServer(source: string): boolean {
+  const code = source.replace(/^(?:\s|\/\/[^\n]*|\/\*[^]*?\*\/)*/, "");
+  return /^["']use server["']/.test(code);
+}
+
+// AC-18: every export of a "use server" file is `export const <name> = defineAction(`. Type
+// exports are allowed, since they are erased.
+function actionProblems(file: string, source: string): string[] {
+  return [...source.matchAll(/^export\b(.*)$/gm)].flatMap(([line, rest]) =>
+    /^\s+const\s+\w+\s*=\s*defineAction\(/.test(rest ?? "") ||
+    /^\s+(?:type|interface)\s/.test(rest ?? "")
+      ? []
+      : [`${file}: "${line.trim()}" is not defineAction(`],
+  );
+}
+
+function duplicates(names: string[]): string[] {
+  return [...new Set(names.filter((name, index) => names.indexOf(name) !== index))];
+}
+
+// Every route.ts under apps/*/app/api/v1 and every "use server" file in apps/* and packages/*.
+function wrapperProblems(files: { file: string; source: string }[]): string[] {
+  const routes = files.filter(({ file }) =>
+    /(^|\/)apps\/[^/]+\/app\/api\/v1\/(?:.*\/)?route\.ts$/.test(file.replaceAll("\\", "/")),
+  );
+  const actions = files.filter(({ source }) => isUseServer(source));
+  const routeNames = routes.flatMap(({ source }) => wrapperNames(source, "defineRoute"));
+  const actionNames = actions.flatMap(({ source }) => wrapperNames(source, "defineAction"));
+  return [
+    ...routes.flatMap(({ file, source }) => routeProblems(file, source)),
+    ...actions.flatMap(({ file, source }) => actionProblems(file, source)),
+    ...duplicates(routeNames).map((name) => `two routes are named "${name}"`),
+    ...duplicates(actionNames).map((name) => `two actions are named "${name}"`),
+  ];
+}
+
+describe("Engineering standards: the wrappers (spec 0011)", () => {
+  it("covers 0011 AC-18: every /api/v1 route and server action goes through the wrappers", () => {
+    const files = [...sourceFiles("apps"), ...sourceFiles("packages")]
+      .filter((file) => !/\.test\.tsx?$/.test(file))
+      .map((file) => ({ file, source: read(file) }));
+    expect(wrapperProblems(files)).toEqual([]);
+  });
+
+  it("covers 0011 AC-18: the check itself flags each way around the wrappers", () => {
+    const route = (path: string, body: string) => ({
+      file: `apps/web/app/api/v1/${path}/route.ts`,
+      source: body,
+    });
+    const good = route(
+      "(public)/projects/[id]",
+      'export const GET = defineRoute({\n  name: "projects.get",\n  path: "/api/v1/projects/[id]",\n});\n',
+    );
+    expect(wrapperProblems([good])).toEqual([]);
+    for (const [label, fixture] of [
+      ["a plain function", route("a", "export async function GET() {}\n")],
+      ["another value", route("a", "export const POST = handler;\n")],
+      ["a re-export", route("a", 'export { GET } from "./other";\n')],
+      [
+        "a wrong path",
+        route("a", 'export const GET = defineRoute({ name: "a", path: "/api/v1/b" });\n'),
+      ],
+      [
+        "a use server function",
+        {
+          file: "apps/web/app/x/actions.ts",
+          source: '// c\n"use server";\nexport async function save() {}\n',
+        },
+      ],
+      [
+        "a use server default",
+        { file: "apps/web/lib/actions.ts", source: "'use server';\nexport default save;\n" },
+      ],
+    ] as const)
+      expect(wrapperProblems([fixture]), label).toHaveLength(1);
+
+    const action = (name: string) => ({
+      file: `apps/web/app/${name}/actions.ts`,
+      source: `"use server";\nexport type Result = { ok: boolean };\nexport const run = defineAction({ name: "${name}" });\n`,
+    });
+    expect(wrapperProblems([action("a"), action("b")])).toEqual([]);
+    expect(
+      wrapperProblems([action("a"), { ...action("a"), file: "apps/web/app/c/actions.ts" }]),
+    ).toEqual(['two actions are named "a"']);
+    // A comment that mentions the directive is not the directive.
+    expect(isUseServer('// every "use server" file\nexport const x = 1;\n')).toBe(false);
   });
 });

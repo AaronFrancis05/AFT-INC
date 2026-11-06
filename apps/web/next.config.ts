@@ -11,10 +11,16 @@ loadEnvConfig(repoRoot, process.env.NODE_ENV !== "production", console, true);
 
 const nextConfig: NextConfig = {
   // Workspace packages ship TypeScript source, so Next.js compiles them (AC-17).
-  transpilePackages: ["@aft/auth", "@aft/config", "@aft/db", "@aft/email", "@aft/ui"],
+  transpilePackages: ["@aft/auth", "@aft/config", "@aft/core", "@aft/db", "@aft/email", "@aft/ui"],
   // Both point at the repo root, so Next.js sees one workspace and traces package files (AC-17).
   turbopack: { root: repoRoot },
   outputFileTracingRoot: repoRoot,
+  experimental: {
+    // Without this, forbidden() and unauthorized() throw a plain Error (spec 0011, AC-9).
+    authInterrupts: true,
+    // Next.js refuses a larger action body before our wrapper runs (spec 0011, AC-7).
+    serverActions: { bodySizeLimit: "100kb" },
+  },
   images: {
     remotePatterns: [
       {

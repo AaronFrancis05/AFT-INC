@@ -2,7 +2,14 @@
 // Rules only; the start check in instrumentation.ts and the env-schema exporter read it.
 import { composeEnv, coreEnv } from "@aft/config/env";
 import { authEnvSlice } from "@aft/auth/env";
+import { logEnvSlice } from "@aft/core/env";
 import { dbEnvSlice } from "@aft/db/env";
 import { emailEnvSlice } from "@aft/email/env";
 
-export const webEnv = composeEnv("web", [coreEnv, dbEnvSlice, authEnvSlice, emailEnvSlice]);
+export const webEnv = composeEnv("web", [
+  coreEnv,
+  logEnvSlice,
+  dbEnvSlice,
+  authEnvSlice,
+  emailEnvSlice,
+]);

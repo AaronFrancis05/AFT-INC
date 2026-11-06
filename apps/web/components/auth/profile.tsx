@@ -68,10 +68,10 @@ export function Profile({ user }: ProfileProps) {
 
   const initials = `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "U";
 
-  async function onSubmitPersonal(data: PersonalInfoInput) {
+  // The form data is never logged (spec 0011, AC-19); saving it is not built yet.
+  async function onSubmitPersonal() {
     setIsLoadingPersonal(true);
     try {
-      console.log("Update personal info:", data);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       toast.success("Personal information updated successfully");
     } catch (error) {
@@ -82,10 +82,10 @@ export function Profile({ user }: ProfileProps) {
     }
   }
 
-  async function onSubmitProfessional(data: ProfessionalInfoInput) {
+  // The form data is never logged (spec 0011, AC-19); saving it is not built yet.
+  async function onSubmitProfessional() {
     setIsLoadingProfessional(true);
     try {
-      console.log("Update professional info:", data);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       toast.success("Professional information updated successfully");
     } catch (error) {

@@ -12,12 +12,13 @@ export default defineConfig({
     maxWorkers: 2,
     environment: "node",
     include: ["**/*.test.{ts,tsx}"],
-    exclude: ["node_modules/**", "**/generated/**"],
+    // The database suites run only under test:db (vitest.db.config.mts).
+    exclude: ["node_modules/**", "**/generated/**", "**/*.db.test.ts"],
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "lcov"],
       include: ["src/**"],
-      exclude: ["src/generated/**", "**/*.test.{ts,tsx}"],
+      exclude: ["src/generated/**", "src/test-db.ts", "**/*.test.{ts,tsx}"],
     },
   },
 });
