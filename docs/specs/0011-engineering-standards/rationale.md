@@ -156,6 +156,10 @@ A read only Sonnet review of the first draft found 34 gaps and 13 soundness note
 
 The rest were filled with recommended answers the engineer accepted as a set: how `forOrg` works (one interactive transaction per call, `OrgDb` without `$transaction`), test roles and schemas, CI steps around the pinned test command, the wrapper's order of checks (auth and Origin before reading the body), the fingerprint basis, which errors are saved and how replays look, redirects in idempotent handlers, exact problem titles, text normalization order, body stream reading, `experimental.serverActions.bodySizeLimit` (checked in the bundled Next 16 docs), a lazily created logger, `name` and `code` taken off the redaction list (they clashed with the access line), Bearer versus cookie calls and Better Auth's `trustedOrigins`, written interfaces, exact untrusted fence and preamble text, money edge rules, the cursor format, a source text contract test, workspace relative ESLint globs, and `transpilePackages`.
 
+## Changed after verify
+
+`/check verify` (2026-11-06) found AC-13 and AC-9 could not both hold as written. AC-13 said every route response carries `X-Request-Id`, but AC-9 requires `redirect()` and `notFound()` to be rethrown, and Next.js then writes that reply, so a 307 and a 404 came back without the header. Two ways to fix it: turn control flow into a `Response` inside the wrapper, or accept the gap. The first copies Next.js internals (its digest format, its redirect and fallback rendering) and would break on an upgrade, so AC-13 now covers replies the wrapper writes, and *Exceptions* names the rest. Nothing is lost for tracing: the access line is written before the rethrow, with the `requestId` and the real status. A cross check on another model then found four sentences the exception touched (stack traces, `status` and `result` values, wrapper step 11, `Cache-Control` and actions); all were reworded to match what the code already does, with no code change.
+
 ## Current state sampled (what the standard replaces)
 
 | File | Pattern today | Under the standard |

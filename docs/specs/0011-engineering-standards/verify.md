@@ -45,6 +45,7 @@ Database steps need `TEST_DATABASE_URL` pointing at a Postgres you may create ro
 
 ## Logs
 - [ ] With `LOG_LEVEL=info`, a wrapped call writes one JSON line: `level` as a label, ISO `time`, `msg: "request"`, `service`, `env`, `kind`, `route` or `action`, `status`, `result`, `durationMs`, `replayed`, `requestId`, `userId`, `organizationId`; no `pid` or `hostname` → AC-12, AC-13
+- [ ] `redirect()` and `notFound()` replies come from Next.js, so they have no `X-Request-Id`; the access line still holds the `requestId` and the real status (the spec's *Exceptions*) → AC-9, AC-13
 - [ ] An object with each redacted key (`password`, `email`, `otp`, `cookie`, …) at the top and one level down is logged as `[redacted]` → AC-12
 - [ ] `LOG_LEVEL=loud` stops `next start` at the env check → AC-12, AC-21
 - [ ] A client `X-Request-Id` appears only as `clientRequestId`; the reply's `X-Request-Id` is a new UUID → AC-13
