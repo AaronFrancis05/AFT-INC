@@ -12,15 +12,23 @@ import {
 
 export const Form = FormProvider;
 
-const FormFieldContext = React.createContext<{ name: string } | null>(null);
+const FormFieldContext = React.createContext<{ name: string; id: string } | null>(null);
 
 export function FormField<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >(props: ControllerProps<TFieldValues, TName>) {
+  const id = React.useId();
   return (
-    <FormFieldContext.Provider value={{ name: props.name }}>
-      <Controller {...props} />
+    <FormFieldContext.Provider value={{ name: props.name, id }}>
+      <Controller
+        {...props}
+        // The id rides on `field`, so it lands on the real input even inside a wrapper div.
+        render={(args) => {
+          const field = { ...args.field, id };
+          return props.render({ ...args, field });
+        }}
+      />
     </FormFieldContext.Provider>
   );
 }
@@ -30,7 +38,8 @@ export function FormItem({ className, ...props }: React.HTMLAttributes<HTMLDivEl
 }
 
 export function FormLabel({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label className={className} {...props} />;
+  const field = React.useContext(FormFieldContext);
+  return <label className={className} htmlFor={field?.id} {...props} />;
 }
 
 export function FormControl({ ...props }: React.HTMLAttributes<HTMLDivElement>) {
