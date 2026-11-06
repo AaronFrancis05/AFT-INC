@@ -14,7 +14,7 @@ export function ownerOf(caller: Caller): Pick<IdempotencyId, "ownerKind" | "owne
 }
 
 export function userIdOf(caller: Caller): string | undefined {
-  return caller.kind === "user" ? caller.userId : caller.userId;
+  return caller.userId;
 }
 
 // redirect(), notFound(), forbidden(), unauthorized(), and Next.js's own bailouts are thrown, not

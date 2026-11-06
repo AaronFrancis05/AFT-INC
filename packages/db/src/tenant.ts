@@ -122,10 +122,16 @@ type Shared = { tenant: TenantDb; runner: TransactionRunner<OrgDb> };
 let shared: Promise<Shared> | undefined;
 
 function sharedDb(): Promise<Shared> {
-  shared ??= import("./index").then(({ default: prisma }) => {
-    const tenant = createTenantDb(prisma);
-    return { tenant, runner: createTransactionRunner(prisma, tenant) };
-  });
+  shared ??= import("./index")
+    .then(({ default: prisma }) => {
+      const tenant = createTenantDb(prisma);
+      return { tenant, runner: createTransactionRunner(prisma, tenant) };
+    })
+    .catch((error: unknown) => {
+      // A failed load is not an answer; the next call tries again.
+      shared = undefined;
+      throw error;
+    });
   return shared;
 }
 

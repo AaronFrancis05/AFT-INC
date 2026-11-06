@@ -65,6 +65,13 @@ afterEach(() => {
 });
 
 describe("Origin check on session writes (AC-10, X24)", () => {
+  it("a session PUT is a write: a foreign origin gets 403", async () => {
+    const { route, handler } = setup();
+    const response = await route(write({ origin: "https://evil.example" }, "PUT"), noParams);
+    expect(response.status).toBe(403);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
   it("a session POST, PATCH, or DELETE from our own origins passes", async () => {
     const { route } = setup();
     for (const [origin, method] of [

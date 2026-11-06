@@ -142,9 +142,85 @@ describe("Idempotency-Key header (AC-5)", () => {
     expect((await route(new Request(url, { method: "POST" }), noParams)).status).toBe(202);
     expect(database.runs).toEqual([]);
   });
+
+  it("AC-5: a public POST ignores a bad key, skips Origin, has no db, and still sends no-store", async () => {
+    const { defineRoute } = setup();
+    let seen: object = {};
+    const route = defineRoute({
+      name: "hooks.receive",
+      path: "/api/v1/hooks",
+      auth: "public",
+      handler: async ({ ctx }) => {
+        seen = ctx;
+        return { status: 202 };
+      },
+    });
+    const request = new Request(url, {
+      method: "POST",
+      headers: { "idempotency-key": "has a space", origin: "https://evil.example" },
+    });
+    const response = await route(request, noParams);
+    expect(response.status).toBe(202);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(seen).not.toHaveProperty("db");
+  });
+
+  it("a signed in GET sends no-store; a successful public GET sets no Cache-Control", async () => {
+    const { defineRoute } = setup();
+    const reply = async () => ({ status: 200, body: { ok: true } });
+    const signedIn = defineRoute({
+      name: "projects.list",
+      path: "/api/v1/projects",
+      auth: "org",
+      handler: reply,
+    });
+    const open = defineRoute({
+      name: "status.read",
+      path: "/api/v1/status",
+      auth: "public",
+      handler: reply,
+    });
+    const signedInReply = await signedIn(new Request(url), noParams);
+    const openReply = await open(new Request(url), noParams);
+    expect(signedInReply.headers.get("cache-control")).toBe("no-store");
+    expect(openReply.status).toBe(200);
+    expect(openReply.headers.get("cache-control")).toBeNull();
+  });
 });
 
 describe("idempotent writes (AC-4)", () => {
+  it("AC-5: a signed in PUT needs a key like any write, then runs once and replays", async () => {
+    const { route, handler } = setup();
+    const noKey = await route(post({ title: "Alpha" }, null, "PUT"), noParams);
+    expect(noKey.status).toBe(400);
+    expect(await noKey.json()).toMatchObject({ code: "bad_request" });
+    await route(post({ title: "Alpha" }, "key-1", "PUT"), noParams);
+    const retry = await route(post({ title: "Alpha" }, "key-1", "PUT"), noParams);
+    expect(retry.headers.get("idempotent-replayed")).toBe("true");
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("a reply with no body replays with no body and no Content-Type", async () => {
+    const { defineRoute } = setup();
+    const route = defineRoute({
+      name: "projects.remove",
+      path: "/api/v1/projects",
+      auth: "org",
+      handler: async () => ({ status: 204 }),
+    });
+    const remove = () =>
+      new Request(url, {
+        method: "DELETE",
+        headers: { origin: "http://localhost", "idempotency-key": "key-1" },
+      });
+    await route(remove(), noParams);
+    const retry = await route(remove(), noParams);
+    expect(retry.status).toBe(204);
+    expect(await retry.text()).toBe("");
+    expect(retry.headers.get("content-type")).toBeNull();
+    expect(retry.headers.get("idempotent-replayed")).toBe("true");
+  });
+
   it("X1: runs once, then replays the saved reply with Idempotent-Replayed and a new request id", async () => {
     const { route, handler, lines } = setup();
     const first = await route(post({ title: "Alpha" }), noParams);

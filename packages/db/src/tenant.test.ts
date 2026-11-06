@@ -11,11 +11,20 @@ const fakeTx = {
   }),
 };
 
+let loadFailures = 0;
+
 vi.mock("./index", () => {
   loaded();
+  const client = {
+    $transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) => fn(fakeTx)),
+  };
   return {
-    default: {
-      $transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) => fn(fakeTx)),
+    get default() {
+      if (loadFailures > 0) {
+        loadFailures -= 1;
+        throw new Error("client failed to load");
+      }
+      return client;
     },
   };
 });
@@ -48,6 +57,15 @@ describe("@aft/db/tenant shared client (AC-1)", () => {
       `SELECT current_setting('app.org_id', true) AS "orgId"`,
       "SELECT set_config('app.org_id', ?, true)",
     ]);
+  });
+
+  it("a failed load is not kept: the next call tries again", async () => {
+    const { forOrg } = await import("./tenant");
+    loadFailures = 1;
+    await expect(forOrg("org_a").$transaction(async () => "ran")).rejects.toThrow(
+      "client failed to load",
+    );
+    expect(await forOrg("org_a").$transaction(async () => "ran")).toBe("ran");
   });
 
   it("checks the login once per client, not per call", async () => {

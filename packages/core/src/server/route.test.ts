@@ -81,6 +81,42 @@ describe("defineRoute (public)", () => {
     expect(typeof lines[0]!.durationMs).toBe("number");
   });
 
+  it("AC-13: a client X-Request-Id is cut to 128 characters, and an empty one is left out", async () => {
+    const { route, lines } = setup();
+    const body = JSON.stringify({ title: "a" });
+    await route(post(body, { "x-request-id": "c".repeat(200) }), noParams);
+    await route(post(body, { "x-request-id": "" }), noParams);
+    expect(lines[0]!.clientRequestId).toBe("c".repeat(128));
+    expect(lines[1]).not.toHaveProperty("clientRequestId");
+  });
+
+  it("X20: ?__proto__= is refused by name, and a repeated key fails a string schema", async () => {
+    const { defineRoute } = setup();
+    const route = defineRoute({
+      name: "things.list",
+      path: "/api/v1/things",
+      auth: "public",
+      query: input({ a: text({ max: 5 }).optional() }),
+      handler: async () => ({ status: 200, body: {} }),
+    });
+    const proto = await route(new Request(`${url}?__proto__=a`), noParams);
+    expect(proto.status).toBe(400);
+    expect(await proto.text()).toContain("__proto__");
+    const repeated = await route(new Request(`${url}?a=1&a=2`), noParams);
+    expect(repeated.status).toBe(400);
+    expect(await repeated.json()).toMatchObject({ code: "validation_failed" });
+  });
+
+  it("X20: a body key named after an Object member is a 400 naming it, not a crash", async () => {
+    for (const key of ["__proto__", "constructor", "toString"]) {
+      const { route, handler } = setup();
+      const response = await route(post(`{"title":"a","${key}":1}`), noParams);
+      expect(response.status, key).toBe(400);
+      expect(await response.text(), key).toContain(key);
+      expect(handler).not.toHaveBeenCalled();
+    }
+  });
+
   it("X20, covers AC-8: a validation failure is a problem reply with field errors", async () => {
     const { route, handler, lines } = setup();
     const response = await route(post('{"title":"ok","admin":true}'), noParams);

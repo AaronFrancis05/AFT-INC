@@ -66,8 +66,11 @@ const joinPath = (path: readonly PropertyKey[]) => path.map(String).join(".");
 
 // Dotted paths ("items.0.name", "" for the root); an unknown key is reported at its own path.
 export function zodToFieldErrors(error: z.ZodError): FieldErrors {
-  const fields: FieldErrors = {};
-  const add = (path: string, message: string) => (fields[path] ??= []).push(message);
+  // A Map, because an unknown key can be named `__proto__` or `constructor` (X20).
+  const fields = new Map<string, string[]>();
+  const add = (path: string, message: string) => {
+    fields.set(path, [...(fields.get(path) ?? []), message]);
+  };
   for (const issue of error.issues) {
     const parent = joinPath(issue.path);
     if (issue.code === "unrecognized_keys") {
@@ -77,7 +80,7 @@ export function zodToFieldErrors(error: z.ZodError): FieldErrors {
       add(parent, issue.code === "custom" ? issue.message : (MESSAGES[issue.code] ?? "Is invalid"));
     }
   }
-  return fields;
+  return Object.fromEntries(fields);
 }
 
 // Parses with the schema, or throws validation_failed with the field problems.

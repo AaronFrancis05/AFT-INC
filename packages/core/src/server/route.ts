@@ -56,7 +56,6 @@ export type AuthorizeContext<Tx, A extends AuthMode> = Omit<RouteContext<Tx, A>,
 export type RouteReply = {
   status: number;
   body?: unknown;
-  headers?: Record<string, string>;
 };
 
 type Schema = z.ZodType;
@@ -107,22 +106,21 @@ export type RouteWrapperOptions<Tx> = {
   verifyApiKey?: ContextResolver;
 };
 
+// What AC-5 calls a write. In user and org mode each one needs an Idempotency-Key; public routes
+// (webhooks) handle duplicates themselves.
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-// Signed in writes that must carry an Idempotency-Key (AC-5). Public routes (webhooks) dedupe
-// through the webhook inbox instead.
-const IDEMPOTENT_METHODS = new Set(["POST", "PATCH", "DELETE"]);
 
 // An API key call is any request carrying a Bearer token; everything else is a session call (AC-10).
 const BEARER = /^bearer\s/i;
 
 // Query values are strings; a key given more than once becomes an array.
+// fromEntries keeps `__proto__` an own key, so the strict schema refuses it like any other (X20).
 function queryObject(url: URL): Record<string, string | string[]> {
-  const result: Record<string, string | string[]> = {};
-  for (const key of new Set(url.searchParams.keys())) {
+  const entries = [...new Set(url.searchParams.keys())].map((key): [string, string | string[]] => {
     const values = url.searchParams.getAll(key);
-    result[key] = values.length === 1 ? values[0]! : values;
-  }
-  return result;
+    return [key, values.length === 1 ? values[0]! : values];
+  });
+  return Object.fromEntries(entries);
 }
 
 // An absent schema means nothing is accepted there: strict, like every boundary (AC-6).
@@ -184,7 +182,7 @@ export function createRouteWrapper<Tx>({
       const requestId = crypto.randomUUID();
       const now = new Date();
       const method = request.method;
-      const clientRequestId = request.headers.get("x-request-id");
+      const clientRequestId = request.headers.get("x-request-id")?.slice(0, 128);
       const exposeInternal = aftEnv() === "development";
       let log = logger.child({ requestId });
 
@@ -194,7 +192,8 @@ export function createRouteWrapper<Tx>({
       let replayed = false;
       let response: Response;
       const headers = new Headers({ "X-Request-Id": requestId });
-      if (WRITE_METHODS.has(method)) headers.set("Cache-Control", "no-store");
+      // A signed in reply is one person's data, so no shared cache may keep it.
+      if (auth !== "public" || WRITE_METHODS.has(method)) headers.set("Cache-Control", "no-store");
 
       try {
         // The order of work (spec 0011): the first failure wins, so a caller with no session gets
@@ -219,7 +218,7 @@ export function createRouteWrapper<Tx>({
         if (resolved && !apiKeyCall && WRITE_METHODS.has(method))
           await checkOrigin(request.headers);
 
-        idempotent = auth !== "public" && IDEMPOTENT_METHODS.has(method);
+        idempotent = auth !== "public" && WRITE_METHODS.has(method);
         const key = request.headers.get("idempotency-key");
         if (idempotent && !isIdempotencyKey(key)) throw new AppError("bad_request", KEY_MESSAGE);
 
@@ -241,7 +240,6 @@ export function createRouteWrapper<Tx>({
         )
           throw new AppError("forbidden");
 
-        let replyHeaders: Record<string, string> = {};
         const run = async (db?: Tx): Promise<Reply> => {
           const ctx = resolved ? { ...callerContext, db } : callerContext;
           const reply = await definition.handler({
@@ -250,7 +248,6 @@ export function createRouteWrapper<Tx>({
             params: params as Out<P>,
             ctx: ctx as RouteContext<Tx, A>,
           });
-          replyHeaders = reply.headers ?? {};
           return { status: reply.status, body: reply.body ?? null };
         };
 
@@ -291,7 +288,6 @@ export function createRouteWrapper<Tx>({
           const code = (reply.body as { code?: unknown } | null)?.code;
           result = status >= 400 && typeof code === "string" ? code : "ok";
         } else {
-          for (const [name, value] of Object.entries(replyHeaders)) headers.set(name, value);
           result = "ok";
         }
         if (reply.body === null) {
