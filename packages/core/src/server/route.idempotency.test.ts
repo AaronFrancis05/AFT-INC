@@ -343,3 +343,31 @@ describe("idempotent writes (AC-4)", () => {
     });
   });
 });
+
+describe("when saving a handler failure fails (AC-4)", () => {
+  it("still replies with the failure, warns, and a retry runs the handler again", async () => {
+    const { defineRoute, database, lines } = setup();
+    let calls = 0;
+    const route = defineRoute({
+      name: "names.take",
+      path: "/api/v1/names",
+      auth: "org",
+      handler: async () => {
+        calls += 1;
+        throw new AppError("conflict", "That name is taken");
+      },
+    });
+    database.store.save = async () => {
+      throw new Error("database went away");
+    };
+
+    const first = await route(post({}), noParams);
+    expect(first.status).toBe(409);
+    expect(lines).toContainEqual(
+      expect.objectContaining({ level: "warn", msg: "could not save the idempotent failure" }),
+    );
+
+    expect((await route(post({}), noParams)).status).toBe(409);
+    expect(calls).toBe(2);
+  });
+});

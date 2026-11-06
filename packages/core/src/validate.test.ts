@@ -156,3 +156,15 @@ describe("readJsonBody", () => {
     await expect(readJsonBody(json("﻿{}"), 100)).resolves.toEqual({});
   });
 });
+
+describe("unknown keys below the root (AC-6)", () => {
+  it("names the key under its parent path", () => {
+    const schema = input({ items: z.array(input({ name: text({ max: 3 }) })) });
+    expect(() => parseInput(schema, { items: [{ name: "ok", extra: 1 }] })).toThrow(
+      expect.objectContaining({
+        code: "validation_failed",
+        fieldErrors: { "items.0.extra": ["Unknown field"] },
+      }),
+    );
+  });
+});

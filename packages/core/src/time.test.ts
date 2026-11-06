@@ -32,6 +32,12 @@ describe("time helpers (AC-15, X10)", () => {
       );
   });
 
+  it("formatInstant with no styles uses Intl's short date, still in the caller's zone", () => {
+    expect(formatInstant(instant, { locale: "en-US", timeZone: "Africa/Kampala" })).toBe(
+      "10/30/2026",
+    );
+  });
+
   it("formatInstant renders in the caller's zone and locale", () => {
     const options = { locale: "en-US", dateStyle: "medium", timeStyle: "short" } as const;
     expect(formatInstant(instant, { ...options, timeZone: "UTC" })).toBe("Oct 29, 2026, 9:30 PM");

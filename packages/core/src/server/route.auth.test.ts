@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { forbidden, notFound, permanentRedirect, redirect, unauthorized } from "next/navigation";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createLogger } from "../log";
 import { input, text } from "../validate";
@@ -265,5 +265,75 @@ describe("Next.js control flow in routes (AC-9, X26)", () => {
     });
     expect(database.rows.size).toBe(0);
     expect(lines.filter((line) => line.level === "error")).toHaveLength(1);
+  });
+});
+
+describe("access line for control flow (AC-9, AC-13, spec Exceptions)", () => {
+  // Next.js refuses forbidden() and unauthorized() unless authInterrupts is on.
+  it.each([
+    ["forbidden()", () => forbidden(), 403, "forbidden"],
+    ["unauthorized()", () => unauthorized(), 401, "unauthenticated"],
+    ["permanentRedirect()", () => permanentRedirect("/x"), 308, "ok"],
+  ])(
+    "%s is rethrown and logged with its own status and result",
+    async (_name, call, status, result) => {
+      vi.stubEnv("__NEXT_EXPERIMENTAL_AUTH_INTERRUPTS", "true");
+      const { defineRoute, lines } = setup();
+      const route = defineRoute({
+        name: "things.flow",
+        path: "/api/v1/things",
+        auth: "public",
+        handler: async () => call(),
+      });
+      await expect(route(new Request(url), noParams)).rejects.toHaveProperty("digest");
+      expect(lines.at(-1)).toMatchObject({ level: "info", status, result });
+      expect(lines.filter((line) => line.level === "error")).toEqual([]);
+    },
+  );
+
+  it("other Next.js bailouts are rethrown too, logged as ok", async () => {
+    const { defineRoute, lines } = setup();
+    const bailout = Object.assign(new Error("dynamic"), { digest: "DYNAMIC_SERVER_USAGE" });
+    const route = defineRoute({
+      name: "things.dynamic",
+      path: "/api/v1/things",
+      auth: "public",
+      handler: async () => {
+        throw bailout;
+      },
+    });
+    await expect(route(new Request(url), noParams)).rejects.toBe(bailout);
+    expect(lines.at(-1)).toMatchObject({ status: 200, result: "ok" });
+  });
+
+  it("an idempotent throw outside production logs 500 internal and no error line of its own", async () => {
+    const { defineRoute, lines } = setup();
+    const go = defineRoute({
+      name: "projects.go",
+      path: "/api/v1/projects",
+      auth: "org",
+      handler: async () => redirect("/x"),
+    });
+    await expect(go(write({ origin: "https://aft.example" }), noParams)).rejects.toThrow(Error);
+    expect(lines.at(-1)).toMatchObject({ status: 500, result: "internal" });
+    expect(lines.filter((line) => line.level === "error")).toEqual([]);
+  });
+});
+
+describe("a failed origin lookup (AC-10, X24)", () => {
+  it("fails closed with no handler run, then asks again on the next write", async () => {
+    const allowedOrigins = vi
+      .fn<() => Promise<readonly string[]>>()
+      .mockRejectedValueOnce(new Error("config not ready"))
+      .mockResolvedValue(["https://aft.example"]);
+    const { route, handler } = setup(member, { allowedOrigins });
+
+    const failed = await route(write({ origin: "https://aft.example" }), noParams);
+    expect(failed.status).toBe(500);
+    expect(handler).not.toHaveBeenCalled();
+
+    const retried = await route(write({ origin: "https://aft.example" }), noParams);
+    expect(retried.status).toBe(201);
+    expect(allowedOrigins).toHaveBeenCalledTimes(2);
   });
 });

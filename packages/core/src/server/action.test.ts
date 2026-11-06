@@ -403,3 +403,35 @@ describe("Next.js control flow (AC-9, X26)", () => {
     expect(lines.filter((line) => line.level === "error")).toHaveLength(1);
   });
 });
+
+describe("an idempotent reply over 64 KB (AC-4)", () => {
+  const big = (defineAction: ReturnType<typeof setup>["defineAction"]) =>
+    defineAction({
+      name: "reports.make",
+      auth: "user",
+      idempotent: true,
+      input: input({}),
+      handler: async () => "x".repeat(70 * 1024),
+    });
+
+  it("is sent unsaved in production, with an error line naming the scope", async () => {
+    vi.stubEnv("AFT_ENV", "production");
+    vi.stubEnv("NODE_ENV", "production");
+    const { defineAction, database, lines } = setup();
+    const result = await big(defineAction)({ idempotencyKey: "k1" });
+    expect(result.ok && result.data.length).toBe(70 * 1024);
+    expect(database.rows.size).toBe(0);
+    expect(lines).toContainEqual(
+      expect.objectContaining({ level: "error", scope: "action:reports.make" }),
+    );
+  });
+
+  it("fails as internal outside production and saves nothing", async () => {
+    const { defineAction, database } = setup();
+    expect(await big(defineAction)({ idempotencyKey: "k1" })).toMatchObject({
+      ok: false,
+      error: { code: "internal" },
+    });
+    expect(database.rows.size).toBe(0);
+  });
+});
