@@ -110,7 +110,7 @@ Spec: [0011](../specs/0011-engineering-standards/index.md).
 - [x] Verify it: `/check verify engineering standards and shared helpers`
 - [x] Test it: `/test engineering standards and shared helpers`
 - [x] Review it (fresh model): `/check review engineering standards and shared helpers`
-- [ ] Document it: `/document engineering standards and shared helpers`
+- [x] Document it: `/document engineering standards and shared helpers`
 - [ ] Ship it: squash merge the pull request with all six checks green
 
 ### 8. Local dev stack · needs a decision

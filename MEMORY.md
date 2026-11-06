@@ -533,3 +533,7 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Built step 7. Also found while testing: `zodToFieldErrors` crashed on unknown keys named after `Object` members (`constructor`, `__proto__`), so such a body gave 500; now a `Map`, 400 as X20 says.
 - Left out on purpose: `crypto.randomUUID` fallback. Older and separate: `FormLabel` not linked to its input.
 - Next: `/check verify engineering standards and shared helpers` for the unticked `After review` steps, then `/document`.
+
+### 2026-11-06 (/document pr, then squash merge of feature 7)
+- Engineer chose to merge before running the 11 `After review` steps in spec 0011 verify.md. Skipped, not passed: AC-9 on the shipped config and the review fixes are proved by unit tests and CI only. The PR says so. Run them with the first real route, or with `/check verify` on `main`.
+- Next: `/sync` (ticks `Ship it`, marks the feature `done`, spec `Accepted`).
