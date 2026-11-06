@@ -28,8 +28,8 @@ What you must never do: deviate from PLAN.md without an `/architect` spec update
 
 - **Language / Runtime**: TypeScript (strict), Node 24 LTS locally and in CI
 - **Framework**: Next.js 16.4 App Router, React 19.2
-- **Key dependencies**: Better Auth 1.7 (email and password, email OTP, Google, GitHub), Prisma 7 with `@prisma/adapter-pg` on PostgreSQL, Resend with react-email, zod 4 with react-hook-form, shadcn (`radix-lyra` style) on Tailwind v4
-- **Package manager**: pnpm 12.15.0 workspaces (`pnpm-lock.yaml`; versions pinned once in the `pnpm-workspace.yaml` catalog) with Turborepo 2.11.10. Layout: `apps/web` (`@aft/app-web`) plus `packages/config`, `db`, `email`, `auth`, and `ui` (`@aft/*`, shipped as TypeScript source; spec 0008)
+- **Key dependencies**: Better Auth 1.7 (email and password, email OTP, Google, GitHub), Prisma 7 with `@prisma/adapter-pg` on PostgreSQL, Resend with react-email, zod 4 with react-hook-form, shadcn (`radix-lyra` style) on Tailwind v4, pino for logs
+- **Package manager**: pnpm 12.15.0 workspaces (`pnpm-lock.yaml`; versions pinned once in the `pnpm-workspace.yaml` catalog) with Turborepo 2.11.10. Layout: `apps/web` (`@aft/app-web`) plus `packages/config`, `core`, `db`, `email`, `auth`, and `ui` (`@aft/*`, shipped as TypeScript source; spec 0008)
 
 ## Build approach
 
@@ -77,6 +77,10 @@ pnpm --filter @aft/app-web test:watch
 # CI contract test (ci.test.ts at the root)
 pnpm test:root
 
+# Database tests (*.db.test.ts in packages/db and apps/web); they connect only through
+# TEST_DATABASE_URL, a superuser login on a throwaway Postgres, which CI provides
+pnpm turbo run test:db --concurrency=2
+
 # Browser smoke tests (Playwright); Turborepo builds the app first
 pnpm turbo run test:e2e --filter=@aft/app-web
 
@@ -86,7 +90,7 @@ pnpm --silent --filter @aft/app-web env:schema
 
 ## Environment
 
-Set in `.env` (gitignored, copy `.env.example`): `AFT_ENV` (`development`, `test`, or `production`; required, no default), `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`. Client code may only read `NEXT_PUBLIC_*` variables. There is one `.env`, at the repo root, for every workspace. Turborepo runs in strict env mode, so a new variable must also be added to `turbo.json` `globalEnv`, or tasks cannot see it. Every variable is validated when the server starts (`apps/web/instrumentation.ts`): a missing or wrong one stops it with a list of every problem, by name only (spec 0010). `AFT_ENV=production` turns on the strict rules (https auth URL, live Resend sender and key).
+Set in `.env` (gitignored, copy `.env.example`): `AFT_ENV` (`development`, `test`, or `production`; required, no default), `DATABASE_URL`, `BETTER_AUTH_URL`, `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and optional `LOG_LEVEL` (blank means debug in development, info in production, silent in test). Client code may only read `NEXT_PUBLIC_*` variables. There is one `.env`, at the repo root, for every workspace. Turborepo runs in strict env mode, so a new variable must also be added to `turbo.json` `globalEnv`, or tasks cannot see it. Every variable is validated when the server starts (`apps/web/instrumentation.ts`): a missing or wrong one stops it with a list of every problem, by name only (spec 0010). `AFT_ENV=production` turns on the strict rules (https auth URL, live Resend sender and key).
 
 ## Specs
 
@@ -96,9 +100,12 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md` (or a `NNNN-title/` 
 
 - Inside `apps/web`, import with the `@/` alias (it maps to `apps/web`). Shared code comes from the `@aft/*` packages, only through each package's `exports` map: a deep `@aft/*/src/*` import, importing `@aft/app-web`, or `@/` inside `packages/` fails lint or `ci.test.ts`.
 - Server code reads the session with `auth.api.getSession({ headers: await headers() })`, with `auth` from `@aft/auth/server`; client code uses `authClient` from `@aft/auth/client`. `@aft/db`, `@aft/auth/server`, and `@aft/auth/providers` start with `import "server-only"`, so importing one into a `'use client'` file fails `next build` (a whole `import type` from `@aft/auth/providers` is fine). Any Node runtime that is not Next.js (Vitest, scripts, a future `apps/worker`) aliases `server-only` to `@aft/config/stubs/empty`.
+- Every server action is a `defineAction` and every `/api/v1` route a `defineRoute`, both from `@/lib/server`; `ci.test.ts` fails on anything else (spec 0011). In `user` and `org` mode, `POST`, `PUT`, `PATCH`, and `DELETE` need an `Idempotency-Key`; a handler returns status and body only.
+- Tenant data goes through `ctx.db` in a wrapped call, or `forOrg` and `withOrg` from `@aft/db/tenant`, so row level security applies. Lint fails on the raw client import outside repositories, tests, and files listed with `allowRawPrisma()`. A new table with `organizationId` needs forced row level security, or the catalog test fails.
+- Log with `@aft/core/log`, ids only, never an email or a whole body. `no-console` is on; `components/` and `hooks/` may use `console.error` until Sentry (feature 23).
 - All database access goes through the shared client from `@aft/db`. The generated client in `packages/db/src/generated/prisma` is gitignored and made by `db:generate`; never edit it by hand.
 - Schema changes go through `pnpm --filter @aft/db db:migrate`. Never edit a migration that is already applied.
-- Forms use a zod schema (auth forms: `@aft/auth/schemas`), react-hook-form with `zodResolver`, and the shadcn `Form` components. User feedback goes through `sonner` toasts.
+- Forms use a zod schema (auth forms: `@aft/auth/schemas`), react-hook-form with `zodResolver`, and the shadcn `Form` components. Spread `{...field}` on the real input, even inside a wrapper: that is how `FormLabel` links to it. User feedback goes through `sonner` toasts.
 - UI primitives come from `@aft/ui` (`packages/ui/src/components`). Add one with `pnpm exec shadcn add <component>` run from `packages/ui` (never from `apps/web`, never `pnpm dlx`), then apply the post add rewrite in spec 0008 *shadcn setup*. Merge classes with `cn()` from `@aft/ui/lib/utils`; lint fails on any import of the npm `cn` package (I29).
 - Pages that read the session export `const dynamic = "force-dynamic"`.
 - Tests live beside the code as `*.test.ts(x)` (Vitest in each workspace, jsdom or node, Testing Library); Playwright smoke tests live in `apps/web/e2e/*.spec.ts`. Every workspace Vitest config sets `maxWorkers: 2` (spec 0008, AC-20). Preferences are in `test-preferences.json`.
@@ -125,6 +132,7 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md` (or a `NNNN-title/` 
 - On Windows an empty env var is deleted, so `.env` refills it. To blank a variable for a local run, set it to a single space (the env schema treats a whitespace only value as unset). Inline variables win over `.env`.
 - `next build` imports `@aft/db` and `@aft/auth/server`, so their accessors run at build time: a build needs `AFT_ENV`, `DATABASE_URL`, and the auth values set, placeholders are fine (CI's are). The whole app check itself is skipped during the build. `next start` logs `✓ Ready` just before a failing env check exits; no request is served.
 - CI (`.github/workflows/ci.yml`) runs six required gates: test (`pnpm turbo run test:coverage //#test:root:coverage --concurrency=2`), typecheck, lint, prisma, build-smoke, and audit (`pnpm audit --prod --audit-level high`). Jobs use placeholder env values, never secrets (I6), and each job has its own `.turbo` cache. A rerun of the `test` job bypasses the Turborepo cache on purpose (`TURBO_FORCE`).
+- CI runs on pull requests, on `main`, and by hand, not on a push to a feature branch. To run it before a PR: `gh workflow run ci.yml --ref <branch>`. The `test` job also runs `test:db` on its own Postgres.
 - The CI `lint` job also runs the format check (`format:check` plus `//#format:root:check`), and CI installs with `HUSKY=0` so no hooks are set up there.
 - Hooks install on `pnpm install` (`prepare`). If `git config core.hooksPath` is not `.husky/_`, run `pnpm run prepare`. Run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once per clone, so `git blame` skips the one time Prettier reformat (`7c7c901`).
 - Open `AFT-INC` itself as the VS Code folder, not a parent folder, or ESLint and Prettier run from the wrong place (I45). `.vscode/` turns on format and ESLint fix on save.
@@ -147,6 +155,7 @@ Installed per project in `.claude/skills/` (pinned in `skills-lock.json`; restor
 - [playwright-best-practices](.claude/skills/playwright-best-practices/): `currents-dev/playwright-best-practices-skill`, E2E patterns, flaky tests, CI, accessibility
 - [pnpm](.claude/skills/pnpm/): `antfu/skills`, pnpm workspaces, catalogs, overrides, and `pnpm-workspace.yaml`
 - [turborepo](.claude/skills/turborepo/): `vercel/turborepo`, `turbo.json` tasks, caching, env modes, filtering, and CI
+- [pino-logging](.claude/skills/pino-logging/): `oakoss/agent-skills`, pino's API, redaction paths, and child loggers; where it conflicts with spec 0011, the spec wins
 - MCP servers: `playwright` (`@playwright/mcp`, configured in `.mcp.json`; Claude Code asks you to approve it on first use)
 - Declined (2026-10-28, spec 0009 pins every config file): Prettier, Husky, lint-staged, ESLint, and EditorConfig skills (`mattpocock/skills` setup-pre-commit, `patricio0312rev/skills` eslint-prettier-config, `github/awesome-copilot` editorconfig), and the `@eslint/mcp` server
 
@@ -189,5 +198,6 @@ AWS account access is set up with the Agent Toolkit: CLI profile `remwa`, defaul
 
 <!-- Nested AGENTS.md files are listed here as they are created -->
 - [apps/web/AGENTS.md](apps/web/AGENTS.md): the Next.js agent rules block that `next dev` writes for the app
+- [packages/core/AGENTS.md](packages/core/AGENTS.md): the shared standard helpers and the route and action wrappers
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._

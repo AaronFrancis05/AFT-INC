@@ -537,3 +537,8 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 ### 2026-11-06 (/document pr, then squash merge of feature 7)
 - Engineer chose to merge before running the 11 `After review` steps in spec 0011 verify.md. Skipped, not passed: AC-9 on the shipped config and the review fixes are proved by unit tests and CI only. The PR says so. Run them with the first real route, or with `/check verify` on `main`.
 - Next: `/sync` (ticks `Ship it`, marks the feature `done`, spec `Accepted`).
+
+### 2026-11-06 (shipped feature 7, form label fix, /sync)
+- PR #20 squash merged as `00f06e4`, PR #21 (`FormLabel` links to its input) as `c1782b4`. Scope feature 7 `done`, spec 0011 `Accepted`.
+- Still owed: the 11 unticked `After review` steps in spec 0011 verify.md. They were skipped by the engineer's choice, not passed. `FormMessage` has no `aria-describedby` yet.
+- Next: run those steps with the first real route, then the next scope feature.
