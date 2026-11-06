@@ -38,7 +38,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 4 | [Monorepo migration](foundation.md) | Foundation | done |
 | 5 | [Workspace tooling](foundation.md) | Foundation | done |
 | 6 | [Typed environment config](foundation.md) | Foundation | done |
-| 7 | [Engineering standards and shared helpers](foundation.md) | Foundation | in-progress |
+| 7 | [Engineering standards and shared helpers](foundation.md) | Foundation | done |
 | 8 | [Local dev stack](foundation.md) | Foundation | planned |
 | 9 | [Container images](foundation.md) | Foundation | in-progress |
 | 10 | [AWS foundation](foundation.md) | Foundation | in-progress |

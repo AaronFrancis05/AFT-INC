@@ -96,7 +96,7 @@ Spec: [0010](../specs/0010-typed-environment-config/index.md).
 - [ ] Test it: `/test typed environment config` (skipped 2026-10-29, engineer's call: went straight to the PR after verify passed)
 - [x] Ship it: squash merge the pull request with all six checks green
 
-### 7. Engineering standards and shared helpers · in-progress · GA
+### 7. Engineering standards and shared helpers · done · GA
 One standard spec: one way to do errors, logging, validation, idempotency, tenant scoping, and API style, shipped as shared helpers.
 **Done when:** shared helpers exist with tests for: idempotent mutations (X1), input validation and size limits (X8), money and time handling (X10), untrusted model output (X14), and tenant scoped data access that returns 404 across workspaces (X15).
 Spec: [0011](../specs/0011-engineering-standards/index.md).
@@ -111,7 +111,7 @@ Spec: [0011](../specs/0011-engineering-standards/index.md).
 - [x] Test it: `/test engineering standards and shared helpers`
 - [x] Review it (fresh model): `/check review engineering standards and shared helpers`
 - [x] Document it: `/document engineering standards and shared helpers`
-- [ ] Ship it: squash merge the pull request with all six checks green
+- [x] Ship it: squash merge the pull request with all six checks green
 
 ### 8. Local dev stack · needs a decision
 One command runs the apps locally against the `dev` database on the EC2 server, with seed data.
