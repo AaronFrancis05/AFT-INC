@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useForm } from "react-hook-form";
 import { describe, expect, it } from "vitest";
-import { Form, FormField, FormItem, FormMessage } from "./form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./form";
 
 type Values = { email: string; name: string };
 
@@ -80,5 +80,59 @@ describe("FormMessage", () => {
 
     expect(await screen.findByText("Use your work email")).toBeInTheDocument();
     expect(screen.queryByText("Email is required")).not.toBeInTheDocument();
+  });
+});
+
+function LabelledForm() {
+  const form = useForm<Values>({ defaultValues: { email: "", name: "" } });
+  return (
+    <Form {...form}>
+      <FormField
+        control={form.control}
+        name="email"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl>
+              <input {...field} />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Name</FormLabel>
+            <FormControl>
+              <div className="relative">
+                <input {...field} />
+                <button type="button">Show</button>
+              </div>
+            </FormControl>
+          </FormItem>
+        )}
+      />
+    </Form>
+  );
+}
+
+describe("FormLabel", () => {
+  it("links to the input that spreads field, even inside a wrapper", () => {
+    render(<LabelledForm />);
+
+    expect(screen.getByLabelText("Email").tagName).toBe("INPUT");
+    expect(screen.getByLabelText("Name").tagName).toBe("INPUT");
+    expect(screen.getByLabelText("Email")).not.toBe(screen.getByLabelText("Name"));
+  });
+
+  it("clicking a label focuses its field", async () => {
+    const user = userEvent.setup();
+    render(<LabelledForm />);
+
+    await user.click(screen.getByText("Name"));
+
+    expect(screen.getByLabelText("Name")).toHaveFocus();
   });
 });

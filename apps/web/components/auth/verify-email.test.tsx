@@ -58,6 +58,11 @@ describe("VerifyEmail", () => {
     vi.useRealTimers();
   });
 
+  it("links the Verification Code label to the real OTP input", () => {
+    render(<VerifyEmail />);
+    expect(screen.getByLabelText("Verification Code").tagName).toBe("INPUT");
+  });
+
   it("shows the email the code was sent to", () => {
     render(<VerifyEmail />);
 
