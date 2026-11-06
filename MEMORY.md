@@ -527,3 +527,9 @@ Locked decisions. Changing one needs an `/architect` supersede and a new line he
 - Fixed: `experimental.authInterrupts` on (the major; AC-9 was only proved with the flag on in a throwaway worktree, and the unit test stubs it), cursor id must be `z.uuid()`, root failures in model output say `(root)`.
 - Not fixed, needs `/architect`: AC-5 wording (public routes are exempt, nothing throws, `PUT` has the Origin check but no key) and whether replays keep handler headers. Not fixed, small: `crypto.randomUUID` missing on plain http, six nits.
 - Next: rerun the unticked `After review` steps in verify.md with `/check verify` on the shipped config, then `/document`.
+
+### 2026-11-06 (/architect then /develop: review decisions, build step 7)
+- Spec 0011 updated, cross checked on Sonnet, accepted: a write is `POST`, `PUT`, `PATCH`, `DELETE` and every `user` or `org` write needs a key; public routes are exempt; route handlers return status and body only (`headers` removed), so a replay is the same reply; signed in replies send `no-store`; `rawBody` is public only. Reasons in rationale `## Changed after review`.
+- Built step 7. Also found while testing: `zodToFieldErrors` crashed on unknown keys named after `Object` members (`constructor`, `__proto__`), so such a body gave 500; now a `Map`, 400 as X20 says.
+- Left out on purpose: `crypto.randomUUID` fallback. Older and separate: `FormLabel` not linked to its input.
+- Next: `/check verify engineering standards and shared helpers` for the unticked `After review` steps, then `/document`.

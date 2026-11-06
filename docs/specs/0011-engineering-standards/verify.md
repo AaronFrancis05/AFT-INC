@@ -102,3 +102,11 @@ Steps for the fixes from [the review](../../reviews/2026-11-06-feat-engineering-
 - [ ] A fixture route that calls `unauthorized()`, on the shipped config under `next start` → 401 from Next.js, access line `unauthenticated` 401, no `error` line → AC-9
 - [ ] A list route called with a cursor that decodes to `{"id":"x"}` → 400 `validation_failed` on `cursor`, no query reaches Postgres → AC-17
 - [ ] `parseModelOutput` with broken JSON, and with valid JSON of the wrong type → `model_output_invalid` whose message ends `failing paths: (root))` → AC-16
+- [ ] A signed in `PUT` with no `Idempotency-Key` → 400; with a valid key it runs once and a retry replays; with a foreign `Origin` as a session call → 403 → AC-5, AC-10
+- [ ] A `public` `POST` with no key or a bad key → runs, with no `ctx.db`, no Origin check, and `Cache-Control: no-store` → AC-5
+- [ ] A signed in `GET` → `Cache-Control: no-store`; a successful `public` `GET` → no `Cache-Control` → the `Cache-Control` rule
+- [ ] A replay with a body, and a replay of a reply with no body → the same status and body as the first, plus `Idempotent-Replayed: true`; no body means no `Content-Type` → AC-4
+- [ ] An `X-Request-Id` of 200 characters → `clientRequestId` holds the first 128; an empty one → the field is absent → AC-13
+- [ ] `?__proto__=a` on a route → 400 `validation_failed` naming the key; `?a=1&a=2` on a string field → 400 → AC-6
+- [ ] A JSON body with an unknown key named `constructor`, and one named `__proto__` → 400 `validation_failed` naming the key, not a 500 → AC-6, X20
+- After review coverage: AC-4, AC-5, AC-6, AC-9, AC-10, AC-13, AC-16, AC-17, and the `Cache-Control` rule
